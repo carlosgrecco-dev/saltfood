@@ -164,7 +164,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                 </div>
                 <div className="bg-white border border-gray-200 p-5 rounded-2xl">
                   <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Novos tenants</p>
-                  <p className="text-2xl font-bold text-gray-800">{data.novosTenantsNoPeriodo}</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.novosTenantsNoPeriodo ?? 0}</p>
                 </div>
                 <div className="bg-white border border-gray-200 p-5 rounded-2xl">
                   <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Clientes cadastrados</p>
@@ -179,7 +179,7 @@ const SuperAdminDashboardPage: React.FC = () => {
               <div className="mt-6 bg-white border border-gray-200 p-5 rounded-2xl">
                 <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-orange-500" /> Pedidos entregues por dia</p>
                 <SimpleBarChart
-                  data={data.pedidosPorDia.map((d) => ({ label: formatDataCurta(d.data), value: d.pedidos }))}
+                  data={(data.pedidosPorDia ?? []).map((d) => ({ label: formatDataCurta(d.data), value: d.pedidos }))}
                   formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
                 />
               </div>
@@ -187,7 +187,7 @@ const SuperAdminDashboardPage: React.FC = () => {
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white border border-gray-200 p-5 rounded-2xl">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Smartphone className="h-4 w-4 text-orange-500" /> Dispositivos</p>
-                  {data.dispositivos.length === 0 ? (
+                  {(data.dispositivos ?? []).length === 0 ? (
                     <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
                   ) : (
                     <StackedBar
@@ -198,7 +198,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                 </div>
                 <div className="bg-white border border-gray-200 p-5 rounded-2xl">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Globe2 className="h-4 w-4 text-orange-500" /> Navegadores</p>
-                  {data.navegadores.length === 0 ? (
+                  {(data.navegadores ?? []).length === 0 ? (
                     <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
                   ) : (
                     <StackedBar
@@ -212,7 +212,7 @@ const SuperAdminDashboardPage: React.FC = () => {
               <div className="mt-6 bg-white border border-gray-200 p-5 rounded-2xl">
                 <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><ListChecks className="h-4 w-4 text-orange-500" /> Uso de funcionalidades</p>
                 <div className="space-y-3">
-                  {data.usoFuncionalidades.map((f) => (
+                  {(data.usoFuncionalidades ?? []).map((f) => (
                     <div key={f.recurso} className="flex items-center gap-3">
                       <span className="w-40 shrink-0 text-sm text-gray-600 truncate">{f.recurso}</span>
                       <div className="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden">
@@ -238,7 +238,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {data.porTenant.map((t) => (
+                      {(data.porTenant ?? []).map((t) => (
                         <tr key={t.id} className="border-t border-gray-100">
                           <td className="px-5 py-3 font-medium text-gray-800">{t.nome}</td>
                           <td className="px-5 py-3">
