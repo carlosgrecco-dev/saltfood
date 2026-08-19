@@ -12,6 +12,7 @@ import { fetchFaturas, gerarFatura, gerarFaturasEmLote, setFaturaStatus, deleteF
 import { Empresa } from '../types/Empresa';
 import { Plano } from '../types/Plano';
 import { Fatura, StatusFatura } from '../types/Fatura';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
 type Tab = 'tenants' | 'atraso' | 'em-dia' | 'bloqueados' | 'faturas';
@@ -38,6 +39,7 @@ const TABS: { id: Tab; label: string; icon: typeof Building2 }[] = [
 ];
 
 const SuperAdminFinanceiroPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
 

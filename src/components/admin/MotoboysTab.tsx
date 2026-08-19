@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Trash2, KeyRound, ClipboardList, Wallet } from 'lucide-react';
+import { Plus, Trash2, KeyRound, ClipboardList, Wallet, MessageCircle } from 'lucide-react';
 import { Motoboy } from '../../types/Motoboy';
 import { fetchMotoboys, createMotoboy, updateMotoboy, setMotoboyStatus, setMotoboyPin, deleteMotoboy } from '../../lib/motoboysApi';
+import { onlyDigits } from '../../lib/masks';
+import { useTenant } from '../../context/TenantContext';
 import MotoboyPagamentosTab from './MotoboyPagamentosTab';
 
 interface MotoboysTabProps {
@@ -10,7 +12,16 @@ interface MotoboysTabProps {
 
 type SubTab = 'cadastro' | 'pagamentos';
 
+/** Mesmo padrão usado em PedidosTab.tsx pra abrir o WhatsApp com uma mensagem pronta. */
+const linkWhatsapp = (telefone: string, mensagem: string): string | null => {
+  const digits = onlyDigits(telefone);
+  if (!digits) return null;
+  const numero = digits.startsWith('55') ? digits : `55${digits}`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+};
+
 const MotoboysTab: React.FC<MotoboysTabProps> = ({ empresaId }) => {
+  const { slug, empresa } = useTenant();
   const [subTab, setSubTab] = useState<SubTab>('cadastro');
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
   const [newMotoboy, setNewMotoboy] = useState({ nome: '', telefone: '', taxaPadrao: '7.00' });
@@ -57,17 +68,25 @@ const MotoboysTab: React.FC<MotoboysTabProps> = ({ empresaId }) => {
     load();
   };
 
-  const handleSetPin = async (motoboyId: string) => {
-    const pin = pinDrafts[motoboyId];
+  const handleSetPin = async (motoboy: Motoboy) => {
+    const pin = pinDrafts[motoboy.id];
     if (!pin || !/^[0-9]{4,6}$/.test(pin)) {
       alert('Digite um PIN numérico de 4 a 6 dígitos.');
       return;
     }
-    setSavingPinFor(motoboyId);
+    setSavingPinFor(motoboy.id);
     try {
-      await setMotoboyPin(empresaId, motoboyId, pin);
-      setPinDrafts((prev) => ({ ...prev, [motoboyId]: '' }));
-      alert('PIN definido! Repasse ao motoboy o telefone cadastrado + este PIN para ele acessar /motoboy.');
+      await setMotoboyPin(empresaId, motoboy.id, pin);
+      setPinDrafts((prev) => ({ ...prev, [motoboy.id]: '' }));
+
+      const link = `${window.location.origin}/${slug}/motoboy`;
+      const mensagem = `Olá, ${motoboy.nome}! Você foi cadastrado como motoboy da ${empresa.nome}.\n\nAcesse pelo link: ${link}\n\nSeu login é o telefone cadastrado, e o PIN é: ${pin}`;
+      const whatsapp = motoboy.telefone ? linkWhatsapp(motoboy.telefone, mensagem) : null;
+      if (whatsapp) {
+        window.open(whatsapp, '_blank', 'noopener,noreferrer');
+      } else {
+        alert(`PIN definido! Repasse ao motoboy o link ${link}, o telefone cadastrado e o PIN: ${pin}`);
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Não foi possível definir o PIN.');
     } finally {
@@ -177,11 +196,12 @@ const MotoboysTab: React.FC<MotoboysTabProps> = ({ empresaId }) => {
                   className="w-32 px-2 py-1 border border-gray-300 rounded-lg text-sm"
                 />
                 <button
-                  onClick={() => handleSetPin(m.id)}
+                  onClick={() => handleSetPin(m)}
                   disabled={savingPinFor === m.id}
-                  className="text-xs bg-gray-800 hover:bg-gray-900 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-60"
+                  className="flex items-center gap-1 text-xs bg-gray-800 hover:bg-gray-900 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-60"
+                  title="Define o PIN e abre o WhatsApp com o link do app + acesso prontos pra enviar"
                 >
-                  {savingPinFor === m.id ? '...' : 'Definir PIN'}
+                  {savingPinFor === m.id ? '...' : <><MessageCircle className="h-3.5 w-3.5" /> Definir PIN e enviar</>}
                 </button>
               </div>
               <button
@@ -199,8 +219,8 @@ const MotoboysTab: React.FC<MotoboysTabProps> = ({ empresaId }) => {
         {motoboys.length === 0 && <p className="text-center text-gray-500 py-8">Nenhum motoboy cadastrado</p>}
       </div>
       <p className="text-xs text-gray-400 mt-3">
-        Depois de definir o PIN, repasse ao motoboy o telefone cadastrado + o PIN para ele acessar{' '}
-        <span className="font-mono">/motoboy</span>.
+        Ao definir o PIN, o WhatsApp abre automaticamente com o link do app e o acesso prontos pra enviar ao motoboy
+        (telefone precisa estar cadastrado). Sem telefone, o PIN aparece num aviso na tela pra você repassar manualmente.
       </p>
     </div>
   );

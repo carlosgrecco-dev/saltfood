@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserCircle, Lock, Loader2, Store, Bike, BarChart3, ShieldCheck, AlertCircle } from 'lucide-react';
 import { signInSuperAdmin } from '../lib/superAdminAuth';
 import InstallAppButton from '../components/InstallAppButton';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 const SuperAdminLoginPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');

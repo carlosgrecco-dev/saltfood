@@ -4,10 +4,12 @@ import { Settings, Save, ArrowLeft, Loader2, KeyRound, Plus, Trash2, Gift } from
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchConfiguracaoPlataforma, updateConfiguracaoPlataforma } from '../lib/configuracoesPlataforma';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
 
 const SuperAdminConfiguracoesPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
 

@@ -15,10 +15,12 @@ import {
 } from '../lib/empresas';
 import { maskDocumento, maskTelefone, documentoLabel } from '../lib/masks';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
 
 const SuperAdminEmpresasPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const location = useLocation();
   const [authorized] = useState(() => !!getSuperAdminSession());

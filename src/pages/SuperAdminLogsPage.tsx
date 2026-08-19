@@ -7,6 +7,7 @@ import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchLogs, fetchGatewaysStatus } from '../lib/logs';
 import { LogAuditoria, GatewayStatus, TipoLog, TIPO_LOG_LABELS } from '../types/Log';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 const TIPO_ICON: Record<TipoLog, typeof LogIn> = {
   ACESSO: LogIn,
@@ -21,6 +22,7 @@ const TIPO_COLOR: Record<TipoLog, string> = {
 };
 
 const SuperAdminLogsPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
 

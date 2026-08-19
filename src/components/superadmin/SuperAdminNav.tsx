@@ -17,14 +17,36 @@ interface SuperAdminNavProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+const IDLE_TIMEOUT_MS = 5000;
+
 const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(true);
+  const [idleHidden, setIdleHidden] = useState(false);
 
   useEffect(() => {
-    onOpenChange?.(open);
-  }, [open, onOpenChange]);
+    onOpenChange?.(open && !idleHidden);
+  }, [open, idleHidden, onOpenChange]);
+
+  // Retrai o menu por completo depois de 5s sem interação na página (mouse, teclado, toque ou
+  // scroll) — qualquer atividade traz de volta e reinicia a contagem. Some inteiro (não fica só
+  // no modo ícone) pra liberar tela em telas menores; volta assim que o admin voltar a usar.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const resetTimer = () => {
+      setIdleHidden(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => setIdleHidden(true), IDLE_TIMEOUT_MS);
+    };
+    const eventos: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    eventos.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+    return () => {
+      clearTimeout(timer);
+      eventos.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, []);
 
   return (
     <>
@@ -37,12 +59,13 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
-      {/* Drawer vertical — sempre visível do lado esquerdo. Recolhido, vira um rail só com os ícones;
-          expandido, mostra os rótulos. */}
+      {/* Drawer vertical do lado esquerdo. Recolhido, vira um rail só com os ícones; expandido,
+          mostra os rótulos. Depois de 5s sem atividade na página, some por completo (translate-x)
+          — qualquer interação (mouse, teclado, toque, scroll) traz de volta na hora. */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-white shadow-2xl transition-[width] duration-300 ease-in-out overflow-hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-white shadow-2xl transition-[width,transform] duration-300 ease-in-out overflow-hidden ${
           open ? 'w-72' : 'w-16'
-        }`}
+        } ${idleHidden ? '-translate-x-full' : 'translate-x-0'}`}
       >
         <div className={`flex items-center border-b border-gray-100 py-4 ${open ? 'justify-between px-5' : 'justify-center px-2'}`}>
           <div className="flex items-center gap-2.5 min-w-0">

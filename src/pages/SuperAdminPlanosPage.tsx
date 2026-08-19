@@ -7,6 +7,7 @@ import { fetchPlanos, createPlano, updatePlano, setPlanoStatus, deletePlano } fr
 import { fetchEmpresas, setEmpresaPlano } from '../lib/empresas';
 import { Plano } from '../types/Plano';
 import { Empresa } from '../types/Empresa';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
 
@@ -18,6 +19,7 @@ const emptyForm = {
 const formatLimite = (valor: number | null, sufixo: string) => (valor == null ? `${sufixo} ilimitado*` : `${valor} ${sufixo}`);
 
 const SuperAdminPlanosPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
 

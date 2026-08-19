@@ -14,6 +14,7 @@ import { maskDocumento, maskTelefone, slugify, onlyDigits } from '../lib/masks';
 import { EmpresaFormInput } from '../types/Empresa';
 import { Plano } from '../types/Plano';
 import { ApiError } from '../lib/apiClient';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 const emptyForm: EmpresaFormInput = {
   nome: '',
@@ -31,6 +32,7 @@ const emptyForm: EmpresaFormInput = {
 };
 
 const SuperAdminNovaEmpresaPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
 

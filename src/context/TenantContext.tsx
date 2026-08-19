@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useParams, Outlet } from 'react-router-dom';
+import { useParams, useLocation, Outlet } from 'react-router-dom';
 import { Loader2, AlertTriangle, Building2 } from 'lucide-react';
 import { fetchEmpresaPublicBySlug } from '../lib/empresas';
 import { API_URL, ApiError } from '../lib/apiClient';
@@ -27,6 +27,7 @@ type Status = 'loading' | 'ready' | 'not-found' | 'error';
  */
 const TenantProvider: React.FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
+  const location = useLocation();
   const [empresa, setEmpresa] = useState<EmpresaPublic | null>(null);
   const [status, setStatus] = useState<Status>('loading');
 
@@ -73,18 +74,26 @@ const TenantProvider: React.FC = () => {
     // manifest fica numa URL estável servida pela API (não um blob: gerado em memória) — um
     // blob muda a cada carregamento de página, e o Chrome decide se mostra o prompt de instalação
     // com base na URL do manifest; isso fazia o prompt às vezes não refletir a loja certa.
+    // O contexto (loja/admin/motoboy) muda o start_url — sem isso, instalar de dentro do admin ou
+    // do portal do motoboy sempre reabria a vitrine da loja, nunca a tela de onde foi instalado.
+    const contexto = location.pathname.endsWith('/admin')
+      ? 'admin'
+      : location.pathname.endsWith('/motoboy')
+        ? 'motoboy'
+        : 'loja';
+
     let manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     if (!manifestLink) {
       manifestLink = document.createElement('link');
       manifestLink.rel = 'manifest';
       document.head.appendChild(manifestLink);
     }
-    manifestLink.href = `${API_URL}/empresas/slug/${encodeURIComponent(slug)}/manifest.json`;
+    manifestLink.href = `${API_URL}/empresas/slug/${encodeURIComponent(slug)}/manifest.json?contexto=${contexto}`;
 
     return () => {
       manifestLink!.href = '/manifest.json';
     };
-  }, [empresa, slug]);
+  }, [empresa, slug, location.pathname]);
 
   if (status === 'loading') {
     return (

@@ -7,12 +7,14 @@ import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchSuperAdminDashboard } from '../lib/superAdminDashboard';
 import { SuperAdminDashboard } from '../types/SuperAdminDashboard';
+import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Periodo = 'hoje' | 'semana' | 'mes' | 'tudo';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const SuperAdminDashboardPage: React.FC = () => {
+  useSuperAdminManifest();
   const navigate = useNavigate();
   const [authorized] = useState(() => !!getSuperAdminSession());
   const [periodo, setPeriodo] = useState<Periodo>('mes');
