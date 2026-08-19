@@ -41,17 +41,17 @@ const MenuSection: React.FC<MenuSectionProps> = ({ onProductClick }) => {
   }, [empresa.id]);
 
   useEffect(() => {
-    if (!customer) {
+    if (!customer || !empresa.habilitarFavoritos) {
       setFavoritoIds(new Set());
       return;
     }
     fetchFavoritos(empresa.id, customer.id)
       .then((data) => setFavoritoIds(new Set(data.map((f) => f.produtoId))))
       .catch(() => setFavoritoIds(new Set()));
-  }, [empresa.id, customer]);
+  }, [empresa.id, empresa.habilitarFavoritos, customer]);
 
   const handleToggleFavorito = useCallback((produtoId: string) => {
-    if (!customer) return;
+    if (!customer || !empresa.habilitarFavoritos) return;
     const jaFavoritado = favoritoIds.has(produtoId);
     setFavoritoIds((prev) => {
       const next = new Set(prev);
@@ -164,7 +164,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({ onProductClick }) => {
                 product={product}
                 onClick={() => onProductClick(product)}
                 isFavorito={favoritoIds.has(product.id)}
-                onToggleFavorito={customer ? () => handleToggleFavorito(product.id) : undefined}
+                onToggleFavorito={customer && empresa.habilitarFavoritos ? () => handleToggleFavorito(product.id) : undefined}
               />
             ))}
           </div>

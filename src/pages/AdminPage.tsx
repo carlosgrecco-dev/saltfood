@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Package, Bike, DollarSign, ShoppingBag, LogOut, ArrowLeft, UserCircle, Lock, Loader2, BarChart3, CreditCard, Palette, Ticket,
-  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone,
+  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
@@ -25,8 +25,9 @@ import OperacionalTab from '../components/admin/OperacionalTab';
 import ZonasEntregaTab from '../components/admin/ZonasEntregaTab';
 import FidelidadeTab from '../components/admin/FidelidadeTab';
 import CategoriasTab from '../components/admin/CategoriasTab';
+import FuncionalidadesTab from '../components/admin/FuncionalidadesTab';
 
-type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia';
+type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades';
 
 const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'crm', label: 'CRM', icon: BarChart3 },
@@ -41,6 +42,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'operacional', label: 'Operacional', icon: Clock },
   { id: 'zonas-entrega', label: 'Entrega & Frete', icon: MapPin },
   { id: 'aparencia', label: 'Aparência', icon: Palette },
+  { id: 'funcionalidades', label: 'Funcionalidades', icon: Sparkles },
 ];
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
@@ -447,6 +449,7 @@ const AdminPage: React.FC = () => {
         {tab === 'operacional' && <OperacionalTab empresaId={empresa.id} />}
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'aparencia' && <AparenciaTab empresaId={empresa.id} />}
+        {tab === 'funcionalidades' && <FuncionalidadesTab empresaId={empresa.id} />}
       </div>
       </div>
     </div>

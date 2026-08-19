@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, LogOut, Package, MapPin, Ticket, Gift, Copy, Share2, Check, Heart } from 'lucide-react';
+import { ChevronRight, LogOut, Package, MapPin, Ticket, Gift, Copy, Share2, Check, Heart, Wallet } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import LoyaltyCard from './LoyaltyCard';
 import EnderecosSalvosModal from './EnderecosSalvosModal';
@@ -75,6 +75,18 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
 
           <LoyaltyCard customer={customer} />
 
+          {customer.saldoCashback > 0 && (
+            <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <Wallet className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xs text-emerald-700 font-medium">Seu saldo de cashback</p>
+                <p className="text-lg font-bold text-emerald-800">R$ {customer.saldoCashback.toFixed(2)}</p>
+              </div>
+            </div>
+          )}
+
           {customer.codigoIndicacao && (
             <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white">
               <p className="flex items-center gap-1.5 font-bold text-sm mb-1">
@@ -129,15 +141,17 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
               <ChevronRight className="h-4 w-4 text-gray-400" />
             </button>
 
-            <button
-              onClick={() => setIsFavoritosOpen(true)}
-              className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl p-4 transition-colors"
-            >
-              <span className="flex items-center gap-2 font-bold text-gray-800">
-                <Heart className="h-4 w-4 text-[var(--cor-primaria)]" /> Meus Favoritos
-              </span>
-              <ChevronRight className="h-4 w-4 text-gray-400" />
-            </button>
+            {empresa.habilitarFavoritos && (
+              <button
+                onClick={() => setIsFavoritosOpen(true)}
+                className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl p-4 transition-colors"
+              >
+                <span className="flex items-center gap-2 font-bold text-gray-800">
+                  <Heart className="h-4 w-4 text-[var(--cor-primaria)]" /> Meus Favoritos
+                </span>
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
           </div>
         </div>
       </BottomSheet>

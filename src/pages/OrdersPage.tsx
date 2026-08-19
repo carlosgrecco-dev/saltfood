@@ -151,7 +151,7 @@ const OrdersPage: React.FC = () => {
               </div>
 
               <div className="mt-3 flex gap-2">
-                {order.status !== 'CANCELADO' && order.itens.some((i) => i.produtoId) && (
+                {empresa.habilitarPedirDeNovo && order.status !== 'CANCELADO' && order.itens.some((i) => i.produtoId) && (
                   <button
                     onClick={() => handleReorder(order)}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"

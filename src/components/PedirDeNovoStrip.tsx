@@ -19,7 +19,7 @@ const PedirDeNovoStrip: React.FC<PedirDeNovoStripProps> = ({ onProductClick }) =
   const [maisComprados, setMaisComprados] = useState<Produto[]>([]);
 
   useEffect(() => {
-    if (!customer) {
+    if (!customer || !empresa.habilitarPedirDeNovo) {
       setMaisComprados([]);
       return;
     }
@@ -47,10 +47,10 @@ const PedirDeNovoStrip: React.FC<PedirDeNovoStripProps> = ({ onProductClick }) =
     return () => {
       cancelled = true;
     };
-  }, [customer, empresa.id]);
+  }, [customer, empresa.id, empresa.habilitarPedirDeNovo]);
 
   const temItens = useMemo(() => maisComprados.length > 0, [maisComprados]);
-  if (!customer || !temItens) return null;
+  if (!customer || !empresa.habilitarPedirDeNovo || !temItens) return null;
 
   return (
     <section className="pt-4">

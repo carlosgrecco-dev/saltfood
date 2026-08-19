@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import OrderTimeline from '../components/OrderTimeline';
 import AvaliacaoPopup from '../components/AvaliacaoPopup';
 import AtivarNotificacoesButton from '../components/AtivarNotificacoesButton';
+import NotificacaoBell from '../components/NotificacaoBell';
 
 const LiveTrackingMap = lazy(() => import('../components/LiveTrackingMap'));
 import { useTenant } from '../context/TenantContext';
@@ -64,7 +65,7 @@ const PedidoAcompanhamentoPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <Header rightExtra={<NotificacaoBell />} />
       <div className="max-w-xl mx-auto p-5 sm:p-8 w-full flex-1">
         <Link
           to={`/${slug}`}

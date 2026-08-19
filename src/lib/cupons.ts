@@ -3,9 +3,18 @@ import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { getClienteSession } from './clienteSession';
 
+/** Pública — usada na vitrine (guest ou cliente logado). Quando o cliente está logado, envia o
+ * token pra ele também ver os cupons pessoais dele (clienteAlvoId), além dos públicos. */
 export async function fetchCupons(empresaId: string, ativo?: boolean): Promise<Cupom[]> {
   const query = ativo !== undefined ? `?ativo=${ativo}` : '';
-  return apiRequest<Cupom[]>(`/empresas/${empresaId}/cupons${query}`);
+  const session = getClienteSession(empresaId);
+  return apiRequest<Cupom[]>(`/empresas/${empresaId}/cupons${query}`, undefined, session?.token);
+}
+
+/** Visão do admin — inclui todos os cupons da loja, inclusive os pessoais de cada cliente. */
+export async function fetchCuponsAsAdmin(empresaId: string, ativo?: boolean): Promise<Cupom[]> {
+  const query = ativo !== undefined ? `?ativo=${ativo}` : '';
+  return apiRequestAsAdmin<Cupom[]>(empresaId, `/empresas/${empresaId}/cupons${query}`);
 }
 
 export async function createCupom(empresaId: string, payload: CupomInput): Promise<Cupom> {

@@ -81,9 +81,13 @@ const LoyaltyCard: React.FC<LoyaltyCardProps> = ({ customer }) => {
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate font-extrabold text-sm">{empresa.nome}</p>
-          <p className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest ${TIER_COLORS[tier]}`}>
-            <Medal className="h-3 w-3" /> Nível {LOYALTY_TIER_LABELS[tier]}
-          </p>
+          {empresa.habilitarRankingFidelidade ? (
+            <p className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest ${TIER_COLORS[tier]}`}>
+              <Medal className="h-3 w-3" /> Nível {LOYALTY_TIER_LABELS[tier]}
+            </p>
+          ) : (
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">Cartão Fidelidade</p>
+          )}
         </div>
         {available > 0 && (
           <span className="shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold backdrop-blur-sm">

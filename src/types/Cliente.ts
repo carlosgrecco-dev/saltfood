@@ -10,6 +10,7 @@ export interface Cliente {
   itemGratisGanhoEm: string | null;
   codigoIndicacao: string | null;
   indicadoPorId: string | null;
+  saldoCashback: number;
   createdAt: string;
   updatedAt: string;
 }

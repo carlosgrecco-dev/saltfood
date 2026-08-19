@@ -19,6 +19,8 @@ export interface Cupom {
   usosRealizados: number;
   validoAte: string | null;
   ativo: boolean;
+  /** Quando preenchido, o cupom é pessoal — só esse cliente pode aplicá-lo. Null = cupom público. */
+  clienteAlvoId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +35,7 @@ export interface CupomInput {
   usoMaximo?: number;
   validoAte?: string;
   ativo?: boolean;
+  clienteAlvoId?: string | null;
 }
 
 export interface CupomValidado {

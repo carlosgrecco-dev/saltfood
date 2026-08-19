@@ -6,6 +6,7 @@ import CartDrawer from './CartDrawer';
 import CartToast from './CartToast';
 import CustomerAuthModal from './CustomerAuthModal';
 import CustomerArea from './CustomerArea';
+import NotificacaoBell from './NotificacaoBell';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 
@@ -15,7 +16,7 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 pb-safe-nav">
-      <Header />
+      <Header rightExtra={<NotificacaoBell />} />
 
       {!empresa.abertaAgora && (
         <div className="bg-gray-800 text-white text-sm text-center py-2.5 px-4 flex items-center justify-center gap-2">

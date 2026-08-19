@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Trash2, Pencil, X, Ticket } from 'lucide-react';
-import { fetchCupons, createCupom, updateCupom, setCupomStatus, deleteCupom } from '../../lib/cupons';
+import { Plus, Trash2, Pencil, X, Ticket, User } from 'lucide-react';
+import { fetchCuponsAsAdmin, createCupom, updateCupom, setCupomStatus, deleteCupom } from '../../lib/cupons';
+import { fetchClientes } from '../../lib/clientes';
 import { Cupom, CupomInput, TipoCupom, TIPO_CUPOM_LABELS } from '../../types/Cupom';
+import { Cliente } from '../../types/Cliente';
 
 interface CuponsTabProps {
   empresaId: string;
@@ -16,10 +18,12 @@ const emptyForm = {
   valorMinimoPedido: '',
   usoMaximo: '',
   validoAte: '',
+  clienteAlvoId: '',
 };
 
 const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
   const [cupons, setCupons] = useState<Cupom[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,7 +33,9 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setCupons(await fetchCupons(empresaId));
+      const [listaCupons, listaClientes] = await Promise.all([fetchCuponsAsAdmin(empresaId), fetchClientes(empresaId)]);
+      setCupons(listaCupons);
+      setClientes(listaClientes);
     } catch {
       /* silencioso */
     } finally {
@@ -40,6 +46,8 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const nomeCliente = (id: string) => clientes.find((c) => c.id === id)?.nome || 'cliente removido';
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -58,6 +66,7 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
       valorMinimoPedido: cupom.valorMinimoPedido != null ? String(cupom.valorMinimoPedido) : '',
       usoMaximo: cupom.usoMaximo != null ? String(cupom.usoMaximo) : '',
       validoAte: cupom.validoAte ? cupom.validoAte.slice(0, 10) : '',
+      clienteAlvoId: cupom.clienteAlvoId || '',
     });
   };
 
@@ -82,6 +91,7 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
       valorMinimoPedido: form.valorMinimoPedido ? Number(form.valorMinimoPedido) : undefined,
       usoMaximo: form.usoMaximo ? Number(form.usoMaximo) : undefined,
       validoAte: form.validoAte || undefined,
+      clienteAlvoId: form.clienteAlvoId || null,
     };
 
     setSaving(true);
@@ -195,6 +205,23 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
           <span className="text-sm text-gray-700">Válido apenas na primeira compra do cliente</span>
         </label>
 
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Cupom pessoal (opcional)</label>
+          <select
+            value={form.clienteAlvoId}
+            onChange={(e) => setForm({ ...form, clienteAlvoId: e.target.value })}
+            className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          >
+            <option value="">Público — qualquer cliente pode usar</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome} ({c.email})</option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">
+            Escolha um cliente pra criar um cupom pessoal (ex: "sentimos sua falta") — só ele consegue usar.
+          </p>
+        </div>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
@@ -223,6 +250,11 @@ const CuponsTab: React.FC<CuponsTabProps> = ({ empresaId }) => {
                   {cupom.apenasPrimeiraCompra ? ' · 1ª compra' : ''}
                   {cupom.usoMaximo != null ? ` · ${cupom.usosRealizados}/${cupom.usoMaximo} usos` : ` · ${cupom.usosRealizados} usos`}
                 </p>
+                {cupom.clienteAlvoId && (
+                  <p className="flex items-center gap-1 text-[11px] text-purple-600 font-medium mt-0.5">
+                    <User className="h-3 w-3" /> Pessoal — {nomeCliente(cupom.clienteAlvoId)}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => handleToggleAtivo(cupom)}

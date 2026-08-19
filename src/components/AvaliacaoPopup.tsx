@@ -230,7 +230,7 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
           submitting={submittingPedido}
           fotosExistentes={pedido.fotosAvaliacao}
           fotos={fotos}
-          onAddFoto={handleAddFoto}
+          onAddFoto={empresa.habilitarAvaliacaoComFotos ? handleAddFoto : undefined}
           onRemoveFoto={handleRemoveFoto}
           uploadingFoto={uploadingFoto}
         />

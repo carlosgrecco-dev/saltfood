@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, Gift, Plus, Clock } from 'lucide-react';
+import { Search, Gift, Plus, Clock, Wallet } from 'lucide-react';
 import { fetchClientes, liberarResgateCliente, adicionarUnidadesFidelidade } from '../../lib/clientes';
 import { fetchEmpresaById } from '../../lib/empresas';
 import { Cliente, loyaltyProgress, loyaltyExpiracao, LOYALTY_STAMPS_GOAL } from '../../types/Cliente';
@@ -125,6 +125,11 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                   <p className="font-bold text-gray-800">{cliente.nome}</p>
                   <p className="text-sm text-gray-500 truncate">{cliente.email}{cliente.telefone ? ` · ${cliente.telefone}` : ''}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{cliente.totalUnidadesCompradas} unidades compradas no total</p>
+                  {cliente.saldoCashback > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                      <Wallet className="h-3 w-3" /> R$ {cliente.saldoCashback.toFixed(2)} em cashback
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-col items-end gap-1 shrink-0">

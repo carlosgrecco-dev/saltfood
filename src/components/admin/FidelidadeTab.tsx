@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, ImageIcon, Clock, BellRing, Tag, Users, Settings } from 'lucide-react';
+import { Save, ImageIcon, Clock, BellRing, Tag, Users, Settings, Wallet } from 'lucide-react';
 import { fetchEmpresaById, updateFidelidadeConfig } from '../../lib/empresas';
 import { LOYALTY_STAMPS_GOAL } from '../../types/Cliente';
 import FidelidadeClientesTab from './FidelidadeClientesTab';
@@ -21,6 +21,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
   const [fidelidadeValidadeDias, setFidelidadeValidadeDias] = useState('');
   const [fidelidadeAvisoFaltam, setFidelidadeAvisoFaltam] = useState('');
   const [fidelidadeNomeItem, setFidelidadeNomeItem] = useState('');
+  const [cashbackPercent, setCashbackPercent] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -30,6 +31,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
       setFidelidadeValidadeDias(empresa.fidelidadeValidadeDias != null ? String(empresa.fidelidadeValidadeDias) : '');
       setFidelidadeAvisoFaltam(empresa.fidelidadeAvisoFaltam != null ? String(empresa.fidelidadeAvisoFaltam) : '');
       setFidelidadeNomeItem(empresa.fidelidadeNomeItem || '');
+      setCashbackPercent(empresa.cashbackPercent != null ? String(empresa.cashbackPercent) : '');
     } catch {
       /* silencioso */
     } finally {
@@ -50,6 +52,10 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
       setError(`O aviso deve ser entre 1 e ${LOYALTY_STAMPS_GOAL - 1}`);
       return;
     }
+    if (cashbackPercent && (Number(cashbackPercent) < 0 || Number(cashbackPercent) > 100)) {
+      setError('O percentual de cashback deve ser entre 0 e 100');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -58,6 +64,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         fidelidadeValidadeDias: fidelidadeValidadeDias ? Number(fidelidadeValidadeDias) : null,
         fidelidadeAvisoFaltam: fidelidadeAvisoFaltam ? Number(fidelidadeAvisoFaltam) : null,
         fidelidadeNomeItem: fidelidadeNomeItem || null,
+        cashbackPercent: cashbackPercent ? Number(cashbackPercent) : null,
       });
       setSuccess(true);
     } catch (err) {
@@ -188,6 +195,30 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
           />
           <p className="text-xs text-gray-400 mt-1.5">
             Usado no aviso, por exemplo: "Faltam 3 {fidelidadeNomeItem || 'itens'} para seu prêmio!"
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-orange-600" /> Cashback
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-xl">
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={cashbackPercent}
+              onChange={(e) => setCashbackPercent(e.target.value)}
+              placeholder="0"
+              className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+            <span className="text-sm text-gray-500">% do subtotal, creditado como saldo quando o pedido é entregue</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">
+            O cliente pode usar o saldo acumulado como desconto num pedido futuro. Deixe em branco ou 0 para desativar.
           </p>
         </div>
       </section>

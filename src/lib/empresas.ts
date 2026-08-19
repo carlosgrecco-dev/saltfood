@@ -1,4 +1,4 @@
-import { AparenciaInput, Empresa, EmpresaFormInput, EmpresaPublic, FidelidadeConfigInput } from '../types/Empresa';
+import { AparenciaInput, Empresa, EmpresaFormInput, EmpresaPublic, FidelidadeConfigInput, FuncionalidadesConfigInput } from '../types/Empresa';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { apiRequestAsSuperAdmin } from './superAdminAuth';
@@ -83,4 +83,8 @@ export async function setEmpresaPlano(id: string, planoId: string | null): Promi
 
 export async function updateFidelidadeConfig(id: string, input: FidelidadeConfigInput): Promise<Empresa> {
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/fidelidade-config`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export async function updateFuncionalidadesConfig(id: string, input: FuncionalidadesConfigInput): Promise<Empresa> {
+  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/funcionalidades-config`, { method: 'PUT', body: JSON.stringify(input) });
 }

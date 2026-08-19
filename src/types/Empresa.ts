@@ -37,6 +37,13 @@ export interface EmpresaPublic {
   fidelidadeValidadeDias: number | null;
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
+  cashbackPercent: number | null;
+  habilitarFavoritos: boolean;
+  habilitarPedirDeNovo: boolean;
+  habilitarRankingFidelidade: boolean;
+  habilitarAgendamento: boolean;
+  habilitarAvaliacaoComFotos: boolean;
+  habilitarNotificacoesInApp: boolean;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;
@@ -84,6 +91,13 @@ export interface Empresa {
   fidelidadeValidadeDias: number | null;
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
+  cashbackPercent: number | null;
+  habilitarFavoritos: boolean;
+  habilitarPedirDeNovo: boolean;
+  habilitarRankingFidelidade: boolean;
+  habilitarAgendamento: boolean;
+  habilitarAvaliacaoComFotos: boolean;
+  habilitarNotificacoesInApp: boolean;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;
@@ -117,6 +131,16 @@ export interface FidelidadeConfigInput {
   fidelidadeValidadeDias: number | null;
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
+  cashbackPercent: number | null;
+}
+
+export interface FuncionalidadesConfigInput {
+  habilitarFavoritos: boolean;
+  habilitarPedirDeNovo: boolean;
+  habilitarRankingFidelidade: boolean;
+  habilitarAgendamento: boolean;
+  habilitarAvaliacaoComFotos: boolean;
+  habilitarNotificacoesInApp: boolean;
 }
 
 export interface AparenciaInput {

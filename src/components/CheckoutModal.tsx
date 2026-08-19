@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer, CalendarClock } from 'lucide-react';
+import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer, CalendarClock, Wallet } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
@@ -46,10 +46,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
     ? Math.min(cupomAplicado.desconto, subtotalPosFidelidade)
     : 0;
   const freteGratisAplicado = Boolean(cupomAplicado?.freteGratis);
+  const subtotalPosCupom = Math.max(0, subtotalPosFidelidade - cupomDesconto);
+
+  const cashbackDisponivel = customer ? Number(customer.saldoCashback) : 0;
+  const [usarCashback, setUsarCashback] = useState(false);
+  const cashbackDesconto = usarCashback ? Math.min(cashbackDisponivel, subtotalPosCupom) : 0;
 
   const [taxaCalculada, setTaxaCalculada] = useState<number | null>(null);
   const deliveryFeeFinal = freteGratisAplicado ? 0 : (taxaCalculada ?? deliveryFee);
-  const displayTotal = subtotalPosFidelidade - cupomDesconto + deliveryFeeFinal;
+  const displayTotal = subtotalPosCupom - cashbackDesconto + deliveryFeeFinal;
 
   const pedidoMinimo = empresa.pedidoMinimo || 0;
   const abaixoDoPedidoMinimo = pedidoMinimo > 0 && subtotal < pedidoMinimo;
@@ -136,6 +141,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setCupomError('');
       setAgendarPedido(false);
       setHorarioAgendado('');
+      setUsarCashback(false);
     }
   }, [isOpen, customer, empresa.id]);
 
@@ -204,6 +210,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         usarItemGratis: useFreeItem,
         cupomCodigo: cupomAplicado?.codigo,
         agendadoPara: agendarPedido && horarioAgendado ? new Date(horarioAgendado).toISOString() : undefined,
+        usarCashback: cashbackDesconto > 0 ? cashbackDesconto : undefined,
         itens: items.map((item) => ({
           produtoId: item.productId,
           quantidade: item.quantity,
@@ -465,6 +472,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
             </label>
           )}
 
+          {cashbackDisponivel > 0 && (
+            <label className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 rounded-xl px-4 py-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={usarCashback}
+                onChange={(e) => setUsarCashback(e.target.checked)}
+                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+              />
+              <Wallet className="h-5 w-5 text-emerald-600 shrink-0" />
+              <span className="text-sm text-gray-700">
+                Você tem <strong>R$ {cashbackDisponivel.toFixed(2)}</strong> de cashback — usar neste pedido
+              </span>
+            </label>
+          )}
+
           <div>
             <label className="block text-gray-700 font-medium mb-1 text-sm">Cupom de desconto</label>
             {cupomAplicado ? (
@@ -498,6 +520,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
             {cupomError && <p className="text-xs text-red-600 mt-1">{cupomError}</p>}
           </div>
 
+          {empresa.habilitarAgendamento && (
           <div>
             <label className="block text-gray-700 font-medium mb-1.5 text-sm">Quando você quer receber?</label>
             <div className="grid grid-cols-2 gap-2">
@@ -531,6 +554,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               />
             )}
           </div>
+          )}
 
           <div>
             <label className="block text-gray-700 font-medium mb-1 text-sm">Forma de pagamento</label>
@@ -591,6 +615,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               <div className="flex justify-between text-green-600">
                 <span>Cupom {cupomAplicado?.codigo}</span>
                 <span>- R$ {cupomDesconto.toFixed(2)}</span>
+              </div>
+            )}
+            {cashbackDesconto > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <span>Cashback</span>
+                <span>- R$ {cashbackDesconto.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-600">
