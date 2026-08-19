@@ -25,7 +25,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
 
   return (
     <div className="flex items-center gap-2.5">
-      {label && <span className="text-sm font-medium text-slate-700">{label}</span>}
+      {label && <span className="text-sm font-medium text-gray-700">{label}</span>}
       <button
         type="button"
         role="switch"
@@ -33,16 +33,16 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex ${track} shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${checked ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          ${checked ? 'bg-emerald-500' : 'bg-gray-300'}`}
       >
         <span
           className={`inline-block ${thumb} transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out
             ${checked ? translate : 'translate-x-1'}`}
         />
       </button>
-      <span className={`text-xs font-semibold ${checked ? 'text-emerald-600' : 'text-slate-400'}`}>
+      <span className={`text-xs font-semibold ${checked ? 'text-emerald-600' : 'text-gray-400'}`}>
         {checked ? activeLabel : inactiveLabel}
       </span>
     </div>

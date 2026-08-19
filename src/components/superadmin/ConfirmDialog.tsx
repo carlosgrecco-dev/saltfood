@@ -26,26 +26,26 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   const confirmClasses = tone === 'danger'
     ? 'bg-red-600 hover:bg-red-700 focus-visible:ring-red-500'
-    : 'bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500';
+    : 'bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-500';
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={loading ? undefined : onCancel} />
+      <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={loading ? undefined : onCancel} />
 
       <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl animate-scale-in">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-full ${tone === 'danger' ? 'bg-red-100' : 'bg-indigo-100'}`}>
-          <AlertTriangle className={`h-5 w-5 ${tone === 'danger' ? 'text-red-600' : 'text-indigo-600'}`} />
+        <div className={`flex h-11 w-11 items-center justify-center rounded-full ${tone === 'danger' ? 'bg-red-100' : 'bg-orange-100'}`}>
+          <AlertTriangle className={`h-5 w-5 ${tone === 'danger' ? 'text-red-600' : 'text-orange-500'}`} />
         </div>
 
-        <h3 className="mt-4 text-lg font-bold text-slate-900">{title}</h3>
-        <p className="mt-1.5 text-sm text-slate-500">{description}</p>
+        <h3 className="mt-4 text-lg font-bold text-gray-900">{title}</h3>
+        <p className="mt-1.5 text-sm text-gray-500">{description}</p>
 
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
           >
             Cancelar
           </button>

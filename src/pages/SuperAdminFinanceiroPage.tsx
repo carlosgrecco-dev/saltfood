@@ -204,13 +204,13 @@ const SuperAdminFinanceiroPage: React.FC = () => {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
-        <div className="border-b border-slate-200 bg-white">
+        <div className="border-b border-gray-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <button
               onClick={() => navigate('/super-admin/empresas')}
-              className="mb-3 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              className="mb-3 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" /> Voltar
             </button>
@@ -218,14 +218,14 @@ const SuperAdminFinanceiroPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
-                  <h1 className="text-xl font-bold text-slate-900">Financeiro</h1>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
+                  <h1 className="text-xl font-bold text-gray-900">Financeiro</h1>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { signOutSuperAdmin(); navigate('/super-admin', { replace: true }); }}
-                  className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors"
+                  className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
                 >
                   Sair
                 </button>
@@ -262,17 +262,17 @@ const SuperAdminFinanceiroPage: React.FC = () => {
               </p>
               <p className="text-2xl font-bold">R$ {totalEmAtraso.toFixed(2)}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4">
-              <p className="flex items-center gap-1.5 text-slate-500 text-xs mb-1 font-semibold uppercase tracking-wide">
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="flex items-center gap-1.5 text-gray-500 text-xs mb-1 font-semibold uppercase tracking-wide">
                 <Users className="h-3.5 w-3.5" /> Tenants
               </p>
-              <p className="text-2xl font-bold text-slate-800">{empresas.length}</p>
+              <p className="text-2xl font-bold text-gray-800">{empresas.length}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4">
-              <p className="flex items-center gap-1.5 text-slate-500 text-xs mb-1 font-semibold uppercase tracking-wide">
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="flex items-center gap-1.5 text-gray-500 text-xs mb-1 font-semibold uppercase tracking-wide">
                 <ShieldOff className="h-3.5 w-3.5" /> Bloqueados
               </p>
-              <p className="text-2xl font-bold text-slate-800">{totalBloqueados}</p>
+              <p className="text-2xl font-bold text-gray-800">{totalBloqueados}</p>
             </div>
           </div>
 
@@ -283,7 +283,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                 key={id}
                 onClick={() => setTab(id)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  tab === id ? 'bg-indigo-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                  tab === id ? 'bg-orange-500 text-white shadow' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" /> {label}
@@ -293,19 +293,19 @@ const SuperAdminFinanceiroPage: React.FC = () => {
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+              <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
             </div>
           ) : (
             <>
               {tab === 'tenants' && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                    <Building2 className="h-4 w-4 text-indigo-600" /> Todos os tenants e seus planos
+                <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                  <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+                    <Building2 className="h-4 w-4 text-orange-500" /> Todos os tenants e seus planos
                   </h2>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-500">
                           <th className="py-2 pr-3">Empresa</th>
                           <th className="py-2 pr-3">Plano</th>
                           <th className="py-2 pr-3">Mensalidade</th>
@@ -313,18 +313,18 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                           <th className="py-2 pr-3">Pagamento</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-gray-100">
                         {empresas.map((empresa) => {
                           const plano = empresa.planoId ? planosPorId.get(empresa.planoId) : null;
                           const atrasada = faturasAtrasadasPorEmpresa.has(empresa.id);
                           return (
                             <tr key={empresa.id}>
                               <td className="py-3 pr-3">
-                                <p className="font-medium text-slate-800">{empresa.nome}</p>
-                                <p className="text-xs text-slate-400 font-mono">/{empresa.slug}</p>
+                                <p className="font-medium text-gray-800">{empresa.nome}</p>
+                                <p className="text-xs text-gray-400 font-mono">/{empresa.slug}</p>
                               </td>
-                              <td className="py-3 pr-3 text-slate-600">{plano ? plano.nome : 'Sem plano (comissão avulsa)'}</td>
-                              <td className="py-3 pr-3 text-slate-600">{plano ? `R$ ${plano.valorMensal.toFixed(2)}` : '—'}</td>
+                              <td className="py-3 pr-3 text-gray-600">{plano ? plano.nome : 'Sem plano (comissão avulsa)'}</td>
+                              <td className="py-3 pr-3 text-gray-600">{plano ? `R$ ${plano.valorMensal.toFixed(2)}` : '—'}</td>
                               <td className="py-3 pr-3">
                                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${empresa.empresaAtiva ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                                   {empresa.empresaAtiva ? 'Ativa' : 'Bloqueada'}
@@ -340,7 +340,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                         })}
                       </tbody>
                     </table>
-                    {empresas.length === 0 && <p className="text-center text-slate-400 py-8 text-sm">Nenhum tenant cadastrado.</p>}
+                    {empresas.length === 0 && <p className="text-center text-gray-400 py-8 text-sm">Nenhum tenant cadastrado.</p>}
                   </div>
                 </div>
               )}
@@ -357,7 +357,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                       return (
                         <div key={empresa.id} className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-xl px-4 py-3 border border-red-100">
                           <div>
-                            <p className="font-semibold text-slate-800">{empresa.nome}</p>
+                            <p className="font-semibold text-gray-800">{empresa.nome}</p>
                             <p className="text-xs text-red-600">{atrasadas.length} fatura(s) atrasada(s) · R$ {total.toFixed(2)} em aberto</p>
                           </div>
                           {empresa.empresaAtiva ? (
@@ -381,16 +381,16 @@ const SuperAdminFinanceiroPage: React.FC = () => {
               )}
 
               {tab === 'em-dia' && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                  <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Tenants em dia
                   </h2>
                   <div className="space-y-2">
                     {empresasEmDia.map((empresa) => (
-                      <div key={empresa.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-100 rounded-xl px-4 py-3">
+                      <div key={empresa.id} className="flex flex-wrap items-center justify-between gap-3 border border-gray-100 rounded-xl px-4 py-3">
                         <div>
-                          <p className="font-semibold text-slate-800">{empresa.nome}</p>
-                          <p className="text-xs text-slate-400">/{empresa.slug}</p>
+                          <p className="font-semibold text-gray-800">{empresa.nome}</p>
+                          <p className="text-xs text-gray-400">/{empresa.slug}</p>
                         </div>
                         <span className="text-sm font-semibold text-emerald-700">
                           R$ {(totalPagoPorEmpresa.get(empresa.id) || 0).toFixed(2)} recebidos no total
@@ -398,25 +398,25 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                       </div>
                     ))}
                     {empresasEmDia.length === 0 && (
-                      <p className="text-center text-slate-400 py-8 text-sm">Nenhum tenant em dia no momento.</p>
+                      <p className="text-center text-gray-400 py-8 text-sm">Nenhum tenant em dia no momento.</p>
                     )}
                   </div>
                 </div>
               )}
 
               {tab === 'bloqueados' && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                  <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
                     <ShieldOff className="h-4 w-4 text-red-600" /> Tenants bloqueados
                   </h2>
                   <div className="space-y-2">
                     {empresasBloqueadas.map((empresa) => {
                       const porInadimplencia = faturasAtrasadasPorEmpresa.has(empresa.id);
                       return (
-                        <div key={empresa.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-100 rounded-xl px-4 py-3">
+                        <div key={empresa.id} className="flex flex-wrap items-center justify-between gap-3 border border-gray-100 rounded-xl px-4 py-3">
                           <div>
-                            <p className="font-semibold text-slate-800">{empresa.nome}</p>
-                            <p className="text-xs text-slate-400">
+                            <p className="font-semibold text-gray-800">{empresa.nome}</p>
+                            <p className="text-xs text-gray-400">
                               {porInadimplencia ? 'Bloqueada por falta de pagamento' : 'Bloqueada manualmente'}
                             </p>
                           </div>
@@ -430,7 +430,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                       );
                     })}
                     {empresasBloqueadas.length === 0 && (
-                      <p className="text-center text-slate-400 py-8 text-sm">Nenhum tenant bloqueado no momento.</p>
+                      <p className="text-center text-gray-400 py-8 text-sm">Nenhum tenant bloqueado no momento.</p>
                     )}
                   </div>
                 </div>
@@ -438,17 +438,17 @@ const SuperAdminFinanceiroPage: React.FC = () => {
 
               {tab === 'faturas' && (
                 <>
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                    <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                      <Plus className="h-4 w-4 text-indigo-600" /> Gerar fatura
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                    <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+                      <Plus className="h-4 w-4 text-orange-500" /> Gerar fatura
                     </h2>
                     <form onSubmit={handleGerar} className="flex flex-wrap items-end gap-3">
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">Empresa</label>
+                        <label className="block text-xs text-gray-500 mb-1">Empresa</label>
                         <select
                           value={gerarEmpresaId}
                           onChange={(e) => setGerarEmpresaId(e.target.value)}
-                          className="px-3 py-2 border border-slate-300 rounded-lg text-sm min-w-[200px]"
+                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm min-w-[200px]"
                         >
                           <option value="todas">Todas as empresas ativas (lote)</option>
                           {empresas.map((emp) => (
@@ -457,44 +457,44 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">Período de</label>
-                        <input type="date" value={periodoInicio} onChange={(e) => setPeriodoInicio(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm" required />
+                        <label className="block text-xs text-gray-500 mb-1">Período de</label>
+                        <input type="date" value={periodoInicio} onChange={(e) => setPeriodoInicio(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">até</label>
-                        <input type="date" value={periodoFim} onChange={(e) => setPeriodoFim(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm" required />
+                        <label className="block text-xs text-gray-500 mb-1">até</label>
+                        <input type="date" value={periodoFim} onChange={(e) => setPeriodoFim(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">Vencimento</label>
-                        <input type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm" required />
+                        <label className="block text-xs text-gray-500 mb-1">Vencimento</label>
+                        <input type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
                       </div>
                       <button
                         type="submit"
                         disabled={gerando}
-                        className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg disabled:opacity-60"
+                        className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg disabled:opacity-60"
                       >
                         {gerando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
                         {gerando ? 'Gerando...' : 'Gerar'}
                       </button>
                     </form>
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-gray-400 mt-2">
                       A comissão usa o percentual vigente de cada empresa; se houver plano atribuído, a mensalidade do plano é somada ao total da fatura.
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                      <h2 className="flex items-center gap-2 font-bold text-slate-800">
-                        <Wallet className="h-4 w-4 text-indigo-600" /> Faturas
+                      <h2 className="flex items-center gap-2 font-bold text-gray-800">
+                        <Wallet className="h-4 w-4 text-orange-500" /> Faturas
                       </h2>
                       <div className="flex flex-wrap gap-2">
-                        <select value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                        <select value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                           <option value="">Todas as empresas</option>
                           {empresas.map((emp) => (
                             <option key={emp.id} value={emp.id}>{emp.nome}</option>
                           ))}
                         </select>
-                        <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as StatusFatura | '')} className="px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                        <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as StatusFatura | '')} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                           <option value="">Todos os status</option>
                           <option value="PENDENTE">Pendente</option>
                           <option value="PAGO">Pago</option>
@@ -504,12 +504,12 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                     </div>
 
                     {faturasFiltradas.length === 0 ? (
-                      <p className="text-center text-slate-400 py-12 text-sm">Nenhuma fatura encontrada.</p>
+                      <p className="text-center text-gray-400 py-12 text-sm">Nenhuma fatura encontrada.</p>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                           <thead>
-                            <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-500">
                               <th className="py-2 pr-3">Empresa</th>
                               <th className="py-2 pr-3">Período</th>
                               <th className="py-2 pr-3">Vendas</th>
@@ -521,17 +521,17 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                               <th className="py-2 pr-3 text-right">Ações</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-gray-100">
                             {faturasFiltradas.map((f) => (
                               <tr key={f.id}>
-                                <td className="py-3 pr-3 font-medium text-slate-800">{f.empresa.nome}</td>
-                                <td className="py-3 pr-3 text-slate-500 text-xs">
+                                <td className="py-3 pr-3 font-medium text-gray-800">{f.empresa.nome}</td>
+                                <td className="py-3 pr-3 text-gray-500 text-xs">
                                   {new Date(f.periodoInicio).toLocaleDateString('pt-BR')} – {new Date(f.periodoFim).toLocaleDateString('pt-BR')}
                                 </td>
-                                <td className="py-3 pr-3 text-slate-600">R$ {f.valorVendas.toFixed(2)}</td>
-                                <td className="py-3 pr-3 text-slate-600">R$ {f.valorComissao.toFixed(2)} <span className="text-xs text-slate-400">({f.comissaoPercent}%)</span></td>
-                                <td className="py-3 pr-3 text-slate-600">R$ {f.valorPlano.toFixed(2)}</td>
-                                <td className="py-3 pr-3 font-bold text-slate-800">
+                                <td className="py-3 pr-3 text-gray-600">R$ {f.valorVendas.toFixed(2)}</td>
+                                <td className="py-3 pr-3 text-gray-600">R$ {f.valorComissao.toFixed(2)} <span className="text-xs text-gray-400">({f.comissaoPercent}%)</span></td>
+                                <td className="py-3 pr-3 text-gray-600">R$ {f.valorPlano.toFixed(2)}</td>
+                                <td className="py-3 pr-3 font-bold text-gray-800">
                                   R$ {f.valorTotal.toFixed(2)}
                                   {!!f.creditoIndicacaoAplicado && (
                                     <span className="block text-[10px] font-normal text-emerald-600">
@@ -539,7 +539,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-3 pr-3 text-slate-500 text-xs">{new Date(f.vencimento).toLocaleDateString('pt-BR')}</td>
+                                <td className="py-3 pr-3 text-gray-500 text-xs">{new Date(f.vencimento).toLocaleDateString('pt-BR')}</td>
                                 <td className="py-3 pr-3">
                                   <select
                                     value={f.status}
@@ -555,7 +555,7 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                                   )}
                                 </td>
                                 <td className="py-3 pr-3 text-right">
-                                  <button onClick={() => handleDelete(f)} className="text-slate-400 hover:text-red-600 p-1.5">
+                                  <button onClick={() => handleDelete(f)} className="text-gray-400 hover:text-red-600 p-1.5">
                                     <Trash2 className="h-4 w-4" />
                                   </button>
                                 </td>

@@ -91,13 +91,13 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate('/super-admin/empresas')}
-            className="mb-3 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </button>
@@ -105,14 +105,14 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
-                <h1 className="text-xl font-bold text-slate-900">Configurações Globais da Plataforma</h1>
+                <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
+                <h1 className="text-xl font-bold text-gray-900">Configurações Globais da Plataforma</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { signOutSuperAdmin(); navigate('/super-admin', { replace: true }); }}
-                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors"
+                className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 Sair
               </button>
@@ -130,76 +130,76 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-indigo-500" /></div>
+          <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                <Settings className="h-4 w-4 text-indigo-600" /> Dados da sua empresa
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+                <Settings className="h-4 w-4 text-orange-500" /> Dados da sua empresa
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Nome da empresa</label>
-                  <input value={nomeEmpresa} onChange={(e) => setNomeEmpresa(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" required />
+                  <label className="block text-xs text-gray-500 mb-1">Nome da empresa</label>
+                  <input value={nomeEmpresa} onChange={(e) => setNomeEmpresa(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">CNPJ</label>
-                  <input value={documento} onChange={(e) => setDocumento(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                  <label className="block text-xs text-gray-500 mb-1">CNPJ</label>
+                  <input value={documento} onChange={(e) => setDocumento(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">E-mail de suporte</label>
-                  <input type="email" value={emailSuporte} onChange={(e) => setEmailSuporte(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                  <label className="block text-xs text-gray-500 mb-1">E-mail de suporte</label>
+                  <input type="email" value={emailSuporte} onChange={(e) => setEmailSuporte(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Telefone de suporte</label>
-                  <input value={telefoneSuporte} onChange={(e) => setTelefoneSuporte(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                  <label className="block text-xs text-gray-500 mb-1">Telefone de suporte</label>
+                  <input value={telefoneSuporte} onChange={(e) => setTelefoneSuporte(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-xs text-slate-500 mb-1">Endereço</label>
-                  <input value={endereco} onChange={(e) => setEndereco(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                  <label className="block text-xs text-gray-500 mb-1">Endereço</label>
+                  <input value={endereco} onChange={(e) => setEndereco(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                 </div>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-1">
-                <Gift className="h-4 w-4 text-indigo-600" /> Indicação entre lojas
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-1">
+                <Gift className="h-4 w-4 text-orange-500" /> Indicação entre lojas
               </h2>
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-gray-400 mb-3">
                 Quando um tenant indica outra loja (código próprio, informado no cadastro) e a loja indicada paga a
                 1ª fatura, o indicador ganha este valor como crédito — aplicado automaticamente na próxima fatura
                 dele. Deixe 0 para desativar o programa.
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500">R$</span>
+                <span className="text-sm text-gray-500">R$</span>
                 <input
                   type="number"
                   min={0}
                   step="0.01"
                   value={recompensaIndicacaoEmpresaValor}
                   onChange={(e) => setRecompensaIndicacaoEmpresaValor(e.target.value)}
-                  className="w-32 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
-                <span className="text-sm text-slate-500">por loja indicada que virar cliente pagante</span>
+                <span className="text-sm text-gray-500">por loja indicada que virar cliente pagante</span>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h2 className="font-bold text-slate-800 mb-4">Termos de uso padrão para lojistas</h2>
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h2 className="font-bold text-gray-800 mb-4">Termos de uso padrão para lojistas</h2>
               <textarea
                 value={termosPadraoLojistas}
                 onChange={(e) => setTermosPadraoLojistas(e.target.value)}
                 rows={8}
                 placeholder="Termo de uso da plataforma que todo lojista aceita ao ser cadastrado..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm resize-y"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-y"
               />
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-1">
-                <KeyRound className="h-4 w-4 text-indigo-600" /> Chaves globais de integração
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-1">
+                <KeyRound className="h-4 w-4 text-orange-500" /> Chaves globais de integração
               </h2>
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-gray-400 mb-4">
                 Chaves usadas por integrações da plataforma como um todo (ex: API de geocodificação, provedor de e-mail).
                 Armazenadas em texto simples, mesmo padrão já usado nas credenciais de gateway de cada loja.
               </p>
@@ -210,15 +210,15 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
                       value={item.chave}
                       onChange={(e) => setChaves((prev) => prev.map((c, i) => (i === idx ? { ...c, chave: e.target.value } : c)))}
                       placeholder="NOME_DA_CHAVE"
-                      className="px-3 py-2 border border-slate-300 rounded-lg text-sm w-56 font-mono"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-56 font-mono"
                     />
                     <input
                       value={item.valor}
                       onChange={(e) => setChaves((prev) => prev.map((c, i) => (i === idx ? { ...c, valor: e.target.value } : c)))}
                       placeholder="valor"
-                      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     />
-                    <button type="button" onClick={() => setChaves((prev) => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-600 p-1.5">
+                    <button type="button" onClick={() => setChaves((prev) => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 p-1.5">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -226,7 +226,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setChaves((prev) => [...prev, { chave: '', valor: '' }])}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-orange-500 hover:text-orange-700"
                 >
                   <Plus className="h-3.5 w-3.5" /> Adicionar chave
                 </button>
@@ -236,7 +236,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg disabled:opacity-60"
+              className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg disabled:opacity-60"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {saving ? 'Salvando...' : 'Salvar configurações'}

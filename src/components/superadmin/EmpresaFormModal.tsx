@@ -142,24 +142,24 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative flex w-full max-h-[94vh] flex-col rounded-t-3xl bg-white shadow-2xl animate-slide-up sm:max-w-2xl sm:rounded-3xl sm:animate-scale-in">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100">
-              <Building2 className="h-5 w-5 text-indigo-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100">
+              <Building2 className="h-5 w-5 text-orange-500" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-              {empresa && <p className="text-xs text-slate-400">/{empresa.slug}</p>}
+              <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+              {empresa && <p className="text-xs text-gray-400">/{empresa.slug}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2">
             {mode === 'view' && onRequestEdit && (
               <button
                 onClick={onRequestEdit}
-                className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-500 hover:bg-orange-100 transition-colors"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 Editar
@@ -167,7 +167,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="rounded-full bg-slate-100 p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+              className="rounded-full bg-gray-100 p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -177,7 +177,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto overscroll-contain">
           <div className="space-y-6 px-6 py-5">
             <section>
-              <h3 className="mb-3 text-sm font-bold text-slate-800">Dados da empresa</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">Dados da empresa</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Field label="Nome da empresa" icon={<Building2 className="h-3.5 w-3.5" />} error={fieldErrors.nome}>
@@ -214,7 +214,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
             </section>
 
             <section>
-              <h3 className="mb-3 text-sm font-bold text-slate-800">Responsável e contato</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">Responsável e contato</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Nome do responsável" icon={<User className="h-3.5 w-3.5" />} error={fieldErrors.responsavelNome}>
                   <input
@@ -252,7 +252,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
             </section>
 
             <section>
-              <h3 className="mb-3 text-sm font-bold text-slate-800">Acesso do administrador</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">Acesso do administrador</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Usuário" icon={<UserCircle className="h-3.5 w-3.5" />} error={fieldErrors.usuario}>
                   <input
@@ -268,13 +268,13 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                 <Field label="Senha" icon={<Lock className="h-3.5 w-3.5" />}>
                   <div className={inputClasses(true, false)}>
                     ••••••••&nbsp;
-                    <span className="text-xs text-slate-400">(use "Redefinir senha" na listagem)</span>
+                    <span className="text-xs text-gray-400">(use "Redefinir senha" na listagem)</span>
                   </div>
                 </Field>
               </div>
             </section>
 
-            <section className="flex flex-wrap gap-6 rounded-2xl bg-slate-50 px-4 py-4">
+            <section className="flex flex-wrap gap-6 rounded-2xl bg-gray-50 px-4 py-4">
               <ToggleSwitch
                 label="Status da empresa"
                 checked={form.empresaAtiva}
@@ -290,11 +290,11 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
             </section>
 
             {empresa && (
-              <section className="rounded-2xl border border-slate-100 px-4 py-4">
-                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-800">
-                  <Percent className="h-3.5 w-3.5 text-indigo-600" /> Comissão da plataforma
+              <section className="rounded-2xl border border-gray-100 px-4 py-4">
+                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800">
+                  <Percent className="h-3.5 w-3.5 text-orange-500" /> Comissão da plataforma
                 </h3>
-                <p className="mb-3 text-xs text-slate-400">
+                <p className="mb-3 text-xs text-gray-400">
                   Percentual sobre as vendas entregues desta empresa, destinado ao dono da plataforma (5 a 20%).
                 </p>
                 <div className="flex flex-wrap items-end gap-3">
@@ -306,14 +306,14 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                       step={0.5}
                       value={comissaoInput}
                       onChange={(e) => setComissaoInput(e.target.value)}
-                      className="w-32 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-32 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={handleSaveComissao}
                     disabled={savingComissao}
-                    className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                    className="flex items-center gap-1.5 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 transition-colors"
                   >
                     {savingComissao ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Salvar
@@ -321,7 +321,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                   {comissaoError && <p className="text-xs font-medium text-red-600">{comissaoError}</p>}
                 </div>
 
-                <div className="mt-4 border-t border-slate-100 pt-3">
+                <div className="mt-4 border-t border-gray-100 pt-3">
                   <ToggleSwitch
                     label="Ocultar comissão do lojista"
                     checked={empresa.ocultarComissaoTenant}
@@ -330,7 +330,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                     activeLabel="Oculta"
                     inactiveLabel="Visível"
                   />
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-gray-400">
                     Quando oculta, o card "Comissão da plataforma" some do CRM que o lojista vê.
                   </p>
                   {visibilidadeError && <p className="mt-1 text-xs font-medium text-red-600">{visibilidadeError}</p>}
@@ -339,21 +339,21 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
             )}
 
             {empresa && (
-              <section className="rounded-2xl border border-slate-100 px-4 py-4">
-                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-800">
-                  <Gift className="h-3.5 w-3.5 text-indigo-600" /> Indicação entre lojas
+              <section className="rounded-2xl border border-gray-100 px-4 py-4">
+                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800">
+                  <Gift className="h-3.5 w-3.5 text-orange-500" /> Indicação entre lojas
                 </h3>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm">
                   <div>
-                    <p className="text-xs text-slate-400">Código próprio</p>
-                    <p className="font-mono font-semibold text-slate-800">{empresa.codigoIndicacao || '—'}</p>
+                    <p className="text-xs text-gray-400">Código próprio</p>
+                    <p className="font-mono font-semibold text-gray-800">{empresa.codigoIndicacao || '—'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">Indicada por</p>
-                    <p className="font-semibold text-slate-800">{empresa.indicadaPor ? empresa.indicadaPor.nome : '—'}</p>
+                    <p className="text-xs text-gray-400">Indicada por</p>
+                    <p className="font-semibold text-gray-800">{empresa.indicadaPor ? empresa.indicadaPor.nome : '—'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">Crédito acumulado</p>
+                    <p className="text-xs text-gray-400">Crédito acumulado</p>
                     <p className="font-semibold text-emerald-700">R$ {Number(empresa.creditoIndicacaoEmpresa || 0).toFixed(2)}</p>
                   </div>
                 </div>
@@ -368,19 +368,19 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
           </div>
 
           {!readOnly && (
-            <div className="sticky bottom-0 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
+            <div className="sticky bottom-0 flex justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:opacity-60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 Salvar alterações

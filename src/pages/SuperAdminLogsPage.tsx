@@ -67,13 +67,13 @@ const SuperAdminLogsPage: React.FC = () => {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate('/super-admin/empresas')}
-            className="mb-3 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </button>
@@ -81,14 +81,14 @@ const SuperAdminLogsPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
-                <h1 className="text-xl font-bold text-slate-900">Logs de Auditoria &amp; Sistema</h1>
+                <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
+                <h1 className="text-xl font-bold text-gray-900">Logs de Auditoria &amp; Sistema</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { signOutSuperAdmin(); navigate('/super-admin', { replace: true }); }}
-                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors"
+                className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 Sair
               </button>
@@ -99,21 +99,21 @@ const SuperAdminLogsPage: React.FC = () => {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-            <CreditCard className="h-4 w-4 text-indigo-600" /> Status de integração com gateways de pagamento
+        <div className="rounded-2xl border border-gray-200 bg-white p-5">
+          <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+            <CreditCard className="h-4 w-4 text-orange-500" /> Status de integração com gateways de pagamento
           </h2>
           {gateways.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-6">Nenhum gateway configurado em nenhuma loja ainda.</p>
+            <p className="text-sm text-gray-400 text-center py-6">Nenhum gateway configurado em nenhuma loja ainda.</p>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {gateways.map((g) => (
-                <div key={g.id} className="border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-2">
+                <div key={g.id} className="border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800 text-sm truncate">{g.nomeExibicao}</p>
-                    <p className="text-xs text-slate-400 truncate">{g.empresa.nome} · {g.provider}</p>
+                    <p className="font-semibold text-gray-800 text-sm truncate">{g.nomeExibicao}</p>
+                    <p className="text-xs text-gray-400 truncate">{g.empresa.nome} · {g.provider}</p>
                   </div>
-                  <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${g.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                  <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${g.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
                     {g.ativo ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>
@@ -122,46 +122,46 @@ const SuperAdminLogsPage: React.FC = () => {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="flex items-center gap-2 font-bold text-slate-800">
-              <ScrollText className="h-4 w-4 text-indigo-600" /> Registro de eventos
+            <h2 className="flex items-center gap-2 font-bold text-gray-800">
+              <ScrollText className="h-4 w-4 text-orange-500" /> Registro de eventos
             </h2>
             <div className="flex items-center gap-2">
-              <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value as TipoLog | '')} className="px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value as TipoLog | '')} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                 <option value="">Todos os tipos</option>
                 <option value="ACESSO">Acessos</option>
                 <option value="ERRO">Erros do servidor</option>
                 <option value="ALTERACAO_CRITICA">Alterações críticas</option>
               </select>
-              <button onClick={load} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 border border-slate-200 px-3 py-2 rounded-lg">
+              <button onClick={load} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-orange-500 border border-gray-200 px-3 py-2 rounded-lg">
                 <RefreshCw className="h-3.5 w-3.5" /> Atualizar
               </button>
             </div>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-indigo-500" /></div>
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
           ) : logs.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-12">Nenhum log registrado ainda.</p>
+            <p className="text-sm text-gray-400 text-center py-12">Nenhum log registrado ainda.</p>
           ) : (
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {logs.map((log) => {
                 const Icon = TIPO_ICON[log.tipo];
                 return (
-                  <div key={log.id} className="flex items-start gap-3 border border-slate-100 rounded-xl p-3">
+                  <div key={log.id} className="flex items-start gap-3 border border-gray-100 rounded-xl p-3">
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${TIPO_COLOR[log.tipo]}`}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-slate-500">{TIPO_LOG_LABELS[log.tipo]}</span>
-                        {log.empresaNome && <span className="text-xs text-indigo-600 font-medium">{log.empresaNome}</span>}
-                        {log.ator && <span className="text-xs text-slate-400">por {log.ator}</span>}
+                        <span className="text-xs font-semibold text-gray-500">{TIPO_LOG_LABELS[log.tipo]}</span>
+                        {log.empresaNome && <span className="text-xs text-orange-500 font-medium">{log.empresaNome}</span>}
+                        {log.ator && <span className="text-xs text-gray-400">por {log.ator}</span>}
                       </div>
-                      <p className="text-sm text-slate-700 mt-0.5">{log.acao}</p>
+                      <p className="text-sm text-gray-700 mt-0.5">{log.acao}</p>
                     </div>
-                    <span className="shrink-0 text-xs text-slate-400 whitespace-nowrap">
+                    <span className="shrink-0 text-xs text-gray-400 whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString('pt-BR')}
                     </span>
                   </div>

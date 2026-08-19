@@ -197,24 +197,24 @@ const SuperAdminEmpresasPage: React.FC = () => {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Empurra o conteúdo (reduz a largura útil) quando o menu está expandido; volta ao normal quando retraído. */}
       <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
-                <h1 className="text-xl font-bold text-slate-900">Cadastro de Empresas</h1>
+                <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
+                <h1 className="text-xl font-bold text-gray-900">Cadastro de Empresas</h1>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('/super-admin/empresas/nova')}
-                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
               >
                 <Plus className="h-4 w-4" />
                 Nova Empresa
@@ -222,7 +222,7 @@ const SuperAdminEmpresasPage: React.FC = () => {
               <button
                 onClick={handleLogout}
                 title="Sair"
-                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -244,19 +244,19 @@ const SuperAdminEmpresasPage: React.FC = () => {
         )}
 
         <div className="mb-5 relative max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, CNPJ/CPF, e-mail ou slug"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-            <p className="mt-3 text-sm text-slate-500">Carregando empresas...</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+            <p className="mt-3 text-sm text-gray-500">Carregando empresas...</p>
           </div>
         ) : loadError ? (
           <div className="rounded-2xl border border-red-100 bg-red-50 px-6 py-8 text-center">
@@ -269,15 +269,15 @@ const SuperAdminEmpresasPage: React.FC = () => {
             </button>
           </div>
         ) : empresas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-            <Inbox className="h-8 w-8 text-slate-300" />
-            <p className="mt-3 text-sm font-medium text-slate-500">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center">
+            <Inbox className="h-8 w-8 text-gray-300" />
+            <p className="mt-3 text-sm font-medium text-gray-500">
               {search ? 'Nenhuma empresa encontrada para essa busca.' : 'Nenhuma empresa cadastrada ainda.'}
             </p>
             {!search && (
               <button
                 onClick={() => navigate('/super-admin/empresas/nova')}
-                className="mt-4 flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                className="mt-4 flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Cadastrar primeira empresa
@@ -287,10 +287,10 @@ const SuperAdminEmpresasPage: React.FC = () => {
         ) : (
           <>
             {/* Desktop: tabela */}
-            <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
+            <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:block">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
                     <th className="px-5 py-3">Empresa</th>
                     <th className="px-5 py-3">Contato</th>
                     <th className="px-5 py-3">Documento</th>
@@ -300,28 +300,28 @@ const SuperAdminEmpresasPage: React.FC = () => {
                     <th className="px-5 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-gray-100">
                   {empresas.map((empresa) => (
                     <tr
                       key={empresa.id}
                       onClick={() => openViewModal(empresa)}
                       title="Ver detalhes"
-                      className="cursor-pointer hover:bg-indigo-50/60 transition-colors"
+                      className="cursor-pointer hover:bg-orange-50/60 transition-colors"
                     >
                       <td className="px-5 py-4">
-                        <p className="font-semibold text-slate-900">{empresa.nome}</p>
-                        <p className="text-xs text-slate-400">{empresa.responsavelNome}</p>
+                        <p className="font-semibold text-gray-900">{empresa.nome}</p>
+                        <p className="text-xs text-gray-400">{empresa.responsavelNome}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <p className="flex items-center gap-1.5 text-slate-600"><Mail className="h-3.5 w-3.5 text-slate-400" />{empresa.email}</p>
-                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400"><Phone className="h-3 w-3" />{maskTelefone(empresa.telefone)}</p>
+                        <p className="flex items-center gap-1.5 text-gray-600"><Mail className="h-3.5 w-3.5 text-gray-400" />{empresa.email}</p>
+                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400"><Phone className="h-3 w-3" />{maskTelefone(empresa.telefone)}</p>
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-gray-600">
                         <p>{maskDocumento(empresa.documento)}</p>
-                        <p className="text-xs text-slate-400">{documentoLabel(empresa.documento)}</p>
+                        <p className="text-xs text-gray-400">{documentoLabel(empresa.documento)}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600">/{empresa.slug}</span>
+                        <span className="rounded-lg bg-gray-100 px-2 py-1 font-mono text-xs text-gray-600">/{empresa.slug}</span>
                       </td>
                       <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                         <ToggleSwitch
@@ -367,29 +367,29 @@ const SuperAdminEmpresasPage: React.FC = () => {
                 <div
                   key={empresa.id}
                   onClick={() => openViewModal(empresa)}
-                  className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/40"
+                  className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-orange-200 hover:bg-orange-50/40"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
-                        <Building2 className="h-5 w-5 text-indigo-500" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50">
+                        <Building2 className="h-5 w-5 text-orange-500" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900">{empresa.nome}</p>
-                        <p className="truncate text-xs text-slate-400">{empresa.responsavelNome}</p>
+                        <p className="truncate font-semibold text-gray-900">{empresa.nome}</p>
+                        <p className="truncate text-xs text-gray-400">{empresa.responsavelNome}</p>
                       </div>
                     </div>
-                    <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600">/{empresa.slug}</span>
+                    <span className="shrink-0 rounded-lg bg-gray-100 px-2 py-1 font-mono text-xs text-gray-600">/{empresa.slug}</span>
                   </div>
 
-                  <div className="mt-3 space-y-1 text-sm text-slate-600">
-                    <p className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" /><span className="truncate">{empresa.email}</span></p>
-                    <p className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />{maskTelefone(empresa.telefone)}</p>
-                    <p className="text-xs text-slate-400">{documentoLabel(empresa.documento)}: {maskDocumento(empresa.documento)}</p>
+                  <div className="mt-3 space-y-1 text-sm text-gray-600">
+                    <p className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" /><span className="truncate">{empresa.email}</span></p>
+                    <p className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />{maskTelefone(empresa.telefone)}</p>
+                    <p className="text-xs text-gray-400">{documentoLabel(empresa.documento)}: {maskDocumento(empresa.documento)}</p>
                   </div>
 
                   <div
-                    className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-3"
+                    className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-gray-100 pt-3"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <ToggleSwitch
@@ -409,7 +409,7 @@ const SuperAdminEmpresasPage: React.FC = () => {
                   </div>
 
                   <div
-                    className="mt-3 flex items-center justify-end gap-1 border-t border-slate-100 pt-3"
+                    className="mt-3 flex items-center justify-end gap-1 border-t border-gray-100 pt-3"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <ActionButton title="Visualizar" onClick={() => openViewModal(empresa)}>
@@ -496,8 +496,8 @@ const ActionButton: React.FC<{
     onClick={onClick}
     className={`rounded-lg p-2 transition-colors ${
       tone === 'danger'
-        ? 'text-slate-400 hover:bg-red-50 hover:text-red-600'
-        : 'text-slate-400 hover:bg-indigo-50 hover:text-indigo-600'
+        ? 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+        : 'text-gray-400 hover:bg-orange-50 hover:text-orange-500'
     }`}
   >
     {children}

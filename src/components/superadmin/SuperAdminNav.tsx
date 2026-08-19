@@ -32,7 +32,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Recolher menu' : 'Expandir menu'}
         aria-expanded={open}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -44,13 +44,13 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
           open ? 'w-72' : 'w-16'
         }`}
       >
-        <div className={`flex items-center border-b border-slate-100 py-4 ${open ? 'justify-between px-5' : 'justify-center px-2'}`}>
+        <div className={`flex items-center border-b border-gray-100 py-4 ${open ? 'justify-between px-5' : 'justify-center px-2'}`}>
           <div className="flex items-center gap-2.5 min-w-0">
             <img src="/saltfood-icon.png" alt="SaltFood" className="h-9 w-9 shrink-0" />
-            {open && <span className="font-bold text-slate-800 truncate">SaltFood Admin</span>}
+            {open && <span className="font-bold text-gray-800 truncate">SaltFood Admin</span>}
           </div>
           {open && (
-            <button onClick={() => setOpen(false)} aria-label="Recolher menu" className="shrink-0 text-slate-400 hover:text-slate-700 p-1">
+            <button onClick={() => setOpen(false)} aria-label="Recolher menu" className="shrink-0 text-gray-400 hover:text-gray-700 p-1">
               <ChevronLeft className="h-5 w-5" />
             </button>
           )}
@@ -61,7 +61,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
             onClick={() => setOpen(true)}
             aria-label="Expandir menu"
             title="Expandir menu"
-            className="flex items-center justify-center py-2 text-slate-400 hover:text-slate-700"
+            className="flex items-center justify-center py-2 text-gray-400 hover:text-gray-700"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -71,7 +71,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
           <button
             onClick={() => navigate('/super-admin/empresas/nova')}
             title={!open ? 'Nova Empresa' : undefined}
-            className={`flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors ${
+            className={`flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors ${
               open ? 'px-4' : 'px-0'
             }`}
           >
@@ -90,8 +90,8 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
                 title={!open ? label : undefined}
                 className={`flex w-full items-center gap-3 py-3 text-sm font-medium transition-colors ${open ? 'px-5' : 'justify-center px-0'} ${
                   active
-                    ? 'border-r-4 border-indigo-500 bg-indigo-50 text-indigo-600'
-                    : 'border-r-4 border-transparent text-slate-600 hover:bg-slate-50'
+                    ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-500'
+                    : 'border-r-4 border-transparent text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -102,9 +102,9 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         </nav>
 
         {open && (
-          <div className="border-t border-slate-100 px-3 py-3 space-y-2">
+          <div className="border-t border-gray-100 px-3 py-3 space-y-2">
             <InstallAppButton className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 py-2.5 text-sm font-semibold transition-colors" />
-            <p className="text-center text-[11px] text-slate-300">uma plataforma Sigma Soluções Digitais</p>
+            <p className="text-center text-[11px] text-gray-300">uma plataforma Sigma Soluções Digitais</p>
           </div>
         )}
       </div>

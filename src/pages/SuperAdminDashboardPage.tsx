@@ -61,17 +61,17 @@ const SuperAdminDashboardPage: React.FC = () => {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
-        <div className="border-b border-slate-200 bg-white">
+        <div className="border-b border-gray-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
-                  <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <LayoutDashboard className="h-5 w-5 text-indigo-500" /> Visão Geral da Plataforma
+                  <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
+                  <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <LayoutDashboard className="h-5 w-5 text-orange-500" /> Visão Geral da Plataforma
                   </h1>
                 </div>
               </div>
@@ -79,7 +79,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                 <button
                   onClick={handleLogout}
                   title="Sair"
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -101,7 +101,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                 key={p.id}
                 onClick={() => setPeriodo(p.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  periodo === p.id ? 'bg-indigo-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                  periodo === p.id ? 'bg-orange-500 text-white shadow' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {p.label}
@@ -110,25 +110,25 @@ const SuperAdminDashboardPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
             </div>
           ) : !data ? (
-            <p className="text-center text-slate-400 py-16">Não foi possível carregar os dados.</p>
+            <p className="text-center text-gray-400 py-16">Não foi possível carregar os dados.</p>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white p-5 rounded-2xl">
-                  <p className="text-indigo-100 text-xs mb-1 flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> GMV do período</p>
+                <div className="bg-gradient-to-r from-orange-500 to-orange-500 text-white p-5 rounded-2xl">
+                  <p className="text-orange-100 text-xs mb-1 flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> GMV do período</p>
                   <p className="text-2xl font-bold">R$ {data.gmv.toFixed(2)}</p>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><ShoppingBag className="h-3.5 w-3.5" /> Pedidos entregues</p>
-                  <p className="text-2xl font-bold text-slate-800">{data.totalPedidos}</p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><ShoppingBag className="h-3.5 w-3.5" /> Pedidos entregues</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.totalPedidos}</p>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> Ticket médio</p>
-                  <p className="text-2xl font-bold text-slate-800">R$ {data.ticketMedio.toFixed(2)}</p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> Ticket médio</p>
+                  <p className="text-2xl font-bold text-gray-800">R$ {data.ticketMedio.toFixed(2)}</p>
                 </div>
                 <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl">
                   <p className="text-emerald-700 text-xs mb-1 flex items-center gap-1"><Percent className="h-3.5 w-3.5" /> Comissão recebida</p>
@@ -137,21 +137,21 @@ const SuperAdminDashboardPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas ativas</p>
-                  <p className="text-2xl font-bold text-slate-800">{data.empresasAtivas}<span className="text-sm text-slate-400 font-normal"> / {data.totalEmpresas}</span></p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas ativas</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.empresasAtivas}<span className="text-sm text-gray-400 font-normal"> / {data.totalEmpresas}</span></p>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas com venda</p>
-                  <p className="text-2xl font-bold text-slate-800">{data.lojasComVendaNoPeriodo}</p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas com venda</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.lojasComVendaNoPeriodo}</p>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Clientes cadastrados</p>
-                  <p className="text-2xl font-bold text-slate-800">{data.totalClientes}</p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Clientes cadastrados</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.totalClientes}</p>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl">
-                  <p className="text-slate-500 text-xs mb-1 flex items-center gap-1"><Bike className="h-3.5 w-3.5" /> Motoboys ativos</p>
-                  <p className="text-2xl font-bold text-slate-800">{data.totalMotoboysAtivos}</p>
+                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Bike className="h-3.5 w-3.5" /> Motoboys ativos</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.totalMotoboysAtivos}</p>
                 </div>
               </div>
             </>
