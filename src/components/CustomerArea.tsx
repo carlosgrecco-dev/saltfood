@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, LogOut, Package, MapPin, Ticket } from 'lucide-react';
+import { ChevronRight, LogOut, Package, MapPin, Ticket, Gift, Copy, Share2, Check, Heart } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import LoyaltyCard from './LoyaltyCard';
 import EnderecosSalvosModal from './EnderecosSalvosModal';
 import CuponsDisponiveisModal from './CuponsDisponiveisModal';
+import FavoritosModal from './FavoritosModal';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 
@@ -15,10 +16,12 @@ interface CustomerAreaProps {
 
 const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
   const { customer, logoutCustomer } = useCustomer();
-  const { slug } = useTenant();
+  const { slug, empresa } = useTenant();
   const navigate = useNavigate();
   const [isEnderecosOpen, setIsEnderecosOpen] = useState(false);
   const [isCuponsOpen, setIsCuponsOpen] = useState(false);
+  const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   const handleLogout = () => {
     logoutCustomer();
@@ -28,6 +31,27 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
   const handleGoToOrders = () => {
     onClose();
     navigate(`/${slug}/meus-pedidos`);
+  };
+
+  const handleShareIndicacao = async () => {
+    if (!customer?.codigoIndicacao) return;
+    const link = `${window.location.origin}/${slug}?ref=${customer.codigoIndicacao}`;
+    const texto = `Peça na ${empresa.nome} pelo meu link e a gente ganha fidelidade os dois: ${link}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: empresa.nome, text: texto, url: link });
+      } catch {
+        /* usuário cancelou o compartilhamento — sem erro */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      /* clipboard indisponível — sem erro, o código já fica visível na tela */
+    }
   };
 
   if (!customer) return null;
@@ -50,6 +74,29 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
           </div>
 
           <LoyaltyCard customer={customer} />
+
+          {customer.codigoIndicacao && (
+            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white">
+              <p className="flex items-center gap-1.5 font-bold text-sm mb-1">
+                <Gift className="h-4 w-4" /> Indique e ganhe
+              </p>
+              <p className="text-xs text-white/85 mb-3">
+                Compartilhe seu código — quando um amigo pedir pela primeira vez, vocês dois ganham fidelidade.
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 bg-white/15 border border-white/25 rounded-xl px-3 py-2 font-mono font-bold tracking-widest text-center text-sm">
+                  {customer.codigoIndicacao}
+                </span>
+                <button
+                  onClick={handleShareIndicacao}
+                  className="shrink-0 bg-white text-orange-600 rounded-xl p-2.5 hover:bg-orange-50 transition-colors"
+                  aria-label="Compartilhar código de indicação"
+                >
+                  {copiado ? <Check className="h-4 w-4" /> : navigator.share ? <Share2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <button
@@ -81,12 +128,23 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
             </button>
+
+            <button
+              onClick={() => setIsFavoritosOpen(true)}
+              className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl p-4 transition-colors"
+            >
+              <span className="flex items-center gap-2 font-bold text-gray-800">
+                <Heart className="h-4 w-4 text-[var(--cor-primaria)]" /> Meus Favoritos
+              </span>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </button>
           </div>
         </div>
       </BottomSheet>
 
       <EnderecosSalvosModal isOpen={isEnderecosOpen} onClose={() => setIsEnderecosOpen(false)} />
       <CuponsDisponiveisModal isOpen={isCuponsOpen} onClose={() => setIsCuponsOpen(false)} />
+      <FavoritosModal isOpen={isFavoritosOpen} onClose={() => setIsFavoritosOpen(false)} />
     </>
   );
 };

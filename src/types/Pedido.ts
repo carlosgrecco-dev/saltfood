@@ -53,6 +53,7 @@ export interface Pedido {
   trocoPara: number | null;
   status: StatusPedido;
   observacoes: string | null;
+  agendadoPara: string | null;
   motoboyId: string | null;
   motoboy: {
     id: string;
@@ -63,6 +64,7 @@ export interface Pedido {
   } | null;
   taxaEntregaMotoboy: number | null;
   motoboyPago: boolean;
+  fotoEntrega: string | null;
   clienteId: string | null;
   itemGratisResgatado: boolean;
   cupomId: string | null;
@@ -70,6 +72,7 @@ export interface Pedido {
   descontoCupom: number | null;
   notaPedido: number | null;
   comentarioPedido: string | null;
+  fotosAvaliacao: string[];
   avaliadoEm: string | null;
   notaMotoboy: number | null;
   comentarioMotoboy: string | null;
@@ -101,5 +104,6 @@ export interface PedidoInput {
   clienteId?: string;
   usarItemGratis?: boolean;
   cupomCodigo?: string;
+  agendadoPara?: string;
   itens: PedidoItemInput[];
 }

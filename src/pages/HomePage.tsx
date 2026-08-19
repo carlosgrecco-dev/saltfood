@@ -3,6 +3,7 @@ import Hero from '../components/Hero';
 import MenuSection from '../components/MenuSection';
 import ProductModal from '../components/ProductModal';
 import FidelidadeAvisoModal from '../components/FidelidadeAvisoModal';
+import PedirDeNovoStrip from '../components/PedirDeNovoStrip';
 import { Produto } from '../types/Produto';
 
 const HomePage = () => {
@@ -22,6 +23,7 @@ const HomePage = () => {
   return (
     <>
       <Hero />
+      <PedirDeNovoStrip onProductClick={handleProductClick} />
       <MenuSection onProductClick={handleProductClick} />
 
       {selectedProduct && (

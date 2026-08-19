@@ -1,9 +1,10 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Package, Bike, MessageCircle, Loader2, AlertTriangle, Radio, Layers } from 'lucide-react';
+import { ArrowLeft, Package, Bike, MessageCircle, Loader2, AlertTriangle, Radio, Layers, CalendarClock } from 'lucide-react';
 import Header from '../components/Header';
 import OrderTimeline from '../components/OrderTimeline';
 import AvaliacaoPopup from '../components/AvaliacaoPopup';
+import AtivarNotificacoesButton from '../components/AtivarNotificacoesButton';
 
 const LiveTrackingMap = lazy(() => import('../components/LiveTrackingMap'));
 import { useTenant } from '../context/TenantContext';
@@ -95,9 +96,22 @@ const PedidoAcompanhamentoPage: React.FC = () => {
                 {STATUS_PEDIDO_LABELS[pedido.status]}
               </span>
             </div>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-gray-400 mb-3">
               Feito em {new Date(pedido.createdAt).toLocaleString('pt-BR')}
             </p>
+
+            {pedido.agendadoPara && (
+              <p className="flex items-center gap-1.5 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 mb-3">
+                <CalendarClock className="h-4 w-4 shrink-0" />
+                Agendado para {new Date(pedido.agendadoPara).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+
+            {pedido.status !== 'ENTREGUE' && pedido.status !== 'CANCELADO' && (
+              <div className="mb-6">
+                <AtivarNotificacoesButton empresaId={empresa.id} pedidoId={pedido.id} />
+              </div>
+            )}
 
             <div className="mb-6">
               <OrderTimeline order={pedido} />
@@ -131,6 +145,13 @@ const PedidoAcompanhamentoPage: React.FC = () => {
                   ) : (
                     <p className="text-xs text-gray-400 text-center py-3">Aguardando o motoboy compartilhar a localização...</p>
                   )
+                )}
+
+                {pedido.status === 'ENTREGUE' && pedido.fotoEntrega && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1.5">Comprovante de entrega</p>
+                    <img src={pedido.fotoEntrega} alt="Comprovante de entrega" className="w-full max-h-64 object-cover rounded-xl" />
+                  </div>
                 )}
               </div>
             )}

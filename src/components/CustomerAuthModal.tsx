@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mail, Lock, User, Phone, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Mail, Lock, User, Phone, Loader2, Gift } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import { signUpCliente, loginCliente } from '../lib/clientes';
 import { useCustomer } from '../context/CustomerContext';
@@ -12,16 +12,27 @@ interface CustomerAuthModalProps {
 
 type Mode = 'login' | 'signup';
 
+/** Link de indicação chega como ?ref=CODIGO — pré-preenche o campo pra quem clicou não precisar digitar. */
+const codigoIndicacaoDaUrl = () => new URLSearchParams(window.location.search).get('ref') ?? '';
+
 const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, onClose }) => {
   const { setCustomerSession } = useCustomer();
   const { empresa } = useTenant();
   const [mode, setMode] = useState<Mode>('login');
-  const [form, setForm] = useState({ name: '', phone: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', referral: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    const codigo = codigoIndicacaoDaUrl();
+    if (codigo) {
+      setForm((f) => ({ ...f, referral: codigo }));
+      setMode('signup');
+    }
+  }, []);
+
   const resetAndClose = () => {
-    setForm({ name: '', phone: '', email: '', password: '' });
+    setForm({ name: '', phone: '', email: '', password: '', referral: '' });
     setError('');
     setMode('login');
     onClose();
@@ -52,6 +63,7 @@ const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, onClose }
         telefone: form.phone,
         email: form.email,
         senha: form.password,
+        indicadoPor: form.referral.trim() || undefined,
       });
       setCustomerSession(cliente);
       resetAndClose();
@@ -110,6 +122,20 @@ const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, onClose }
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     placeholder="(73) 99999-9999"
                     className="w-full pl-9 pr-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-1 text-sm">
+                  Código de indicação <span className="font-normal text-gray-400">(opcional)</span>
+                </label>
+                <div className="relative">
+                  <Gift className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    value={form.referral}
+                    onChange={(e) => setForm({ ...form, referral: e.target.value.toUpperCase() })}
+                    placeholder="Ex: AB12CD"
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent uppercase"
                   />
                 </div>
               </div>

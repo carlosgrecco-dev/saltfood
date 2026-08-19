@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 
 const ITEMS = [
+  { path: '/super-admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/super-admin/empresas', label: 'Empresas', icon: Building2 },
   { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
   { path: '/super-admin/planos', label: 'Planos', icon: Layers },
@@ -45,10 +46,8 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
       >
         <div className={`flex items-center border-b border-slate-100 py-4 ${open ? 'justify-between px-5' : 'justify-center px-2'}`}>
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black">
-              <img src="/logo-sigma-digital.png" alt="Sigma Soluções Digitais" className="h-full w-full object-cover" />
-            </div>
-            {open && <span className="font-bold text-slate-800 truncate">Super Admin</span>}
+            <img src="/saltfood-icon.png" alt="SaltFood" className="h-9 w-9 shrink-0" />
+            {open && <span className="font-bold text-slate-800 truncate">SaltFood Admin</span>}
           </div>
           {open && (
             <button onClick={() => setOpen(false)} aria-label="Recolher menu" className="shrink-0 text-slate-400 hover:text-slate-700 p-1">
@@ -103,8 +102,9 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         </nav>
 
         {open && (
-          <div className="border-t border-slate-100 px-3 py-3">
+          <div className="border-t border-slate-100 px-3 py-3 space-y-2">
             <InstallAppButton className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 py-2.5 text-sm font-semibold transition-colors" />
+            <p className="text-center text-[11px] text-slate-300">uma plataforma Sigma Soluções Digitais</p>
           </div>
         )}
       </div>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, LogIn, Package, Star, Clock, Layers } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, LogIn, Package, Star, Clock, Layers, RotateCcw } from 'lucide-react';
 import OrderTimeline from '../components/OrderTimeline';
 import AvaliacaoPopup from '../components/AvaliacaoPopup';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
+import { useCart } from '../context/CartContext';
 import { fetchMeusPedidos } from '../lib/clientes';
 import { Pedido, STATUS_PEDIDO_LABELS, FORMA_PAGAMENTO_LABELS, StatusPedido } from '../types/Pedido';
 
@@ -23,9 +24,34 @@ const faltaAvaliar = (order: Pedido) =>
 const OrdersPage: React.FC = () => {
   const { customer, isLoading, openCustomerAuth } = useCustomer();
   const { slug, empresa } = useTenant();
+  const navigate = useNavigate();
+  const { addItem, openCart } = useCart();
   const [orders, setOrders] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [avaliandoPedido, setAvaliandoPedido] = useState<Pedido | null>(null);
+
+  /** Recoloca os itens do pedido no carrinho a partir do snapshot salvo — a validação de disponibilidade
+   * atual (produto/opção ainda existem e ativos) acontece no checkout, igual num pedido novo qualquer. */
+  const handleReorder = (order: Pedido) => {
+    const itensValidos = order.itens.filter((item) => item.produtoId);
+    for (const item of itensValidos) {
+      addItem({
+        productId: item.produtoId as string,
+        name: item.nomeProduto,
+        unitPrice: item.precoUnitario,
+        quantity: item.quantidade,
+        notes: item.observacoes || undefined,
+        options: item.opcoesSelecionadas.map((opt) => ({
+          optionId: opt.opcaoId || '',
+          groupName: opt.nomeGrupo,
+          optionName: opt.nomeOpcao,
+          additionalPrice: opt.precoAdicional,
+        })),
+      });
+    }
+    navigate(`/${slug}`);
+    openCart();
+  };
 
   useEffect(() => {
     if (!customer) return;
@@ -124,19 +150,29 @@ const OrdersPage: React.FC = () => {
                 <span className="font-bold text-orange-600">R$ {order.total.toFixed(2)}</span>
               </div>
 
-              {order.status === 'ENTREGUE' && (
-                <button
-                  onClick={() => setAvaliandoPedido(order)}
-                  className={`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    faltaAvaliar(order)
-                      ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
-                      : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                  }`}
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  {faltaAvaliar(order) ? 'Avaliar pedido' : 'Ver avaliação'}
-                </button>
-              )}
+              <div className="mt-3 flex gap-2">
+                {order.status !== 'CANCELADO' && order.itens.some((i) => i.produtoId) && (
+                  <button
+                    onClick={() => handleReorder(order)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> Pedir de novo
+                  </button>
+                )}
+                {order.status === 'ENTREGUE' && (
+                  <button
+                    onClick={() => setAvaliandoPedido(order)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      faltaAvaliar(order)
+                        ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                        : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Star className="h-3.5 w-3.5" />
+                    {faltaAvaliar(order) ? 'Avaliar pedido' : 'Ver avaliação'}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
 

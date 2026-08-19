@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowLeft, Bike, Loader2, Lock, LogOut, Phone, RefreshCcw, CheckCircle2, Truck, MapPin, Navigation, NavigationOff,
+  ArrowLeft, Bike, Loader2, Lock, LogOut, Phone, RefreshCcw, CheckCircle2, Truck, MapPin, Navigation, NavigationOff, Camera,
 } from 'lucide-react';
-import { loginMotoboy, updateMotoboyLocalizacao } from '../lib/motoboysApi';
+import { loginMotoboy, updateMotoboyLocalizacao, setMotoboyDisponibilidade } from '../lib/motoboysApi';
 import { getMotoboySession, saveMotoboySession, clearMotoboySession } from '../lib/motoboySession';
 import { fetchPedidos, updatePedidoStatus } from '../lib/pedidos';
+import { uploadImagemComToken } from '../lib/upload';
 import { Pedido } from '../types/Pedido';
 import { FORMA_PAGAMENTO_LABELS } from '../types/Pedido';
 import { MotoboySession } from '../types/Motoboy';
@@ -27,6 +28,9 @@ const MotoboyPage: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [fotosEntrega, setFotosEntrega] = useState<Record<string, string>>({});
+  const [uploadingFotoId, setUploadingFotoId] = useState<string | null>(null);
+  const [togglingDisponibilidade, setTogglingDisponibilidade] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -105,7 +109,9 @@ const MotoboyPage: React.FC = () => {
     setIsLoggingIn(true);
     try {
       const motoboy = await loginMotoboy(empresa.id, phone, pin);
-      const novaSessao: MotoboySession = { motoboyId: motoboy.id, motoboyNome: motoboy.nome, empresaId: empresa.id, token: motoboy.token };
+      const novaSessao: MotoboySession = {
+        motoboyId: motoboy.id, motoboyNome: motoboy.nome, empresaId: empresa.id, token: motoboy.token, disponivel: motoboy.disponivel,
+      };
       saveMotoboySession(novaSessao);
       setSession(novaSessao);
       setPhone('');
@@ -126,12 +132,45 @@ const MotoboyPage: React.FC = () => {
   const handleConfirm = async (pedidoId: string) => {
     setConfirmingId(pedidoId);
     try {
-      await updatePedidoStatus(empresa.id, pedidoId, 'ENTREGUE');
+      await updatePedidoStatus(empresa.id, pedidoId, 'ENTREGUE', fotosEntrega[pedidoId]);
+      setFotosEntrega((prev) => {
+        const { [pedidoId]: _removida, ...resto } = prev;
+        return resto;
+      });
       loadPedidos();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Não foi possível confirmar a entrega.');
     } finally {
       setConfirmingId(null);
+    }
+  };
+
+  const handleFotoEntrega = async (pedidoId: string, file: File) => {
+    if (!session) return;
+    setUploadingFotoId(pedidoId);
+    try {
+      const url = await uploadImagemComToken(file, session.token);
+      setFotosEntrega((prev) => ({ ...prev, [pedidoId]: url }));
+    } catch {
+      alert('Não foi possível enviar a foto. Tente de novo.');
+    } finally {
+      setUploadingFotoId(null);
+    }
+  };
+
+  const handleToggleDisponibilidade = async () => {
+    if (!session) return;
+    const novoValor = !session.disponivel;
+    setTogglingDisponibilidade(true);
+    try {
+      await setMotoboyDisponibilidade(empresa.id, session.motoboyId, novoValor);
+      const novaSessao = { ...session, disponivel: novoValor };
+      saveMotoboySession(novaSessao);
+      setSession(novaSessao);
+    } catch {
+      /* falha silenciosa — o toggle continua refletindo o último estado confirmado pelo servidor */
+    } finally {
+      setTogglingDisponibilidade(false);
     }
   };
 
@@ -232,6 +271,17 @@ const MotoboyPage: React.FC = () => {
           </div>
         </div>
 
+        <button
+          onClick={handleToggleDisponibilidade}
+          disabled={togglingDisponibilidade}
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold mb-6 transition-colors disabled:opacity-60 ${
+            session.disponivel ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+          }`}
+        >
+          <span className={`h-2 w-2 rounded-full ${session.disponivel ? 'bg-green-500' : 'bg-gray-400'}`} />
+          {session.disponivel ? 'Disponível para corridas' : 'Indisponível no momento'}
+        </button>
+
         {loading && <p className="text-gray-500 mb-4">Carregando...</p>}
 
         <div className="flex items-center justify-between mb-3">
@@ -274,7 +324,35 @@ const MotoboyPage: React.FC = () => {
               <p className="text-sm text-gray-500">{p.clienteTelefone}</p>
               <p className="font-bold text-orange-600 mt-1">R$ {p.total.toFixed(2)}</p>
 
-              <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                {fotosEntrega[p.id] ? (
+                  <div className="flex items-center gap-2">
+                    <img src={fotosEntrega[p.id]} alt="Comprovante de entrega" className="h-12 w-12 rounded-lg object-cover" />
+                    <label className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
+                      Trocar foto
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFotoEntrega(p.id, f); e.target.value = ''; }}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-1.5 w-full bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm px-4 py-2 rounded-xl cursor-pointer transition-colors">
+                    {uploadingFotoId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    {uploadingFotoId === p.id ? 'Enviando foto...' : 'Foto do comprovante (opcional)'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      disabled={uploadingFotoId === p.id}
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFotoEntrega(p.id, f); e.target.value = ''; }}
+                    />
+                  </label>
+                )}
                 <button
                   onClick={() => handleConfirm(p.id)}
                   disabled={confirmingId === p.id}

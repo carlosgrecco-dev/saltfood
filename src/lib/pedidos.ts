@@ -50,10 +50,10 @@ export async function createPedido(empresaId: string, input: PedidoInput): Promi
   }, session?.token);
 }
 
-export async function updatePedidoStatus(empresaId: string, id: string, status: StatusPedido): Promise<Pedido> {
+export async function updatePedidoStatus(empresaId: string, id: string, status: StatusPedido, fotoEntrega?: string): Promise<Pedido> {
   return apiRequestAsAdminOuMotoboy<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, ...(fotoEntrega ? { fotoEntrega } : {}) }),
   });
 }
 
@@ -88,11 +88,12 @@ export async function avaliarPedido(
   empresaId: string,
   pedidoId: string,
   nota: number,
-  comentario?: string
+  comentario?: string,
+  fotos?: string[]
 ): Promise<Pedido> {
   return apiRequestAsCliente<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${pedidoId}/avaliar-pedido`, {
     method: 'POST',
-    body: JSON.stringify({ nota, comentario }),
+    body: JSON.stringify({ nota, comentario, ...(fotos && fotos.length ? { fotos } : {}) }),
   });
 }
 

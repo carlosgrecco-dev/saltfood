@@ -1,17 +1,39 @@
 import React, { useState } from 'react';
-import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingBag, Truck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useTenant } from '../context/TenantContext';
 import BottomSheet from './BottomSheet';
 import CheckoutModal from './CheckoutModal';
 
 const CartDrawer: React.FC = () => {
   const { items, isCartOpen, closeCart, removeItem, updateQuantity, subtotal, deliveryFee, total } = useCart();
+  const { empresa } = useTenant();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const freteGratisAcimaDe = empresa.freteGratisAcimaDe;
+  const faltaProFreteGratis = freteGratisAcimaDe != null ? Math.max(0, freteGratisAcimaDe - subtotal) : null;
 
   return (
     <>
       <BottomSheet isOpen={isCartOpen} onClose={closeCart} title="Seu Carrinho">
         <div className="p-5 space-y-3">
+          {items.length > 0 && freteGratisAcimaDe != null && (
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2.5">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                <Truck className="h-3.5 w-3.5 shrink-0" />
+                {faltaProFreteGratis === 0
+                  ? 'Você ganhou frete grátis neste pedido!'
+                  : `Falta R$ ${faltaProFreteGratis!.toFixed(2)} para o frete grátis`}
+              </p>
+              <div className="mt-1.5 h-1.5 w-full rounded-full bg-emerald-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${Math.min(100, (subtotal / freteGratisAcimaDe) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {items.length === 0 && (
             <div className="text-center py-12 text-gray-400">
               <ShoppingBag className="h-10 w-10 mx-auto mb-3 text-gray-300" />

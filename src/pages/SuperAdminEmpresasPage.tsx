@@ -204,9 +204,7 @@ const SuperAdminEmpresasPage: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-black shadow-sm shadow-indigo-200">
-                <img src="/logo-sigma-digital.png" alt="Sigma Soluções Digitais" className="h-full w-full object-cover" />
-              </div>
+              <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
                 <h1 className="text-xl font-bold text-slate-900">Cadastro de Empresas</h1>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer } from 'lucide-react';
+import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer, CalendarClock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
@@ -68,6 +68,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
     cashChangeFor: '',
     notes: '',
   });
+  const [agendarPedido, setAgendarPedido] = useState(false);
+  const [horarioAgendado, setHorarioAgendado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successOrderId, setSuccessOrderId] = useState<{ numero: number; id: string } | null>(null);
@@ -132,6 +134,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setCupomInput('');
       setCupomAplicado(null);
       setCupomError('');
+      setAgendarPedido(false);
+      setHorarioAgendado('');
     }
   }, [isOpen, customer, empresa.id]);
 
@@ -173,6 +177,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (agendarPedido && !horarioAgendado) {
+      setError('Escolha o horário desejado para o agendamento.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const enderecoFinal = usandoEnderecoSalvo && enderecoSelecionado
@@ -195,6 +203,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         clienteId: customer?.id,
         usarItemGratis: useFreeItem,
         cupomCodigo: cupomAplicado?.codigo,
+        agendadoPara: agendarPedido && horarioAgendado ? new Date(horarioAgendado).toISOString() : undefined,
         itens: items.map((item) => ({
           produtoId: item.productId,
           quantidade: item.quantity,
@@ -247,6 +256,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
             Seu pedido foi recebido e já aparece no nosso painel. Em breve entraremos em contato para confirmar.
           </p>
           <p className="text-xs text-gray-400 font-mono mb-2">Pedido #{successOrderId.numero}</p>
+          {agendarPedido && horarioAgendado && (
+            <p className="flex items-center justify-center gap-1.5 text-sm text-gray-600 mb-2">
+              <CalendarClock className="h-4 w-4 text-[var(--cor-primaria)]" />
+              Agendado para {new Date(horarioAgendado).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
           {(empresa.tempoEstimadoMin || empresa.tempoEstimadoMax) && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-gray-600 mb-6">
               <Timer className="h-4 w-4 text-[var(--cor-primaria)]" />
@@ -481,6 +496,40 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               </div>
             )}
             {cupomError && <p className="text-xs text-red-600 mt-1">{cupomError}</p>}
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1.5 text-sm">Quando você quer receber?</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAgendarPedido(false)}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                  !agendarPedido ? 'border-[var(--cor-primaria)] bg-orange-50/40 text-gray-800' : 'border-gray-200 text-gray-500'
+                }`}
+              >
+                <Timer className="h-4 w-4" /> Assim que possível
+              </button>
+              <button
+                type="button"
+                onClick={() => setAgendarPedido(true)}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                  agendarPedido ? 'border-[var(--cor-primaria)] bg-orange-50/40 text-gray-800' : 'border-gray-200 text-gray-500'
+                }`}
+              >
+                <CalendarClock className="h-4 w-4" /> Agendar horário
+              </button>
+            </div>
+            {agendarPedido && (
+              <input
+                type="datetime-local"
+                required
+                value={horarioAgendado}
+                onChange={(e) => setHorarioAgendado(e.target.value)}
+                min={new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16)}
+                className="w-full mt-2 px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            )}
           </div>
 
           <div>

@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Gift, Trophy, Bike, Clock, Check } from 'lucide-react';
+import { Gift, Trophy, Bike, Clock, Check, Medal } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
-import { Cliente, loyaltyProgress, loyaltyExpiracao, LOYALTY_STAMPS_GOAL } from '../types/Cliente';
+import {
+  Cliente, loyaltyProgress, loyaltyExpiracao, LOYALTY_STAMPS_GOAL, loyaltyTier, LOYALTY_TIER_LABELS,
+} from '../types/Cliente';
+
+const TIER_COLORS: Record<ReturnType<typeof loyaltyTier>, string> = {
+  BRONZE: 'text-amber-100',
+  PRATA: 'text-slate-100',
+  OURO: 'text-yellow-100',
+};
 
 interface LoyaltyCardProps {
   customer: Cliente;
@@ -45,6 +53,7 @@ const LoyaltyCard: React.FC<LoyaltyCardProps> = ({ customer }) => {
   const msLeft = useCountdown(available > 0 ? expiraEm : null);
   const logoUrl = empresa.fidelidadeLogoUrl || empresa.logoUrl;
   const progressPercent = available > 0 ? 100 : (stamps / LOYALTY_STAMPS_GOAL) * 100;
+  const tier = loyaltyTier(customer);
 
   return (
     <div
@@ -72,7 +81,9 @@ const LoyaltyCard: React.FC<LoyaltyCardProps> = ({ customer }) => {
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate font-extrabold text-sm">{empresa.nome}</p>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">Cartão Fidelidade</p>
+          <p className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest ${TIER_COLORS[tier]}`}>
+            <Medal className="h-3 w-3" /> Nível {LOYALTY_TIER_LABELS[tier]}
+          </p>
         </div>
         {available > 0 && (
           <span className="shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold backdrop-blur-sm">

@@ -1,13 +1,15 @@
 import React from 'react';
-import { Plus, ImageOff } from 'lucide-react';
+import { Plus, ImageOff, Heart } from 'lucide-react';
 import { Produto } from '../types/Produto';
 
 interface ProductCardProps {
   product: Produto;
   onClick: () => void;
+  isFavorito?: boolean;
+  onToggleFavorito?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isFavorito, onToggleFavorito }) => {
   const precoFinal = product.precoPromocional ?? product.preco;
   const emPromocao = product.precoPromocional != null && product.precoPromocional < product.preco;
   const indisponivel = !product.disponivel;
@@ -24,6 +26,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           <img src={product.fotoUrl} alt={product.nome} className="w-full h-full object-cover" />
         ) : (
           <ImageOff className="h-7 w-7 text-gray-300" />
+        )}
+        {onToggleFavorito && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorito(); }}
+            className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm"
+            aria-label={isFavorito ? `Remover ${product.nome} dos favoritos` : `Favoritar ${product.nome}`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${isFavorito ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+          </button>
         )}
       </div>
 

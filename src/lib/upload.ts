@@ -1,13 +1,12 @@
 import { API_URL, ApiError } from './apiClient';
 import { getAnyAdminSession } from './adminAuth';
 
-export async function uploadImagem(arquivo: File): Promise<string> {
+async function uploadComToken(arquivo: File, token: string | undefined): Promise<string> {
   const formData = new FormData();
   formData.append('arquivo', arquivo);
 
-  const session = getAnyAdminSession();
   const headers: Record<string, string> = {};
-  if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${API_URL}/uploads`, {
     method: 'POST',
@@ -22,4 +21,14 @@ export async function uploadImagem(arquivo: File): Promise<string> {
 
   const data = (await res.json()) as { url: string };
   return data.url;
+}
+
+export async function uploadImagem(arquivo: File): Promise<string> {
+  const session = getAnyAdminSession();
+  return uploadComToken(arquivo, session?.token);
+}
+
+/** Upload de imagem autenticado com um token explícito (cliente na avaliação, motoboy no comprovante de entrega). */
+export async function uploadImagemComToken(arquivo: File, token: string): Promise<string> {
+  return uploadComToken(arquivo, token);
 }

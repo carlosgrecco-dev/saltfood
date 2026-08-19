@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ListChecks, PackageCheck, ChefHat, Truck, CheckCircle2, XCircle, Package, Printer, MessageCircle, BellOff, Layers, Gift } from 'lucide-react';
+import { ListChecks, PackageCheck, ChefHat, Truck, CheckCircle2, XCircle, Package, Printer, MessageCircle, BellOff, Layers, Gift, CalendarClock } from 'lucide-react';
 import { Pedido, StatusPedido, STATUS_PEDIDO_LABELS, FORMA_PAGAMENTO_LABELS } from '../../types/Pedido';
 import { Motoboy } from '../../types/Motoboy';
 import { fetchPedidos, updatePedidoStatus, assignMotoboy, liberarResgateFidelidade } from '../../lib/pedidos';
@@ -223,6 +223,11 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
                 {pedido.itemGratisResgatado && (
                   <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                     <Gift className="h-3 w-3" /> item grátis
+                  </span>
+                )}
+                {pedido.agendadoPara && (
+                  <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <CalendarClock className="h-3 w-3" /> {new Date(pedido.agendadoPara).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 )}
               </div>

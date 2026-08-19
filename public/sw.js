@@ -42,8 +42,45 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => cached);
+        // Sem isso, uma falha de rede sem nada em cache tentava resolver com `undefined`,
+        // e o navegador acusava "Failed to convert value to 'Response'".
+        .catch(() => cached || Response.error());
       return cached || networkFetch;
+    })
+  );
+});
+
+// Notificação push (atualização de status do pedido) — o payload vem como JSON de notificarPedido().
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    return;
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'SaltFood', {
+      body: payload.body,
+      icon: '/saltfood-icon.png',
+      badge: '/saltfood-icon.png',
+      data: { url: payload.url },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url;
+  if (!url) return;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === url && 'focus' in client) return client.focus();
+      }
+      return self.clients.openWindow(url);
     })
   );
 });

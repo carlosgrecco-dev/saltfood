@@ -9,6 +9,8 @@ export interface SignUpPayload {
   telefone?: string;
   email: string;
   senha: string;
+  /** Código de indicação de outro cliente (opcional) — inválido/inexistente é ignorado silenciosamente pelo backend. */
+  indicadoPor?: string;
 }
 
 export type ClienteAuth = Cliente & { token: string };

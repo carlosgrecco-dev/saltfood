@@ -8,6 +8,8 @@ export interface Cliente {
   itensGratisGanhos: number;
   itensGratisResgatados: number;
   itemGratisGanhoEm: string | null;
+  codigoIndicacao: string | null;
+  indicadoPorId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +27,21 @@ export function loyaltyProgress(cliente: Pick<Cliente, 'totalUnidadesCompradas'>
 
 export function loyaltyFreeItemsAvailable(cliente: Pick<Cliente, 'itensGratisGanhos' | 'itensGratisResgatados'>) {
   return Math.max(0, cliente.itensGratisGanhos - cliente.itensGratisResgatados);
+}
+
+export type LoyaltyTier = 'BRONZE' | 'PRATA' | 'OURO';
+
+export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
+  BRONZE: 'Bronze',
+  PRATA: 'Prata',
+  OURO: 'Ouro',
+};
+
+/** Nível de fidelidade calculado sobre o total histórico de unidades compradas — cosmético, não altera nenhuma regra de resgate. */
+export function loyaltyTier(cliente: Pick<Cliente, 'totalUnidadesCompradas'>): LoyaltyTier {
+  if (cliente.totalUnidadesCompradas >= 50) return 'OURO';
+  if (cliente.totalUnidadesCompradas >= 20) return 'PRATA';
+  return 'BRONZE';
 }
 
 export interface LoyaltyExpiracao {

@@ -8,6 +8,7 @@ export interface Motoboy {
   latitudeAtual: number | null;
   longitudeAtual: number | null;
   localizacaoAtualizadaEm: string | null;
+  disponivel: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,4 +18,5 @@ export interface MotoboySession {
   motoboyNome: string;
   empresaId: string;
   token: string;
+  disponivel: boolean;
 }

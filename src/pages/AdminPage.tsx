@@ -150,7 +150,7 @@ const AdminPage: React.FC = () => {
     setMotoboyLoggingIn(true);
     try {
       const motoboy = await loginMotoboy(empresa.id, motoboyPhone, motoboyPin);
-      const novaSessao: MotoboySession = { motoboyId: motoboy.id, motoboyNome: motoboy.nome, empresaId: empresa.id, token: motoboy.token };
+      const novaSessao: MotoboySession = { motoboyId: motoboy.id, motoboyNome: motoboy.nome, empresaId: empresa.id, token: motoboy.token, disponivel: motoboy.disponivel };
       saveMotoboySession(novaSessao);
       navigate(`/${slug}/motoboy`);
     } catch (err) {

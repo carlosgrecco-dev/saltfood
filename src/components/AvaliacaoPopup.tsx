@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Bike, CheckCircle2, ExternalLink, Send, Star } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Bike, CheckCircle2, ExternalLink, Send, Star, Camera, X, Loader2 } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import StarRating from './StarRating';
 import { useTenant } from '../context/TenantContext';
 import { useCustomer } from '../context/CustomerContext';
 import { avaliarPedido, avaliarMotoboy } from '../lib/pedidos';
+import { uploadImagemComToken } from '../lib/upload';
+import { getClienteSession } from '../lib/clienteSession';
 import { Pedido } from '../types/Pedido';
 
 interface AvaliacaoPopupProps {
@@ -28,13 +30,30 @@ const RatingBlock: React.FC<{
   onDraftChange: (draft: RatingDraft) => void;
   onSubmit: () => void;
   submitting: boolean;
-}> = ({ titulo, icon, notaAtual, comentarioAtual, draft, onDraftChange, onSubmit, submitting }) => {
+  fotosExistentes?: string[];
+  fotos?: string[];
+  onAddFoto?: (file: File) => void;
+  onRemoveFoto?: (url: string) => void;
+  uploadingFoto?: boolean;
+}> = ({
+  titulo, icon, notaAtual, comentarioAtual, draft, onDraftChange, onSubmit, submitting,
+  fotosExistentes, fotos, onAddFoto, onRemoveFoto, uploadingFoto,
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (notaAtual) {
     return (
       <div>
         <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5">{icon} {titulo}</p>
         <StarRating value={notaAtual} readOnly size="sm" />
         {comentarioAtual && <p className="text-xs text-gray-500 mt-1 italic">"{comentarioAtual}"</p>}
+        {fotosExistentes && fotosExistentes.length > 0 && (
+          <div className="flex gap-1.5 mt-2">
+            {fotosExistentes.map((url) => (
+              <img key={url} src={url} alt="Foto da avaliação" className="h-14 w-14 rounded-lg object-cover" />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -44,20 +63,60 @@ const RatingBlock: React.FC<{
       <p className="text-sm text-gray-700 font-semibold mb-1.5 flex items-center gap-1.5">{icon} {titulo}</p>
       <StarRating value={draft.rating} onChange={(rating) => onDraftChange({ ...draft, rating })} size="md" />
       {draft.rating > 0 && (
-        <div className="mt-2 flex gap-2">
-          <input
-            value={draft.comment}
-            onChange={(e) => onDraftChange({ ...draft, comment: e.target.value })}
-            placeholder="Conte o motivo da nota (opcional)"
-            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          />
-          <button
-            onClick={onSubmit}
-            disabled={submitting}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-3 rounded-lg disabled:opacity-60"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+        <div className="mt-2 space-y-2">
+          <div className="flex gap-2">
+            <input
+              value={draft.comment}
+              onChange={(e) => onDraftChange({ ...draft, comment: e.target.value })}
+              placeholder="Conte o motivo da nota (opcional)"
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+            <button
+              onClick={onSubmit}
+              disabled={submitting}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-3 rounded-lg disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+
+          {onAddFoto && (
+            <div className="flex items-center gap-2">
+              {fotos?.map((url) => (
+                <div key={url} className="relative">
+                  <img src={url} alt="Foto anexada" className="h-12 w-12 rounded-lg object-cover" />
+                  <button
+                    onClick={() => onRemoveFoto?.(url)}
+                    className="absolute -top-1.5 -right-1.5 bg-gray-800 text-white rounded-full p-0.5"
+                    aria-label="Remover foto"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </div>
+              ))}
+              {(fotos?.length ?? 0) < 3 && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingFoto}
+                  className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-orange-400 hover:text-orange-500 transition-colors disabled:opacity-50"
+                  aria-label="Anexar foto"
+                >
+                  {uploadingFoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onAddFoto(file);
+                  e.target.value = '';
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -75,14 +134,36 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
   const [submittingPedido, setSubmittingPedido] = useState(false);
   const [submittingMotoboy, setSubmittingMotoboy] = useState(false);
   const [error, setError] = useState('');
+  const [fotos, setFotos] = useState<string[]>([]);
+  const [uploadingFoto, setUploadingFoto] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setPedidoDraft(emptyDraft);
       setMotoboyDraft(emptyDraft);
       setError('');
+      setFotos([]);
     }
   }, [isOpen, pedido.id]);
+
+  const handleAddFoto = async (file: File) => {
+    const session = getClienteSession(empresa.id);
+    if (!session) return;
+    setUploadingFoto(true);
+    setError('');
+    try {
+      const url = await uploadImagemComToken(file, session.token);
+      setFotos((prev) => [...prev, url]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível enviar a foto.');
+    } finally {
+      setUploadingFoto(false);
+    }
+  };
+
+  const handleRemoveFoto = (url: string) => {
+    setFotos((prev) => prev.filter((f) => f !== url));
+  };
 
   const pedidoAnswered = !!pedido.notaPedido;
   const motoboyAnswered = !pedido.motoboyId || !!pedido.notaMotoboy;
@@ -104,7 +185,7 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
     setError('');
     setSubmittingPedido(true);
     try {
-      const atualizado = await avaliarPedido(empresa.id, pedido.id, pedidoDraft.rating, pedidoDraft.comment);
+      const atualizado = await avaliarPedido(empresa.id, pedido.id, pedidoDraft.rating, pedidoDraft.comment, fotos);
       onUpdated(atualizado);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar sua avaliação.');
@@ -147,6 +228,11 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
           onDraftChange={setPedidoDraft}
           onSubmit={handleSubmitPedido}
           submitting={submittingPedido}
+          fotosExistentes={pedido.fotosAvaliacao}
+          fotos={fotos}
+          onAddFoto={handleAddFoto}
+          onRemoveFoto={handleRemoveFoto}
+          uploadingFoto={uploadingFoto}
         />
 
         {pedido.motoboyId && (

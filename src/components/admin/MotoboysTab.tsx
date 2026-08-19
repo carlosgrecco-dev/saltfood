@@ -141,7 +141,20 @@ const MotoboysTab: React.FC<MotoboysTabProps> = ({ empresaId }) => {
         {motoboys.map((m) => (
           <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 rounded-xl p-4">
             <div>
-              <p className="font-bold text-gray-800">{m.nome}</p>
+              <p className="font-bold text-gray-800 flex items-center gap-2">
+                {m.nome}
+                {m.ativo && (
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                      m.disponivel ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    }`}
+                    title="Definido pelo próprio motoboy no portal dele"
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${m.disponivel ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    {m.disponivel ? 'Disponível' : 'Indisponível'}
+                  </span>
+                )}
+              </p>
               <p className="text-sm text-gray-500">{m.telefone || 'sem telefone'}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">

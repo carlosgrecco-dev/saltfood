@@ -31,12 +31,10 @@ const SuperAdminLoginPage: React.FC = () => {
         {/* Coluna esquerda — formulário */}
         <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12">
           <div className="w-full max-w-sm mx-auto">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-black shadow-sm mb-6">
-              <img src="/logo-sigma-digital.png" alt="Sigma Soluções Digitais" className="h-full w-full object-cover" />
-            </div>
+            <img src="/saltfood-icon.png" alt="SaltFood" className="h-14 w-14 mb-6" />
 
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Bem-vindo à Sigma! 👋</h1>
-            <p className="text-sm text-slate-500 mb-8">Acesse o painel de controle da plataforma</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Bem-vindo! 👋</h1>
+            <p className="text-sm text-slate-500 mb-8">Acesse o painel de controle da plataforma SaltFood</p>
 
             <form onSubmit={handleLogin} className="space-y-5">
               {error && (

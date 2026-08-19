@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
 import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria } from '../../types/Produto';
 import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto } from '../../lib/produtos';
 import { fetchProdutoVariacoes, createProdutoVariacao, updateProdutoVariacao, deleteProdutoVariacao } from '../../lib/produtoVariacoes';
@@ -76,6 +76,9 @@ const FotoInput: React.FC<{ value: string; onChange: (url: string) => void }> = 
 interface ProdutosTabProps {
   empresaId: string;
 }
+
+/** Abaixo disso, o estoque do produto é sinalizado como baixo no painel. */
+const ESTOQUE_BAIXO_LIMITE = 5;
 
 const emptyForm = {
   nome: '',
@@ -583,6 +586,10 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [variacoesAbertas, setVariacoesAbertas] = useState<string | null>(null);
+  const produtosEstoqueBaixo = useMemo(
+    () => produtos.filter((p) => p.controlarEstoque && p.estoqueQtd != null && p.estoqueQtd <= ESTOQUE_BAIXO_LIMITE),
+    [produtos]
+  );
   const [opcoesAbertas, setOpcoesAbertas] = useState<string | null>(null);
   const [duplicandoId, setDuplicandoId] = useState<string | null>(null);
 
@@ -970,6 +977,16 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
         </button>
       </form>
 
+      {produtosEstoqueBaixo.length > 0 && (
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">
+            <span className="font-semibold">{produtosEstoqueBaixo.length} produto{produtosEstoqueBaixo.length > 1 ? 's' : ''} com estoque baixo:</span>{' '}
+            {produtosEstoqueBaixo.map((p) => p.nome).join(', ')}
+          </p>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-center text-gray-500 py-8">Carregando...</p>
       ) : (
@@ -994,9 +1011,16 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {produto.categoria?.nome || 'Sem categoria'}
-                    {produto.controlarEstoque && ` · estoque: ${produto.estoqueQtd ?? 0}`}
+                  <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
+                    <span>
+                      {produto.categoria?.nome || 'Sem categoria'}
+                      {produto.controlarEstoque && ` · estoque: ${produto.estoqueQtd ?? 0}`}
+                    </span>
+                    {produto.controlarEstoque && produto.estoqueQtd != null && produto.estoqueQtd <= ESTOQUE_BAIXO_LIMITE && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
+                        <AlertTriangle className="h-2.5 w-2.5" /> Estoque baixo
+                      </span>
+                    )}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {produto.precoPromocional != null && (

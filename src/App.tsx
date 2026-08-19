@@ -9,6 +9,7 @@ import ComandaImpressaoPage from './pages/ComandaImpressaoPage';
 import TermosPage from './pages/TermosPage';
 import LandingPage from './pages/LandingPage';
 import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
+import SuperAdminDashboardPage from './pages/SuperAdminDashboardPage';
 import SuperAdminEmpresasPage from './pages/SuperAdminEmpresasPage';
 import SuperAdminNovaEmpresaPage from './pages/SuperAdminNovaEmpresaPage';
 import SuperAdminFinanceiroPage from './pages/SuperAdminFinanceiroPage';
@@ -39,6 +40,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/super-admin" element={<SuperAdminLoginPage />} />
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
           <Route path="/super-admin/empresas" element={<SuperAdminEmpresasPage />} />
           <Route path="/super-admin/empresas/nova" element={<SuperAdminNovaEmpresaPage />} />
           <Route path="/super-admin/financeiro" element={<SuperAdminFinanceiroPage />} />

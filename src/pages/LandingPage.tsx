@@ -30,9 +30,9 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-white">
       <header className="max-w-5xl mx-auto px-6 pt-10 pb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <img src="/saltfood-icon.png" alt="SaltFood" className="h-10 w-10" />
-          <span className="text-xl font-bold text-slate-800">SaltFood</span>
+        <div className="flex items-center gap-2.5">
+          <img src="/saltfood-icon.png" alt="" className="h-10 w-10" />
+          <img src="/logotipo-salt.png" alt="SaltFood" className="h-7" />
         </div>
         <InstallAppButton />
       </header>

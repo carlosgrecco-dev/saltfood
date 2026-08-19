@@ -41,8 +41,8 @@ export async function deleteMotoboy(empresaId: string, id: string): Promise<void
   return apiRequestAsAdmin<void>(empresaId, `/empresas/${empresaId}/motoboys/${id}`, { method: 'DELETE' });
 }
 
-export async function loginMotoboy(empresaId: string, telefone: string, pin: string): Promise<{ id: string; nome: string; token: string }> {
-  return apiRequest<{ id: string; nome: string; token: string }>(`/empresas/${empresaId}/motoboys/login`, {
+export async function loginMotoboy(empresaId: string, telefone: string, pin: string): Promise<{ id: string; nome: string; disponivel: boolean; token: string }> {
+  return apiRequest<{ id: string; nome: string; disponivel: boolean; token: string }>(`/empresas/${empresaId}/motoboys/login`, {
     method: 'POST',
     body: JSON.stringify({ telefone, pin }),
   });
@@ -53,5 +53,13 @@ export async function updateMotoboyLocalizacao(empresaId: string, id: string, la
   return apiRequestAsMotoboy<Motoboy>(empresaId, `/empresas/${empresaId}/motoboys/${id}/localizacao`, {
     method: 'PATCH',
     body: JSON.stringify({ latitude, longitude }),
+  });
+}
+
+/** O próprio motoboy liga/desliga "disponível pra corrida" no portal dele — escopo só desta loja. */
+export async function setMotoboyDisponibilidade(empresaId: string, id: string, disponivel: boolean): Promise<Motoboy> {
+  return apiRequestAsMotoboy<Motoboy>(empresaId, `/empresas/${empresaId}/motoboys/${id}/disponibilidade`, {
+    method: 'PATCH',
+    body: JSON.stringify({ disponivel }),
   });
 }
