@@ -8,9 +8,10 @@ interface Segment {
 
 interface StackedBarProps {
   segments: Segment[];
+  formatValue?: (value: number) => string;
 }
 
-const StackedBar: React.FC<StackedBarProps> = ({ segments }) => {
+const StackedBar: React.FC<StackedBarProps> = ({ segments, formatValue = (v) => `R$ ${v.toFixed(2)}` }) => {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
 
   return (
@@ -23,7 +24,7 @@ const StackedBar: React.FC<StackedBarProps> = ({ segments }) => {
               key={i}
               className={s.colorClass}
               style={{ width: `${(s.value / total) * 100}%` }}
-              title={`${s.label}: R$ ${s.value.toFixed(2)}`}
+              title={`${s.label}: ${formatValue(s.value)}`}
             />
           ))}
       </div>
@@ -32,7 +33,7 @@ const StackedBar: React.FC<StackedBarProps> = ({ segments }) => {
           <div key={i} className="flex items-center gap-1.5 text-xs">
             <span className={`w-2.5 h-2.5 rounded-full ${s.colorClass}`} />
             <span className="text-gray-600">{s.label}</span>
-            <span className="font-bold text-gray-800">R$ {s.value.toFixed(2)}</span>
+            <span className="font-bold text-gray-800">{formatValue(s.value)}</span>
             <span className="text-gray-400">({total > 0 ? ((s.value / total) * 100).toFixed(0) : 0}%)</span>
           </div>
         ))}

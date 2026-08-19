@@ -94,7 +94,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
+      <div className={`transition-[margin] duration-300 ease-in-out ml-0 ${navOpen ? 'sm:ml-72' : 'sm:ml-16'}`}>
       <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
           <button

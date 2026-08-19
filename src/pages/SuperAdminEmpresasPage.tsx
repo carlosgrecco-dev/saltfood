@@ -201,7 +201,7 @@ const SuperAdminEmpresasPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Empurra o conteúdo (reduz a largura útil) quando o menu está expandido; volta ao normal quando retraído. */}
-      <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
+      <div className={`transition-[margin] duration-300 ease-in-out ml-0 ${navOpen ? 'sm:ml-72' : 'sm:ml-16'}`}>
       <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
