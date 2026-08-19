@@ -1,0 +1,181 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  ScrollText, LogIn, AlertOctagon, ShieldAlert, Loader2, ArrowLeft, CreditCard, RefreshCw,
+} from 'lucide-react';
+import SuperAdminNav from '../components/superadmin/SuperAdminNav';
+import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
+import { fetchLogs, fetchGatewaysStatus } from '../lib/logs';
+import { LogAuditoria, GatewayStatus, TipoLog, TIPO_LOG_LABELS } from '../types/Log';
+
+const TIPO_ICON: Record<TipoLog, typeof LogIn> = {
+  ACESSO: LogIn,
+  ERRO: AlertOctagon,
+  ALTERACAO_CRITICA: ShieldAlert,
+};
+
+const TIPO_COLOR: Record<TipoLog, string> = {
+  ACESSO: 'bg-blue-100 text-blue-700',
+  ERRO: 'bg-red-100 text-red-700',
+  ALTERACAO_CRITICA: 'bg-amber-100 text-amber-700',
+};
+
+const SuperAdminLogsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [authorized] = useState(() => !!getSuperAdminSession());
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if ((e as CustomEvent).detail?.kind !== 'superadmin') return;
+      signOutSuperAdmin();
+      navigate('/super-admin', { replace: true });
+    };
+    window.addEventListener('kifood:session-expired', handler);
+    return () => window.removeEventListener('kifood:session-expired', handler);
+  }, [navigate]);
+
+  const [logs, setLogs] = useState<LogAuditoria[]>([]);
+  const [gateways, setGateways] = useState<GatewayStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tipoFiltro, setTipoFiltro] = useState<TipoLog | ''>('');
+  const [navOpen, setNavOpen] = useState(true);
+
+  useEffect(() => {
+    if (!authorized) navigate('/super-admin', { replace: true });
+  }, [authorized, navigate]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [l, g] = await Promise.all([
+        fetchLogs({ tipo: tipoFiltro || undefined }),
+        fetchGatewaysStatus(),
+      ]);
+      setLogs(l);
+      setGateways(g);
+    } catch {
+      /* silencioso */
+    } finally {
+      setLoading(false);
+    }
+  }, [tipoFiltro]);
+
+  useEffect(() => {
+    if (authorized) load();
+  }, [authorized, load]);
+
+  if (!authorized) return null;
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className={`transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <button
+            onClick={() => navigate('/super-admin/empresas')}
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-black shadow-sm shadow-indigo-200">
+                <img src="/logo-sigma-digital.png" alt="Sigma Soluções Digitais" className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Super Admin</p>
+                <h1 className="text-xl font-bold text-slate-900">Logs de Auditoria &amp; Sistema</h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { signOutSuperAdmin(); navigate('/super-admin', { replace: true }); }}
+                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                Sair
+              </button>
+              <SuperAdminNav onOpenChange={setNavOpen} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+            <CreditCard className="h-4 w-4 text-indigo-600" /> Status de integração com gateways de pagamento
+          </h2>
+          {gateways.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-6">Nenhum gateway configurado em nenhuma loja ainda.</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {gateways.map((g) => (
+                <div key={g.id} className="border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-800 text-sm truncate">{g.nomeExibicao}</p>
+                    <p className="text-xs text-slate-400 truncate">{g.empresa.nome} · {g.provider}</p>
+                  </div>
+                  <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${g.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                    {g.ativo ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="flex items-center gap-2 font-bold text-slate-800">
+              <ScrollText className="h-4 w-4 text-indigo-600" /> Registro de eventos
+            </h2>
+            <div className="flex items-center gap-2">
+              <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value as TipoLog | '')} className="px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <option value="">Todos os tipos</option>
+                <option value="ACESSO">Acessos</option>
+                <option value="ERRO">Erros do servidor</option>
+                <option value="ALTERACAO_CRITICA">Alterações críticas</option>
+              </select>
+              <button onClick={load} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 border border-slate-200 px-3 py-2 rounded-lg">
+                <RefreshCw className="h-3.5 w-3.5" /> Atualizar
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-indigo-500" /></div>
+          ) : logs.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-12">Nenhum log registrado ainda.</p>
+          ) : (
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {logs.map((log) => {
+                const Icon = TIPO_ICON[log.tipo];
+                return (
+                  <div key={log.id} className="flex items-start gap-3 border border-slate-100 rounded-xl p-3">
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${TIPO_COLOR[log.tipo]}`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-slate-500">{TIPO_LOG_LABELS[log.tipo]}</span>
+                        {log.empresaNome && <span className="text-xs text-indigo-600 font-medium">{log.empresaNome}</span>}
+                        {log.ator && <span className="text-xs text-slate-400">por {log.ator}</span>}
+                      </div>
+                      <p className="text-sm text-slate-700 mt-0.5">{log.acao}</p>
+                    </div>
+                    <span className="shrink-0 text-xs text-slate-400 whitespace-nowrap">
+                      {new Date(log.createdAt).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+      </div>
+    </div>
+  );
+};
+
+export default SuperAdminLogsPage;

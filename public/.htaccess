@@ -1,0 +1,20 @@
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Crawlers de preview de link (WhatsApp, Facebook, Twitter etc.) não executam JS, então nunca
+  # veem o title/descrição/logo que o React seta dinamicamente por loja — manda só esses bots
+  # pra uma página estática com as meta tags certas, gerada pela API. Usuários de verdade nunca
+  # batem nessa regra (só casa quando o User-Agent é de um crawler conhecido).
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot|TelegramBot|Discordbot|SkypeUriPreview|Pinterest) [NC]
+  RewriteRule ^(?!super-admin/?$)([a-z0-9-]+)/?$ https://api.saltfood.com.br/empresas/slug/$1/embed [R=302,L]
+
+  # SPA rewrite — sem isso, recarregar uma rota tipo /acaraje-o-abencoado/admin direto na URL
+  # dá 404 no Apache, porque esse caminho não existe como arquivo físico (equivalente ao
+  # "source": "/(.*)", "destination": "/index.html" que existia em front/vercel.json).
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

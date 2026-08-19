@@ -1,0 +1,20 @@
+export interface Motoboy {
+  id: string;
+  empresaId: string;
+  nome: string;
+  telefone: string | null;
+  taxaPadrao: number;
+  ativo: boolean;
+  latitudeAtual: number | null;
+  longitudeAtual: number | null;
+  localizacaoAtualizadaEm: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MotoboySession {
+  motoboyId: string;
+  motoboyNome: string;
+  empresaId: string;
+  token: string;
+}
