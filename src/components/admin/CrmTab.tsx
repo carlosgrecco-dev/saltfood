@@ -4,6 +4,7 @@ import SimpleBarChart from '../SimpleBarChart';
 import StackedBar from '../StackedBar';
 import { fetchCrmResumo, baixarCrmCsv } from '../../lib/crm';
 import { CrmSummary } from '../../types/Crm';
+import IndicacaoEmpresaCard from './IndicacaoEmpresaCard';
 import { FORMA_PAGAMENTO_LABELS, FormaPagamento, StatusPedido, STATUS_PEDIDO_LABELS } from '../../types/Pedido';
 
 interface CrmTabProps {
@@ -219,6 +220,8 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
               </div>
             </div>
           )}
+
+          <IndicacaoEmpresaCard empresaId={empresaId} />
 
           <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
             <h3 className="font-bold text-gray-800 mb-4">Vendas por Forma de Pagamento</h3>

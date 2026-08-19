@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bike, CheckCircle2, ExternalLink, Send, Star, Camera, X, Loader2 } from 'lucide-react';
+import { Bike, CheckCircle2, ExternalLink, Send, Star, Camera, X, Loader2, UtensilsCrossed, Package, Timer } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import StarRating from './StarRating';
 import { useTenant } from '../context/TenantContext';
@@ -35,9 +35,11 @@ const RatingBlock: React.FC<{
   onAddFoto?: (file: File) => void;
   onRemoveFoto?: (url: string) => void;
   uploadingFoto?: boolean;
+  extraExistente?: React.ReactNode;
+  extraDraft?: React.ReactNode;
 }> = ({
   titulo, icon, notaAtual, comentarioAtual, draft, onDraftChange, onSubmit, submitting,
-  fotosExistentes, fotos, onAddFoto, onRemoveFoto, uploadingFoto,
+  fotosExistentes, fotos, onAddFoto, onRemoveFoto, uploadingFoto, extraExistente, extraDraft,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +56,7 @@ const RatingBlock: React.FC<{
             ))}
           </div>
         )}
+        {extraExistente}
       </div>
     );
   }
@@ -64,6 +67,7 @@ const RatingBlock: React.FC<{
       <StarRating value={draft.rating} onChange={(rating) => onDraftChange({ ...draft, rating })} size="md" />
       {draft.rating > 0 && (
         <div className="mt-2 space-y-2">
+          {extraDraft}
           <div className="flex gap-2">
             <input
               value={draft.comment}
@@ -136,6 +140,9 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
   const [error, setError] = useState('');
   const [fotos, setFotos] = useState<string[]>([]);
   const [uploadingFoto, setUploadingFoto] = useState(false);
+  const [notaComida, setNotaComida] = useState(0);
+  const [notaEmbalagem, setNotaEmbalagem] = useState(0);
+  const [notaTempo, setNotaTempo] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -143,6 +150,9 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
       setMotoboyDraft(emptyDraft);
       setError('');
       setFotos([]);
+      setNotaComida(0);
+      setNotaEmbalagem(0);
+      setNotaTempo(0);
     }
   }, [isOpen, pedido.id]);
 
@@ -185,7 +195,13 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
     setError('');
     setSubmittingPedido(true);
     try {
-      const atualizado = await avaliarPedido(empresa.id, pedido.id, pedidoDraft.rating, pedidoDraft.comment, fotos);
+      const atualizado = await avaliarPedido(empresa.id, pedido.id, pedidoDraft.rating, {
+        comentario: pedidoDraft.comment,
+        fotos,
+        ...(empresa.habilitarAvaliacaoDetalhada && notaComida > 0 ? { notaComida } : {}),
+        ...(empresa.habilitarAvaliacaoDetalhada && notaEmbalagem > 0 ? { notaEmbalagem } : {}),
+        ...(empresa.habilitarAvaliacaoDetalhada && notaTempo > 0 ? { notaTempo } : {}),
+      });
       onUpdated(atualizado);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar sua avaliação.');
@@ -233,6 +249,35 @@ const AvaliacaoPopup: React.FC<AvaliacaoPopupProps> = ({ isOpen, pedido, onClose
           onAddFoto={empresa.habilitarAvaliacaoComFotos ? handleAddFoto : undefined}
           onRemoveFoto={handleRemoveFoto}
           uploadingFoto={uploadingFoto}
+          extraExistente={empresa.habilitarAvaliacaoDetalhada && (pedido.notaComida || pedido.notaEmbalagem || pedido.notaTempo) ? (
+            <div className="flex flex-wrap gap-3 mt-2">
+              {pedido.notaComida != null && (
+                <span className="flex items-center gap-1 text-[11px] text-gray-500"><UtensilsCrossed className="h-3 w-3" /> Comida: {pedido.notaComida}/5</span>
+              )}
+              {pedido.notaEmbalagem != null && (
+                <span className="flex items-center gap-1 text-[11px] text-gray-500"><Package className="h-3 w-3" /> Embalagem: {pedido.notaEmbalagem}/5</span>
+              )}
+              {pedido.notaTempo != null && (
+                <span className="flex items-center gap-1 text-[11px] text-gray-500"><Timer className="h-3 w-3" /> Tempo: {pedido.notaTempo}/5</span>
+              )}
+            </div>
+          ) : undefined}
+          extraDraft={empresa.habilitarAvaliacaoDetalhada ? (
+            <div className="space-y-1.5 border-t border-gray-100 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs text-gray-600"><UtensilsCrossed className="h-3.5 w-3.5" /> Comida</span>
+                <StarRating value={notaComida} onChange={setNotaComida} size="sm" />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs text-gray-600"><Package className="h-3.5 w-3.5" /> Embalagem</span>
+                <StarRating value={notaEmbalagem} onChange={setNotaEmbalagem} size="sm" />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs text-gray-600"><Timer className="h-3.5 w-3.5" /> Tempo de entrega</span>
+                <StarRating value={notaTempo} onChange={setNotaTempo} size="sm" />
+              </div>
+            </div>
+          ) : undefined}
         />
 
         {pedido.motoboyId && (

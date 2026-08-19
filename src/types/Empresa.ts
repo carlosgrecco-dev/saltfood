@@ -44,6 +44,11 @@ export interface EmpresaPublic {
   habilitarAgendamento: boolean;
   habilitarAvaliacaoComFotos: boolean;
   habilitarNotificacoesInApp: boolean;
+  habilitarMissoes: boolean;
+  habilitarIndicacaoAvancada: boolean;
+  habilitarAvaliacaoDetalhada: boolean;
+  habilitarCentralSuporte: boolean;
+  indicacaoRecompensaUnidades: number;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;
@@ -98,6 +103,18 @@ export interface Empresa {
   habilitarAgendamento: boolean;
   habilitarAvaliacaoComFotos: boolean;
   habilitarNotificacoesInApp: boolean;
+  habilitarMissoes: boolean;
+  habilitarIndicacaoAvancada: boolean;
+  habilitarAvaliacaoDetalhada: boolean;
+  habilitarCentralSuporte: boolean;
+  indicacaoRecompensaUnidades: number;
+  /** Código próprio da loja pra indicar outros lojistas à plataforma (indicação tenant-a-tenant, diferente da indicação cliente-a-cliente). */
+  codigoIndicacao: string | null;
+  indicadaPorEmpresaId: string | null;
+  /** Só vem preenchido na listagem do Super Admin (GET /empresas), que inclui essa relação. */
+  indicadaPor?: { id: string; nome: string; codigoIndicacao: string | null } | null;
+  indicacaoEmpresaRecompensada: boolean;
+  creditoIndicacaoEmpresa: number;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;
@@ -124,6 +141,8 @@ export interface EmpresaFormInput {
   planoId?: string;
   /** Só usado na criação quando nenhum plano é escolhido — comissão avulsa (5 a 20%). */
   comissaoPercent?: number;
+  /** Só usado na criação — código de indicação de outra loja da plataforma (indicação tenant-a-tenant), opcional. */
+  indicadoPor?: string;
 }
 
 export interface FidelidadeConfigInput {
@@ -141,6 +160,11 @@ export interface FuncionalidadesConfigInput {
   habilitarAgendamento: boolean;
   habilitarAvaliacaoComFotos: boolean;
   habilitarNotificacoesInApp: boolean;
+  habilitarMissoes: boolean;
+  habilitarIndicacaoAvancada: boolean;
+  habilitarAvaliacaoDetalhada: boolean;
+  habilitarCentralSuporte: boolean;
+  indicacaoRecompensaUnidades: number;
 }
 
 export interface AparenciaInput {

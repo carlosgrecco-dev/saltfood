@@ -6,6 +6,7 @@ export interface ConfiguracaoPublica {
   nomeEmpresa: string;
   emailSuporte: string | null;
   telefoneSuporte: string | null;
+  recompensaIndicacaoEmpresaValor: number;
 }
 
 /** Subconjunto público (sem chaves globais) — usado na landing page da plataforma. */

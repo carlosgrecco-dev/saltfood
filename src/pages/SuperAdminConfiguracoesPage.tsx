@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Save, ArrowLeft, Loader2, KeyRound, Plus, Trash2 } from 'lucide-react';
+import { Settings, Save, ArrowLeft, Loader2, KeyRound, Plus, Trash2, Gift } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchConfiguracaoPlataforma, updateConfiguracaoPlataforma } from '../lib/configuracoesPlataforma';
@@ -32,6 +32,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
   const [endereco, setEndereco] = useState('');
   const [termosPadraoLojistas, setTermosPadraoLojistas] = useState('');
   const [chaves, setChaves] = useState<{ chave: string; valor: string }[]>([]);
+  const [recompensaIndicacaoEmpresaValor, setRecompensaIndicacaoEmpresaValor] = useState('0');
   const [navOpen, setNavOpen] = useState(true);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
       setEndereco(config.endereco || '');
       setTermosPadraoLojistas(config.termosPadraoLojistas || '');
       setChaves(Object.entries(config.chavesGlobais || {}).map(([chave, valor]) => ({ chave, valor })));
+      setRecompensaIndicacaoEmpresaValor(String(config.recompensaIndicacaoEmpresaValor ?? 0));
     } catch (err) {
       setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao carregar configurações' });
     } finally {
@@ -76,6 +78,7 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
       }
       await updateConfiguracaoPlataforma({
         nomeEmpresa, documento, emailSuporte, telefoneSuporte, endereco, termosPadraoLojistas, chavesGlobais,
+        recompensaIndicacaoEmpresaValor: Number(recompensaIndicacaoEmpresaValor) || 0,
       });
       setFeedback({ type: 'success', message: 'Configurações salvas com sucesso.' });
     } catch (err) {
@@ -155,6 +158,29 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
                   <label className="block text-xs text-slate-500 mb-1">Endereço</label>
                   <input value={endereco} onChange={(e) => setEndereco(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-1">
+                <Gift className="h-4 w-4 text-indigo-600" /> Indicação entre lojas
+              </h2>
+              <p className="text-xs text-slate-400 mb-3">
+                Quando um tenant indica outra loja (código próprio, informado no cadastro) e a loja indicada paga a
+                1ª fatura, o indicador ganha este valor como crédito — aplicado automaticamente na próxima fatura
+                dele. Deixe 0 para desativar o programa.
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">R$</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={recompensaIndicacaoEmpresaValor}
+                  onChange={(e) => setRecompensaIndicacaoEmpresaValor(e.target.value)}
+                  className="w-32 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+                <span className="text-sm text-slate-500">por loja indicada que virar cliente pagante</span>
               </div>
             </section>
 

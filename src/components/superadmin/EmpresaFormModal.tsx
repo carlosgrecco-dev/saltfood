@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save,
+  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save, Gift,
 } from 'lucide-react';
 import { Empresa, EmpresaFormInput } from '../../types/Empresa';
 import { maskDocumento, maskTelefone, onlyDigits } from '../../lib/masks';
@@ -334,6 +334,28 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                     Quando oculta, o card "Comissão da plataforma" some do CRM que o lojista vê.
                   </p>
                   {visibilidadeError && <p className="mt-1 text-xs font-medium text-red-600">{visibilidadeError}</p>}
+                </div>
+              </section>
+            )}
+
+            {empresa && (
+              <section className="rounded-2xl border border-slate-100 px-4 py-4">
+                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-800">
+                  <Gift className="h-3.5 w-3.5 text-indigo-600" /> Indicação entre lojas
+                </h3>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-slate-400">Código próprio</p>
+                    <p className="font-mono font-semibold text-slate-800">{empresa.codigoIndicacao || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Indicada por</p>
+                    <p className="font-semibold text-slate-800">{empresa.indicadaPor ? empresa.indicadaPor.nome : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Crédito acumulado</p>
+                    <p className="font-semibold text-emerald-700">R$ {Number(empresa.creditoIndicacaoEmpresa || 0).toFixed(2)}</p>
+                  </div>
                 </div>
               </section>
             )}

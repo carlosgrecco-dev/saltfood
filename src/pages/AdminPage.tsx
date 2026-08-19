@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Package, Bike, DollarSign, ShoppingBag, LogOut, ArrowLeft, UserCircle, Lock, Loader2, BarChart3, CreditCard, Palette, Ticket,
-  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles,
+  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles, Target, LifeBuoy,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
@@ -26,8 +26,10 @@ import ZonasEntregaTab from '../components/admin/ZonasEntregaTab';
 import FidelidadeTab from '../components/admin/FidelidadeTab';
 import CategoriasTab from '../components/admin/CategoriasTab';
 import FuncionalidadesTab from '../components/admin/FuncionalidadesTab';
+import MissoesTab from '../components/admin/MissoesTab';
+import SuporteTab from '../components/admin/SuporteTab';
 
-type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades';
+type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades' | 'missoes' | 'suporte';
 
 const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'crm', label: 'CRM', icon: BarChart3 },
@@ -43,6 +45,8 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'zonas-entrega', label: 'Entrega & Frete', icon: MapPin },
   { id: 'aparencia', label: 'Aparência', icon: Palette },
   { id: 'funcionalidades', label: 'Funcionalidades', icon: Sparkles },
+  { id: 'missoes', label: 'Missões', icon: Target },
+  { id: 'suporte', label: 'Suporte', icon: LifeBuoy },
 ];
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
@@ -450,6 +454,8 @@ const AdminPage: React.FC = () => {
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'aparencia' && <AparenciaTab empresaId={empresa.id} />}
         {tab === 'funcionalidades' && <FuncionalidadesTab empresaId={empresa.id} />}
+        {tab === 'missoes' && <MissoesTab empresaId={empresa.id} />}
+        {tab === 'suporte' && <SuporteTab empresaId={empresa.id} />}
       </div>
       </div>
     </div>

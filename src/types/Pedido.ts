@@ -75,6 +75,9 @@ export interface Pedido {
   notaPedido: number | null;
   comentarioPedido: string | null;
   fotosAvaliacao: string[];
+  notaComida: number | null;
+  notaEmbalagem: number | null;
+  notaTempo: number | null;
   avaliadoEm: string | null;
   notaMotoboy: number | null;
   comentarioMotoboy: string | null;

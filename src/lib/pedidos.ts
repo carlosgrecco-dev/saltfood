@@ -84,16 +84,31 @@ export async function pagarMotoboy(empresaId: string, motoboyId: string): Promis
   });
 }
 
+export interface AvaliarPedidoOpts {
+  comentario?: string;
+  fotos?: string[];
+  notaComida?: number;
+  notaEmbalagem?: number;
+  notaTempo?: number;
+}
+
 export async function avaliarPedido(
   empresaId: string,
   pedidoId: string,
   nota: number,
-  comentario?: string,
-  fotos?: string[]
+  opts: AvaliarPedidoOpts = {}
 ): Promise<Pedido> {
+  const { comentario, fotos, notaComida, notaEmbalagem, notaTempo } = opts;
   return apiRequestAsCliente<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${pedidoId}/avaliar-pedido`, {
     method: 'POST',
-    body: JSON.stringify({ nota, comentario, ...(fotos && fotos.length ? { fotos } : {}) }),
+    body: JSON.stringify({
+      nota,
+      comentario,
+      ...(fotos && fotos.length ? { fotos } : {}),
+      ...(notaComida !== undefined ? { notaComida } : {}),
+      ...(notaEmbalagem !== undefined ? { notaEmbalagem } : {}),
+      ...(notaTempo !== undefined ? { notaTempo } : {}),
+    }),
   });
 }
 

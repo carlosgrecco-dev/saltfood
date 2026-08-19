@@ -10,6 +10,7 @@ export interface Cliente {
   itemGratisGanhoEm: string | null;
   codigoIndicacao: string | null;
   indicadoPorId: string | null;
+  indicacoesConcluidas: number;
   saldoCashback: number;
   createdAt: string;
   updatedAt: string;
@@ -43,6 +44,31 @@ export function loyaltyTier(cliente: Pick<Cliente, 'totalUnidadesCompradas'>): L
   if (cliente.totalUnidadesCompradas >= 50) return 'OURO';
   if (cliente.totalUnidadesCompradas >= 20) return 'PRATA';
   return 'BRONZE';
+}
+
+/** Marcos de indicações concluídas que liberam bônus — espelha api/src/lib/indicacao.js MARCOS_INDICACAO. */
+export const MARCOS_INDICACAO = [3, 10, 25];
+
+export type NivelIndicadorTipo = 'INICIANTE' | LoyaltyTier;
+
+export const NIVEL_INDICADOR_LABELS: Record<NivelIndicadorTipo, string> = {
+  INICIANTE: 'Iniciante',
+  ...LOYALTY_TIER_LABELS,
+};
+
+export interface NivelIndicador {
+  nivel: NivelIndicadorTipo;
+  faltamProximoMarco: number | null;
+}
+
+/** Nível de indicador calculado sobre indicacoesConcluidas — só relevante com Empresa.habilitarIndicacaoAvancada=true. */
+export function indicadorNivel(cliente: Pick<Cliente, 'indicacoesConcluidas'>): NivelIndicador {
+  const total = cliente.indicacoesConcluidas;
+  const proximoMarco = MARCOS_INDICACAO.find((m) => total < m) ?? null;
+  if (total >= 25) return { nivel: 'OURO', faltamProximoMarco: null };
+  if (total >= 10) return { nivel: 'PRATA', faltamProximoMarco: proximoMarco != null ? proximoMarco - total : null };
+  if (total >= 3) return { nivel: 'BRONZE', faltamProximoMarco: proximoMarco != null ? proximoMarco - total : null };
+  return { nivel: 'INICIANTE', faltamProximoMarco: proximoMarco != null ? proximoMarco - total : null };
 }
 
 export interface LoyaltyExpiracao {

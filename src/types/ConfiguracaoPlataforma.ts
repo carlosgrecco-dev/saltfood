@@ -7,6 +7,8 @@ export interface ConfiguracaoPlataforma {
   endereco: string | null;
   termosPadraoLojistas: string | null;
   chavesGlobais: Record<string, string> | null;
+  /// Crédito em R$ dado a um tenant quando uma loja indicada por ele paga a 1ª fatura. 0 = programa desativado.
+  recompensaIndicacaoEmpresaValor: number;
   updatedAt: string;
 }
 
@@ -18,4 +20,5 @@ export interface ConfiguracaoPlataformaInput {
   endereco: string;
   termosPadraoLojistas: string;
   chavesGlobais: Record<string, string>;
+  recompensaIndicacaoEmpresaValor: number;
 }

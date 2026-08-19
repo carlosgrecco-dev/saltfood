@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, Heart, RotateCcw, Medal, CalendarClock, Camera, Bell } from 'lucide-react';
+import { Save, Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy } from 'lucide-react';
 import { fetchEmpresaById, updateFuncionalidadesConfig } from '../../lib/empresas';
 import { FuncionalidadesConfigInput } from '../../types/Empresa';
 
@@ -7,8 +7,10 @@ interface FuncionalidadesTabProps {
   empresaId: string;
 }
 
+type CampoToggle = Exclude<keyof FuncionalidadesConfigInput, 'indicacaoRecompensaUnidades'>;
+
 const FUNCOES: {
-  campo: keyof FuncionalidadesConfigInput;
+  campo: CampoToggle;
   titulo: string;
   descricao: string;
   icon: typeof Heart;
@@ -49,6 +51,30 @@ const FUNCOES: {
     descricao: 'Sininho com o histórico de atualizações do pedido — funciona mesmo sem o cliente ativar o push.',
     icon: Bell,
   },
+  {
+    campo: 'habilitarMissoes',
+    titulo: 'Missões de fidelidade',
+    descricao: 'Ex: "peça 2x essa semana e ganhe 5 unidades" — você cria as missões na aba Missões.',
+    icon: Target,
+  },
+  {
+    campo: 'habilitarIndicacaoAvancada',
+    titulo: 'Indicação avançada',
+    descricao: 'Recompensa configurável por indicação + bônus de marco (3/10/25 indicações concluídas).',
+    icon: UserPlus,
+  },
+  {
+    campo: 'habilitarAvaliacaoDetalhada',
+    titulo: 'Avaliação detalhada',
+    descricao: 'Além da nota geral, cliente avalia separadamente comida, embalagem e tempo de entrega.',
+    icon: Star,
+  },
+  {
+    campo: 'habilitarCentralSuporte',
+    titulo: 'Central de suporte',
+    descricao: 'Cliente abre um chamado (opcionalmente ligado a um pedido) e você responde pelo admin.',
+    icon: LifeBuoy,
+  },
 ];
 
 const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) => {
@@ -69,6 +95,11 @@ const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) =>
         habilitarAgendamento: empresa.habilitarAgendamento,
         habilitarAvaliacaoComFotos: empresa.habilitarAvaliacaoComFotos,
         habilitarNotificacoesInApp: empresa.habilitarNotificacoesInApp,
+        habilitarMissoes: empresa.habilitarMissoes,
+        habilitarIndicacaoAvancada: empresa.habilitarIndicacaoAvancada,
+        habilitarAvaliacaoDetalhada: empresa.habilitarAvaliacaoDetalhada,
+        habilitarCentralSuporte: empresa.habilitarCentralSuporte,
+        indicacaoRecompensaUnidades: empresa.indicacaoRecompensaUnidades,
       });
     } catch {
       /* silencioso */
@@ -81,7 +112,7 @@ const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) =>
     load();
   }, [load]);
 
-  const handleToggle = (campo: keyof FuncionalidadesConfigInput) => {
+  const handleToggle = (campo: CampoToggle) => {
     setConfig((prev) => (prev ? { ...prev, [campo]: !prev[campo] } : prev));
   };
 
@@ -114,24 +145,38 @@ const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) =>
 
       <div className="space-y-3">
         {FUNCOES.map(({ campo, titulo, descricao, icon: Icon }) => (
-          <label
-            key={campo}
-            className={`flex items-start gap-3 border rounded-xl p-4 cursor-pointer transition-colors ${
-              config[campo] ? 'border-orange-300 bg-orange-50/40' : 'border-gray-200 bg-gray-50'
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={config[campo]}
-              onChange={() => handleToggle(campo)}
-              className="mt-1 w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-            />
-            <Icon className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-gray-800 text-sm">{titulo}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{descricao}</p>
-            </div>
-          </label>
+          <React.Fragment key={campo}>
+            <label
+              className={`flex items-start gap-3 border rounded-xl p-4 cursor-pointer transition-colors ${
+                config[campo] ? 'border-orange-300 bg-orange-50/40' : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={config[campo]}
+                onChange={() => handleToggle(campo)}
+                className="mt-1 w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+              />
+              <Icon className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-gray-800 text-sm">{titulo}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{descricao}</p>
+              </div>
+            </label>
+
+            {campo === 'habilitarIndicacaoAvancada' && config.habilitarIndicacaoAvancada && (
+              <div className="ml-7 flex items-center gap-2 -mt-1">
+                <span className="text-sm text-gray-500">Unidades por indicação concluída:</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={config.indicacaoRecompensaUnidades}
+                  onChange={(e) => setConfig((prev) => (prev ? { ...prev, indicacaoRecompensaUnidades: Number(e.target.value) || 1 } : prev))}
+                  className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center"
+                />
+              </div>
+            )}
+          </React.Fragment>
         ))}
       </div>
 

@@ -531,7 +531,14 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                                 <td className="py-3 pr-3 text-slate-600">R$ {f.valorVendas.toFixed(2)}</td>
                                 <td className="py-3 pr-3 text-slate-600">R$ {f.valorComissao.toFixed(2)} <span className="text-xs text-slate-400">({f.comissaoPercent}%)</span></td>
                                 <td className="py-3 pr-3 text-slate-600">R$ {f.valorPlano.toFixed(2)}</td>
-                                <td className="py-3 pr-3 font-bold text-slate-800">R$ {f.valorTotal.toFixed(2)}</td>
+                                <td className="py-3 pr-3 font-bold text-slate-800">
+                                  R$ {f.valorTotal.toFixed(2)}
+                                  {!!f.creditoIndicacaoAplicado && (
+                                    <span className="block text-[10px] font-normal text-emerald-600">
+                                      -R$ {f.creditoIndicacaoAplicado.toFixed(2)} crédito indicação
+                                    </span>
+                                  )}
+                                </td>
                                 <td className="py-3 pr-3 text-slate-500 text-xs">{new Date(f.vencimento).toLocaleDateString('pt-BR')}</td>
                                 <td className="py-3 pr-3">
                                   <select

@@ -17,6 +17,8 @@ export interface Fatura {
   valorComissao: number;
   valorPlano: number;
   valorTotal: number;
+  /** Crédito de indicação de loja abatido nesta fatura, já refletido no valorTotal acima. */
+  creditoIndicacaoAplicado: number | null;
   status: StatusFatura;
   vencimento: string;
   pagoEm: string | null;

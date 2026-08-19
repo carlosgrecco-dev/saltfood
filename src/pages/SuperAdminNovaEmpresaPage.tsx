@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Eye, EyeOff,
-  Layers, Star, Percent, Save,
+  Layers, Star, Percent, Save, Gift,
 } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { Field, inputClasses } from '../components/superadmin/EmpresaFormFields';
@@ -27,6 +27,7 @@ const emptyForm: EmpresaFormInput = {
   empresaAtiva: true,
   adminAtivo: true,
   planoId: '',
+  indicadoPor: '',
 };
 
 const SuperAdminNovaEmpresaPage: React.FC = () => {
@@ -186,6 +187,15 @@ const SuperAdminNovaEmpresaPage: React.FC = () => {
                   onChange={(e) => { setSlugTouched(true); set('slug', slugify(e.target.value)); }}
                   placeholder="minha-empresa"
                   className={inputClasses(false, !!fieldErrors.slug)}
+                />
+              </Field>
+
+              <Field label="Indicado por (código, opcional)" icon={<Gift className="h-3.5 w-3.5" />}>
+                <input
+                  value={form.indicadoPor || ''}
+                  onChange={(e) => set('indicadoPor', e.target.value.toUpperCase())}
+                  placeholder="Código de outra loja da plataforma"
+                  className={inputClasses(false, false)}
                 />
               </Field>
             </div>
