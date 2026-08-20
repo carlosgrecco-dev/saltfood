@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, ChevronDown, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, GripVertical, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria } from '../../types/Produto';
 import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto, reordenarProdutos } from '../../lib/produtos';
 import { fetchProdutoVariacoes, createProdutoVariacao, updateProdutoVariacao, deleteProdutoVariacao } from '../../lib/produtoVariacoes';
@@ -577,6 +582,152 @@ const GruposOpcaoManager: React.FC<{ empresaId: string; produtoId: string }> = (
   );
 };
 
+interface ProdutoRowProps {
+  produto: Produto;
+  empresaId: string;
+  variacoesAbertas: string | null;
+  opcoesAbertas: string | null;
+  duplicandoId: string | null;
+  onToggleVariacoes: (id: string) => void;
+  onToggleOpcoes: (id: string) => void;
+  onToggleEsgotado: (produto: Produto) => void;
+  onToggleAtivo: (produto: Produto) => void;
+  onDuplicar: (produto: Produto) => void;
+  onEdit: (produto: Produto) => void;
+  onDelete: (id: string) => void;
+}
+
+/** Uma linha da lista de produtos — extraída num componente próprio porque cada item arrastável
+ * precisa da sua própria chamada de useSortable (regra dos hooks: não dá pra chamar hooks dentro
+ * de um .map() direto no componente pai). */
+const ProdutoRow: React.FC<ProdutoRowProps> = ({
+  produto, empresaId, variacoesAbertas, opcoesAbertas, duplicandoId,
+  onToggleVariacoes, onToggleOpcoes, onToggleEsgotado, onToggleAtivo, onDuplicar, onEdit, onDelete,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: produto.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="border border-gray-200 rounded-2xl overflow-hidden bg-white relative">
+      <div className="flex items-center gap-3 p-3">
+        <button
+          {...attributes}
+          {...listeners}
+          type="button"
+          title="Arrastar para reordenar"
+          className="text-gray-300 hover:text-gray-500 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        {produto.fotoUrl ? (
+          <img src={produto.fotoUrl} alt={produto.nome} className="w-14 h-14 rounded-lg object-cover shrink-0" />
+        ) : (
+          <div className="w-14 h-14 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+            <ImageOff className="h-6 w-6 text-gray-300" />
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-gray-800 text-sm truncate flex items-center gap-1.5">
+            {produto.nome}
+            {produto.ehCombo && (
+              <span className="flex items-center gap-1 text-[10px] font-medium bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full shrink-0">
+                <Layers className="h-2.5 w-2.5" /> Combo
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
+            <span>
+              {produto.categoria?.nome || 'Sem categoria'}
+              {produto.controlarEstoque && ` · estoque: ${produto.estoqueQtd ?? 0}`}
+            </span>
+            {produto.controlarEstoque && produto.estoqueQtd != null && produto.estoqueQtd <= ESTOQUE_BAIXO_LIMITE && (
+              <span className="flex items-center gap-1 text-[10px] font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
+                <AlertTriangle className="h-2.5 w-2.5" /> Estoque baixo
+              </span>
+            )}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            {produto.precoPromocional != null && (
+              <span className="text-xs text-gray-400 line-through">R$ {produto.preco.toFixed(2)}</span>
+            )}
+            <span className="text-orange-600 font-bold text-sm">
+              R$ {(produto.precoPromocional ?? produto.preco).toFixed(2)}
+            </span>
+            {!produto.disponivel && (
+              <span className="text-[10px] font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Indisponível</span>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => onToggleEsgotado(produto)}
+          title="Pausar rapidamente sem excluir o produto"
+          className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
+            produto.esgotadoHoje ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+        >
+          <PackageX className="h-3.5 w-3.5" /> {produto.esgotadoHoje ? 'Esgotado hoje' : 'Esgotar hoje'}
+        </button>
+
+        <button
+          onClick={() => onToggleAtivo(produto)}
+          className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
+            produto.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
+          }`}
+        >
+          {produto.ativo ? 'Ativo' : 'Inativo'}
+        </button>
+
+        <button
+          onClick={() => onToggleVariacoes(produto.id)}
+          title="Variações/sabores com estoque próprio"
+          className="text-gray-400 hover:text-gray-700 shrink-0"
+        >
+          {variacoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <Boxes className="h-4 w-4" />}
+        </button>
+        <button
+          onClick={() => onToggleOpcoes(produto.id)}
+          title="Opções/complementos (ex: monte seu acarajé)"
+          className="text-gray-400 hover:text-gray-700 shrink-0"
+        >
+          {opcoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
+        </button>
+        <button
+          onClick={() => onDuplicar(produto)}
+          disabled={duplicandoId === produto.id}
+          title="Duplicar produto"
+          className="text-gray-400 hover:text-gray-700 shrink-0 disabled:opacity-50"
+        >
+          {duplicandoId === produto.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+        </button>
+        <button onClick={() => onEdit(produto)} className="text-gray-400 hover:text-gray-700 shrink-0">
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button onClick={() => onDelete(produto.id)} className="text-red-500 hover:text-red-700 shrink-0">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+
+      {variacoesAbertas === produto.id && (
+        <div className="bg-gray-50 border-t border-gray-200 p-3">
+          <VariacoesManager empresaId={empresaId} produtoId={produto.id} />
+        </div>
+      )}
+      {opcoesAbertas === produto.id && (
+        <div className="bg-gray-50 border-t border-gray-200 p-3">
+          <GruposOpcaoManager empresaId={empresaId} produtoId={produto.id} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -592,6 +743,14 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   );
   const [opcoesAbertas, setOpcoesAbertas] = useState<string | null>(null);
   const [duplicandoId, setDuplicandoId] = useState<string | null>(null);
+
+  // Distância mínima antes de considerar um arrasto (em vez de um toque/clique normal) — evita
+  // que um simples toque no card já dispare o drag no mobile. TouchSensor cobre navegadores que
+  // não tratam toque como PointerEvent.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
+  );
 
   useEffect(() => {
     fetchCategorias(empresaId)
@@ -753,18 +912,34 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
     load();
   };
 
-  const handleMover = async (produto: Produto, direcao: 'cima' | 'baixo') => {
-    const index = produtos.findIndex((p) => p.id === produto.id);
-    const alvo = direcao === 'cima' ? index - 1 : index + 1;
-    if (index === -1 || alvo < 0 || alvo >= produtos.length) return;
+  const handleToggleVariacoes = (id: string) => {
+    setOpcoesAbertas(null);
+    setVariacoesAbertas((prev) => (prev === id ? null : id));
+  };
 
-    const reordenados = [...produtos];
-    [reordenados[index], reordenados[alvo]] = [reordenados[alvo], reordenados[index]];
+  const handleToggleOpcoes = (id: string) => {
+    setVariacoesAbertas(null);
+    setOpcoesAbertas((prev) => (prev === id ? null : id));
+  };
 
-    // Renumera a lista inteira (não só os dois itens trocados) — produtos recém-cadastrados
-    // costumam empatar em ordem=0, então só trocar o valor dos dois não move nada visualmente.
-    await reordenarProdutos(empresaId, reordenados.map((p, i) => ({ id: p.id, ordem: i })));
-    load();
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = produtos.findIndex((p) => p.id === active.id);
+    const newIndex = produtos.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordenados = arrayMove(produtos, oldIndex, newIndex);
+    setProdutos(reordenados); // otimista — a lista já reflete o arrasto na hora, sem esperar a API
+
+    // Renumera a lista inteira (não só o item arrastado) — produtos recém-cadastrados costumam
+    // empatar em ordem=0, então só trocar o valor de um item não move nada visualmente.
+    try {
+      await reordenarProdutos(empresaId, reordenados.map((p, i) => ({ id: p.id, ordem: i })));
+    } catch {
+      load(); // desfaz a atualização otimista recarregando do servidor se a chamada falhar
+    }
   };
 
   const handleToggleEsgotado = async (produto: Produto) => {
@@ -1004,141 +1179,33 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
       {loading ? (
         <p className="text-center text-gray-500 py-8">Carregando...</p>
       ) : (
-        <div className="space-y-2">
-          {produtos.map((produto, index) => (
-            <div key={produto.id} className="border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-3 p-3">
-                <div className="flex flex-col shrink-0">
-                  <button
-                    onClick={() => handleMover(produto, 'cima')}
-                    disabled={index === 0}
-                    title="Mover para cima"
-                    className="text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:hover:text-gray-400"
-                  >
-                    <ChevronUp className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleMover(produto, 'baixo')}
-                    disabled={index === produtos.length - 1}
-                    title="Mover para baixo"
-                    className="text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:hover:text-gray-400"
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                </div>
-                {produto.fotoUrl ? (
-                  <img src={produto.fotoUrl} alt={produto.nome} className="w-14 h-14 rounded-lg object-cover shrink-0" />
-                ) : (
-                  <div className="w-14 h-14 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                    <ImageOff className="h-6 w-6 text-gray-300" />
-                  </div>
-                )}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={produtos.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {produtos.map((produto) => (
+                <ProdutoRow
+                  key={produto.id}
+                  produto={produto}
+                  empresaId={empresaId}
+                  variacoesAbertas={variacoesAbertas}
+                  opcoesAbertas={opcoesAbertas}
+                  duplicandoId={duplicandoId}
+                  onToggleVariacoes={handleToggleVariacoes}
+                  onToggleOpcoes={handleToggleOpcoes}
+                  onToggleEsgotado={handleToggleEsgotado}
+                  onToggleAtivo={handleToggleAtivo}
+                  onDuplicar={handleDuplicar}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 text-sm truncate flex items-center gap-1.5">
-                    {produto.nome}
-                    {produto.ehCombo && (
-                      <span className="flex items-center gap-1 text-[10px] font-medium bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full shrink-0">
-                        <Layers className="h-2.5 w-2.5" /> Combo
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
-                    <span>
-                      {produto.categoria?.nome || 'Sem categoria'}
-                      {produto.controlarEstoque && ` · estoque: ${produto.estoqueQtd ?? 0}`}
-                    </span>
-                    {produto.controlarEstoque && produto.estoqueQtd != null && produto.estoqueQtd <= ESTOQUE_BAIXO_LIMITE && (
-                      <span className="flex items-center gap-1 text-[10px] font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
-                        <AlertTriangle className="h-2.5 w-2.5" /> Estoque baixo
-                      </span>
-                    )}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {produto.precoPromocional != null && (
-                      <span className="text-xs text-gray-400 line-through">R$ {produto.preco.toFixed(2)}</span>
-                    )}
-                    <span className="text-orange-600 font-bold text-sm">
-                      R$ {(produto.precoPromocional ?? produto.preco).toFixed(2)}
-                    </span>
-                    {!produto.disponivel && (
-                      <span className="text-[10px] font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Indisponível</span>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleToggleEsgotado(produto)}
-                  title="Pausar rapidamente sem excluir o produto"
-                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
-                    produto.esgotadoHoje ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  <PackageX className="h-3.5 w-3.5" /> {produto.esgotadoHoje ? 'Esgotado hoje' : 'Esgotar hoje'}
-                </button>
-
-                <button
-                  onClick={() => handleToggleAtivo(produto)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
-                    produto.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {produto.ativo ? 'Ativo' : 'Inativo'}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setOpcoesAbertas(null);
-                    setVariacoesAbertas(variacoesAbertas === produto.id ? null : produto.id);
-                  }}
-                  title="Variações/sabores com estoque próprio"
-                  className="text-gray-400 hover:text-gray-700 shrink-0"
-                >
-                  {variacoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <Boxes className="h-4 w-4" />}
-                </button>
-                <button
-                  onClick={() => {
-                    setVariacoesAbertas(null);
-                    setOpcoesAbertas(opcoesAbertas === produto.id ? null : produto.id);
-                  }}
-                  title="Opções/complementos (ex: monte seu acarajé)"
-                  className="text-gray-400 hover:text-gray-700 shrink-0"
-                >
-                  {opcoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
-                </button>
-                <button
-                  onClick={() => handleDuplicar(produto)}
-                  disabled={duplicandoId === produto.id}
-                  title="Duplicar produto"
-                  className="text-gray-400 hover:text-gray-700 shrink-0 disabled:opacity-50"
-                >
-                  {duplicandoId === produto.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
-                </button>
-                <button onClick={() => handleEdit(produto)} className="text-gray-400 hover:text-gray-700 shrink-0">
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button onClick={() => handleDelete(produto.id)} className="text-red-500 hover:text-red-700 shrink-0">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-
-              {variacoesAbertas === produto.id && (
-                <div className="bg-gray-50 border-t border-gray-200 p-3">
-                  <VariacoesManager empresaId={empresaId} produtoId={produto.id} />
-                </div>
-              )}
-              {opcoesAbertas === produto.id && (
-                <div className="bg-gray-50 border-t border-gray-200 p-3">
-                  <GruposOpcaoManager empresaId={empresaId} produtoId={produto.id} />
-                </div>
+              {produtos.length === 0 && (
+                <p className="text-center text-gray-500 py-8">Nenhum produto cadastrado ainda.</p>
               )}
             </div>
-          ))}
-
-          {produtos.length === 0 && (
-            <p className="text-center text-gray-500 py-8">Nenhum produto cadastrado ainda.</p>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
