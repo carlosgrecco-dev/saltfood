@@ -83,7 +83,7 @@ const SuperAdminDashboardPage: React.FC = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 shrink-0 rounded-xl bg-black p-1.5">
-                  <img src="/saltfood.png" alt="SaltFood" className="h-full w-full rounded-md" />
+                  <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>

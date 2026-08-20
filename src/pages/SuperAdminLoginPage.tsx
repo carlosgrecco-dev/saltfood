@@ -36,7 +36,7 @@ const SuperAdminLoginPage: React.FC = () => {
           <div className="w-full max-w-sm mx-auto">
             <div className="flex justify-center mb-6">
               <div className="rounded-3xl bg-black p-3 shadow-lg">
-                <img src="/saltfood.png" alt="SaltFood" className="h-20 w-20 rounded-2xl" />
+                <img src="/logo.png" alt="SaltFood" className="h-20 w-20 rounded-2xl" />
               </div>
             </div>
 

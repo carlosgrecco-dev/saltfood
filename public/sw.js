@@ -1,5 +1,5 @@
 const CACHE_NAME = 'saltfood-v2';
-const APP_SHELL = ['/', '/index.html', '/manifest.json', '/saltfood-icon.png'];
+const APP_SHELL = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -63,8 +63,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || 'SaltFood', {
       body: payload.body,
-      icon: '/saltfood-icon.png',
-      badge: '/saltfood-icon.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       data: { url: payload.url },
     })
   );

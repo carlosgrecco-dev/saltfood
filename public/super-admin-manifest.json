@@ -12,7 +12,7 @@
   "related_applications": [{ "platform": "webapp", "url": "https://saltfood.com.br/super-admin-manifest.json" }],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/saltfood-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/saltfood-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

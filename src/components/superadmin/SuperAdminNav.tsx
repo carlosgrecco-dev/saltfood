@@ -65,7 +65,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         <div className={`flex items-center border-b border-gray-100 py-4 ${open ? 'justify-between px-5' : 'justify-center px-2'}`}>
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-9 w-9 shrink-0 rounded-lg bg-black p-1">
-              <img src="/saltfood.png" alt="SaltFood" className="h-full w-full rounded-sm" />
+              <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-sm" />
             </div>
             {open && <span className="font-bold text-gray-800 truncate">SaltFood Admin</span>}
           </div>
