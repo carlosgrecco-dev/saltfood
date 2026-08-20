@@ -413,6 +413,7 @@ const AdminPage: React.FC = () => {
             <div className="min-w-0">
               <p className="text-xs text-gray-400">Painel administrativo</p>
               <p className="font-bold text-gray-800 truncate">{empresa.nome}</p>
+              {session && <p className="text-xs text-gray-400 truncate">Olá, {session.nome}</p>}
             </div>
           )}
           <button
