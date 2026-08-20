@@ -172,7 +172,9 @@ const SuperAdminPlanosPage: React.FC = () => {
           </button>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <img src="/saltfood-icon.png" alt="SaltFood" className="h-11 w-11" />
+              <div className="h-11 w-11 shrink-0 rounded-xl bg-black p-1.5">
+                <img src="/saltfood.png" alt="SaltFood" className="h-full w-full rounded-md" />
+              </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Super Admin</p>
                 <h1 className="text-xl font-bold text-gray-900">Planos e Assinaturas</h1>
