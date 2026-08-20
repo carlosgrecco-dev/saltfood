@@ -120,7 +120,7 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
                   className="shrink-0 bg-white text-orange-600 rounded-xl p-2.5 hover:bg-orange-50 transition-colors"
                   aria-label="Compartilhar código de indicação"
                 >
-                  {copiado ? <Check className="h-4 w-4" /> : navigator.share ? <Share2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiado ? <Check className="h-4 w-4" /> : typeof navigator.share === 'function' ? <Share2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
