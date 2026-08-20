@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserCircle, Lock, Loader2, Store, Bike, BarChart3, ShieldCheck, AlertCircle } from 'lucide-react';
+import { UserCircle, Lock, Loader2, Store, Bike, BarChart3, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { signInSuperAdmin } from '../lib/superAdminAuth';
 import InstallAppButton from '../components/InstallAppButton';
 import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
@@ -10,6 +10,7 @@ const SuperAdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,10 +34,14 @@ const SuperAdminLoginPage: React.FC = () => {
         {/* Coluna esquerda — formulário */}
         <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12">
           <div className="w-full max-w-sm mx-auto">
-            <img src="/saltfood-icon.png" alt="SaltFood" className="h-14 w-14 mb-6" />
+            <div className="flex justify-center mb-6">
+              <div className="rounded-3xl bg-black p-3 shadow-lg">
+                <img src="/saltfood.png" alt="SaltFood" className="h-20 w-20 rounded-2xl" />
+              </div>
+            </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Bem-vindo! 👋</h1>
-            <p className="text-sm text-gray-500 mb-8">Acesse o painel de controle da plataforma SaltFood</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">Bem-vindo! 👋</h1>
+            <p className="text-sm text-gray-500 mb-8 text-center">Acesse o painel de controle da plataforma SaltFood</p>
 
             <form onSubmit={handleLogin} className="space-y-5">
               {error && (
@@ -75,7 +80,7 @@ const SuperAdminLoginPage: React.FC = () => {
                     <Lock className="h-5 w-5" />
                   </span>
                   <input
-                    type="password"
+                    type={mostrarSenha ? 'text' : 'password'}
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
                     className="flex-1 min-w-0 px-3 py-3 bg-transparent outline-none text-sm text-gray-800"
@@ -83,6 +88,14 @@ const SuperAdminLoginPage: React.FC = () => {
                     autoComplete="current-password"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSenha((v) => !v)}
+                    aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                    className="flex items-center justify-center w-11 shrink-0 text-gray-400 hover:text-gray-600"
+                  >
+                    {mostrarSenha ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 

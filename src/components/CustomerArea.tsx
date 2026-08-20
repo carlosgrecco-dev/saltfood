@@ -42,7 +42,7 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
     if (!customer?.codigoIndicacao) return;
     const link = `${window.location.origin}/${slug}?ref=${customer.codigoIndicacao}`;
     const texto = `Peça na ${empresa.nome} pelo meu link e a gente ganha fidelidade os dois: ${link}`;
-    if (navigator.share) {
+    if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title: empresa.nome, text: texto, url: link });
       } catch {

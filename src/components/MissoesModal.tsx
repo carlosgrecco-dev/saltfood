@@ -27,7 +27,7 @@ const MissoesModal: React.FC<MissoesModalProps> = ({ isOpen, onClose, clienteId 
 
   const load = () => {
     setLoading(true);
-    fetchMissoesComoCliente(empresa.id, clienteId)
+    fetchMissoesComoCliente(empresa.id)
       .then(setMissoes)
       .catch(() => setMissoes([]))
       .finally(() => setLoading(false));

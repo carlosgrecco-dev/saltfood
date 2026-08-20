@@ -10,7 +10,8 @@ export async function fetchMissoes(empresaId: string): Promise<(Missao | MissaoC
   return apiRequest<(Missao | MissaoComProgresso)[]>(base(empresaId));
 }
 
-export async function fetchMissoesComoCliente(empresaId: string, clienteId: string): Promise<MissaoComProgresso[]> {
+/** O cliente logado é identificado pelo token (apiRequestAsCliente já injeta), não precisa de um clienteId explícito aqui. */
+export async function fetchMissoesComoCliente(empresaId: string): Promise<MissaoComProgresso[]> {
   return apiRequestAsCliente<MissaoComProgresso[]>(empresaId, base(empresaId));
 }
 

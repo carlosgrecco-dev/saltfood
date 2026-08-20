@@ -4,6 +4,7 @@ import { Loader2, AlertTriangle, Building2 } from 'lucide-react';
 import { fetchEmpresaPublicBySlug } from '../lib/empresas';
 import { API_URL, ApiError } from '../lib/apiClient';
 import { EmpresaPublic } from '../types/Empresa';
+import { notifyManifestChanged } from '../lib/installPrompt';
 
 interface TenantContextValue {
   slug: string;
@@ -89,9 +90,11 @@ const TenantProvider: React.FC = () => {
       document.head.appendChild(manifestLink);
     }
     manifestLink.href = `${API_URL}/empresas/slug/${encodeURIComponent(slug)}/manifest.json?contexto=${contexto}`;
+    notifyManifestChanged();
 
     return () => {
       manifestLink!.href = '/manifest.json';
+      notifyManifestChanged();
     };
   }, [empresa, slug, location.pathname]);
 

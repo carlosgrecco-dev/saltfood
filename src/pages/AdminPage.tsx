@@ -51,6 +51,8 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
+const DESKTOP_QUERY = '(min-width: 640px)';
+
 const AdminPage: React.FC = () => {
   const { slug, empresa } = useTenant();
   const navigate = useNavigate();
@@ -69,8 +71,21 @@ const AdminPage: React.FC = () => {
     return () => window.removeEventListener('kifood:session-expired', handler);
   }, [empresa.id]);
 
-  // O menu só fecha por ação explícita no hambúrguer (botão ou X) — não fecha ao clicar fora nem ao trocar de aba.
-  const [navOpen, setNavOpen] = useState(true);
+  // No desktop o menu sempre fica visível (só alterna entre rail de ícones e expandido); no mobile
+  // ele começa totalmente retraído (fora da tela) e só aparece ao tocar no hambúrguer — mesmo
+  // padrão usado no menu do Super Admin (SuperAdminNav.tsx).
+  const [isMobile, setIsMobile] = useState(() => !window.matchMedia(DESKTOP_QUERY).matches);
+  const [navOpen, setNavOpen] = useState(() => window.matchMedia(DESKTOP_QUERY).matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP_QUERY);
+    const handler = (e: MediaQueryListEvent) => {
+      setIsMobile(!e.matches);
+      setNavOpen(e.matches);
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const [lojaAberta, setLojaAbertaState] = useState<boolean | null>(null);
   const [togglingLoja, setTogglingLoja] = useState(false);
@@ -385,12 +400,13 @@ const AdminPage: React.FC = () => {
         }
       />
 
-      {/* Drawer vertical — fica sempre visível do lado esquerdo. Recolhido, vira um rail só com os ícones;
-          expandido, mostra os rótulos. O botão que aciona fica à direita (no Header). */}
+      {/* Drawer vertical do lado esquerdo. No desktop, recolhido vira um rail só com os ícones e
+          expandido mostra os rótulos — nunca some da tela. No mobile, começa totalmente retraído
+          (fora da tela) e só aparece quando o admin toca no hambúrguer (no Header). */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-white shadow-2xl transition-[width] duration-300 ease-in-out overflow-hidden ${
-          navOpen ? 'w-72' : 'w-16'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-white shadow-2xl transition-[width,transform] duration-300 ease-in-out overflow-hidden ${
+          isMobile ? 'w-72' : navOpen ? 'w-72' : 'w-16'
+        } ${isMobile && !navOpen ? '-translate-x-full' : 'translate-x-0'}`}
       >
         <div className={`flex items-center border-b border-gray-100 py-4 ${navOpen ? 'justify-between px-5' : 'justify-center px-2'}`}>
           {navOpen && (
@@ -430,7 +446,7 @@ const AdminPage: React.FC = () => {
       </div>
 
       {/* Empurra o conteúdo pela largura do rail (recolhido) ou do menu cheio (expandido). */}
-      <div className={`flex-1 transition-[margin] duration-300 ease-in-out ml-16 ${navOpen ? 'sm:ml-72' : ''}`}>
+      <div className={`flex-1 transition-[margin] duration-300 ease-in-out ml-0 ${navOpen ? 'sm:ml-72' : 'sm:ml-16'}`}>
       <div className="max-w-6xl mx-auto p-5 sm:p-8 w-full">
         <div className="mb-5">
           <Link to={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-0.5">

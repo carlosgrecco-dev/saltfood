@@ -14,8 +14,6 @@ import StackedBar from '../components/StackedBar';
 
 type Periodo = 'hoje' | 'semana' | 'mes' | 'tudo';
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
-
 const PALETA_SEGMENTOS = ['bg-orange-500', 'bg-gray-700', 'bg-amber-400', 'bg-emerald-500', 'bg-sky-500', 'bg-rose-400', 'bg-violet-400', 'bg-gray-400'];
 
 const formatDataCurta = (iso: string) => {
@@ -191,7 +189,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                     <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
                   ) : (
                     <StackedBar
-                      segments={data.dispositivos.map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
+                      segments={(data.dispositivos ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
                       formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
                     />
                   )}
@@ -202,7 +200,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                     <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
                   ) : (
                     <StackedBar
-                      segments={data.navegadores.map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
+                      segments={(data.navegadores ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
                       formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
                     />
                   )}

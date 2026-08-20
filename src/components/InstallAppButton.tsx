@@ -1,16 +1,20 @@
 import React from 'react';
 import { Download } from 'lucide-react';
 import { useInstallPrompt } from '../context/InstallPromptContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface InstallAppButtonProps {
   className?: string;
 }
 
-/** Só renderiza algo quando o navegador sinalizou que a página é instalável e ainda não foi instalada. */
+/** Só renderiza algo no mobile, quando o navegador sinalizou que a página é instalável (pra esta
+ * loja/contexto específica) e ainda não foi instalada — instalar como app faz sentido em celular,
+ * não em desktop. */
 const InstallAppButton: React.FC<InstallAppButtonProps> = ({ className }) => {
   const { canInstall, promptInstall } = useInstallPrompt();
+  const isMobile = useIsMobile();
 
-  if (!canInstall) return null;
+  if (!canInstall || !isMobile) return null;
 
   return (
     <button

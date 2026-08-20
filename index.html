@@ -15,7 +15,35 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="/saltfood-icon.png" />
   <link rel="apple-touch-icon" href="/saltfood-icon.png" />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="/manifest.json" id="app-manifest" />
+  <script>
+    // Troca o manifest ANTES do React montar, pra qualquer rota de loja (/{slug}*) ou do Super
+    // Admin já ser instalável com o start_url/ícone certos desde a primeira visita — trocar só
+    // depois (via useEffect, em TenantContext.tsx / useSuperAdminManifest.ts) chega tarde demais
+    // em alguns navegadores, que já avaliaram o manifest padrão (start_url "/", a landing page)
+    // pra decidir se a página pode ser instalada. O <link> nunca é removido, só tem o href
+    // trocado — remover e recriar deixa a página um instante sem manifest, e o Chrome reavalia
+    // como "não instalável" nesse intervalo.
+    (function () {
+      var link = document.getElementById('app-manifest');
+      var path = window.location.pathname;
+
+      if (path.indexOf('/super-admin') === 0) {
+        link.setAttribute('href', '/super-admin-manifest.json');
+        return;
+      }
+
+      var slug = path.split('/')[1];
+      if (!slug) return; // "/" é a landing page — mantém o manifest padrão
+
+      var apiUrl = '%VITE_API_URL%' || 'http://localhost:3001';
+      var contexto = path.endsWith('/admin') ? 'admin' : path.endsWith('/motoboy') ? 'motoboy' : 'loja';
+      link.setAttribute(
+        'href',
+        apiUrl + '/empresas/slug/' + encodeURIComponent(slug) + '/manifest.json?contexto=' + contexto
+      );
+    })();
+  </script>
   <meta name="theme-color" content="#EA580C" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
