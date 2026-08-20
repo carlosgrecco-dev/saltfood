@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, ChevronDown, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
 import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria } from '../../types/Produto';
-import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto } from '../../lib/produtos';
+import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto, reordenarProdutos } from '../../lib/produtos';
 import { fetchProdutoVariacoes, createProdutoVariacao, updateProdutoVariacao, deleteProdutoVariacao } from '../../lib/produtoVariacoes';
 import { fetchCategorias } from '../../lib/categorias';
 import { uploadImagem } from '../../lib/upload';
@@ -753,6 +753,20 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
     load();
   };
 
+  const handleMover = async (produto: Produto, direcao: 'cima' | 'baixo') => {
+    const index = produtos.findIndex((p) => p.id === produto.id);
+    const alvo = direcao === 'cima' ? index - 1 : index + 1;
+    if (index === -1 || alvo < 0 || alvo >= produtos.length) return;
+
+    const reordenados = [...produtos];
+    [reordenados[index], reordenados[alvo]] = [reordenados[alvo], reordenados[index]];
+
+    // Renumera a lista inteira (não só os dois itens trocados) — produtos recém-cadastrados
+    // costumam empatar em ordem=0, então só trocar o valor dos dois não move nada visualmente.
+    await reordenarProdutos(empresaId, reordenados.map((p, i) => ({ id: p.id, ordem: i })));
+    load();
+  };
+
   const handleToggleEsgotado = async (produto: Produto) => {
     await setProdutoEsgotado(empresaId, produto.id, !produto.esgotadoHoje);
     load();
@@ -991,9 +1005,27 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
         <p className="text-center text-gray-500 py-8">Carregando...</p>
       ) : (
         <div className="space-y-2">
-          {produtos.map((produto) => (
+          {produtos.map((produto, index) => (
             <div key={produto.id} className="border border-gray-200 rounded-2xl overflow-hidden">
               <div className="flex items-center gap-3 p-3">
+                <div className="flex flex-col shrink-0">
+                  <button
+                    onClick={() => handleMover(produto, 'cima')}
+                    disabled={index === 0}
+                    title="Mover para cima"
+                    className="text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:hover:text-gray-400"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleMover(produto, 'baixo')}
+                    disabled={index === produtos.length - 1}
+                    title="Mover para baixo"
+                    className="text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:hover:text-gray-400"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
                 {produto.fotoUrl ? (
                   <img src={produto.fotoUrl} alt={produto.nome} className="w-14 h-14 rounded-lg object-cover shrink-0" />
                 ) : (

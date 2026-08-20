@@ -53,3 +53,11 @@ export async function setProdutoEsgotado(empresaId: string, id: string, esgotado
     body: JSON.stringify({ esgotadoHoje }),
   });
 }
+
+/** Atualiza a ordem de vários produtos de uma vez — usado pelos botões de mover para cima/baixo. */
+export async function reordenarProdutos(empresaId: string, itens: { id: string; ordem: number }[]): Promise<void> {
+  return apiRequestAsAdmin<void>(empresaId, `/empresas/${empresaId}/produtos/reordenar`, {
+    method: 'PATCH',
+    body: JSON.stringify({ itens }),
+  });
+}
