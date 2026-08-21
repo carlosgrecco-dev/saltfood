@@ -8,7 +8,6 @@ import CuponsDisponiveisModal from './CuponsDisponiveisModal';
 import FavoritosModal from './FavoritosModal';
 import MissoesModal from './MissoesModal';
 import SuporteModal from './SuporteModal';
-import VincularContaModal from './VincularContaModal';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 import { indicadorNivel, NIVEL_INDICADOR_LABELS } from '../types/Cliente';
@@ -27,7 +26,6 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
   const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
   const [isMissoesOpen, setIsMissoesOpen] = useState(false);
   const [isSuporteOpen, setIsSuporteOpen] = useState(false);
-  const [isVincularContaOpen, setIsVincularContaOpen] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
   const handleLogout = () => {
@@ -38,6 +36,11 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
   const handleGoToOrders = () => {
     onClose();
     navigate(`/${slug}/meus-pedidos`);
+  };
+
+  const handleGoToCoins = () => {
+    onClose();
+    navigate(`/${slug}/saltfood-coins`);
   };
 
   const handleShareIndicacao = async () => {
@@ -94,35 +97,6 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {!!customer.saldoCoinsPlataforma && customer.saldoCoinsPlataforma > 0 && (
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                <Coins className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-xs text-amber-700 font-medium">Seu saldo de SaltFood Coins</p>
-                <p className="text-lg font-bold text-amber-800">R$ {customer.saldoCoinsPlataforma.toFixed(2)}</p>
-                <p className="text-[11px] text-amber-600">Vale em qualquer loja SaltFood participante, não só nesta</p>
-              </div>
-            </div>
-          )}
-
-          {customer.contaPlataformaDetectada && (
-            <button
-              onClick={() => setIsVincularContaOpen(true)}
-              className="flex w-full items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left hover:bg-amber-100 transition-colors"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                <Coins className="h-5 w-5 text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-amber-700 font-medium">Encontramos uma conta SaltFood Coins pra você</p>
-                <p className="text-sm font-bold text-amber-800">Vincular e usar em outras lojas</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-amber-500 shrink-0" />
-            </button>
-          )}
-
           {customer.codigoIndicacao && (
             <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white">
               <p className="flex items-center gap-1.5 font-bold text-sm mb-1">
@@ -166,6 +140,22 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
                 <Package className="h-4 w-4 text-[var(--cor-primaria)]" /> Meus Pedidos
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
+            </button>
+
+            <button
+              onClick={handleGoToCoins}
+              className="w-full flex items-center justify-between bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-2xl p-4 transition-colors"
+            >
+              <span className="flex items-center gap-2 font-bold text-gray-800">
+                <Coins className="h-4 w-4 text-amber-600" /> SaltFood Coins
+                {!!customer.saldoCoinsPlataforma && customer.saldoCoinsPlataforma > 0 && (
+                  <span className="text-xs font-bold text-amber-700">R$ {customer.saldoCoinsPlataforma.toFixed(2)}</span>
+                )}
+                {customer.contaPlataformaDetectada && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+                )}
+              </span>
+              <ChevronRight className="h-4 w-4 text-amber-500" />
             </button>
 
             <button
@@ -232,7 +222,6 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
       <FavoritosModal isOpen={isFavoritosOpen} onClose={() => setIsFavoritosOpen(false)} />
       <MissoesModal isOpen={isMissoesOpen} onClose={() => setIsMissoesOpen(false)} clienteId={customer.id} />
       <SuporteModal isOpen={isSuporteOpen} onClose={() => setIsSuporteOpen(false)} clienteId={customer.id} />
-      <VincularContaModal isOpen={isVincularContaOpen} onClose={() => setIsVincularContaOpen(false)} />
     </>
   );
 };

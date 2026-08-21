@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import OrdersPage from './pages/OrdersPage';
+import SaltfoodCoinsPage from './pages/SaltfoodCoinsPage';
 import AdminPage from './pages/AdminPage';
 import MotoboyPage from './pages/MotoboyPage';
 import PedidoAcompanhamentoPage from './pages/PedidoAcompanhamentoPage';
@@ -58,6 +59,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route path="meus-pedidos" element={<OrdersPage />} />
+                <Route path="saltfood-coins" element={<SaltfoodCoinsPage />} />
               </Route>
             </Route>
           </Route>
