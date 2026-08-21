@@ -94,6 +94,19 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {!!customer.saldoCoinsPlataforma && customer.saldoCoinsPlataforma > 0 && (
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                <Coins className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-amber-700 font-medium">Seu saldo de SaltFood Coins</p>
+                <p className="text-lg font-bold text-amber-800">R$ {customer.saldoCoinsPlataforma.toFixed(2)}</p>
+                <p className="text-[11px] text-amber-600">Vale em qualquer loja SaltFood participante, não só nesta</p>
+              </div>
+            </div>
+          )}
+
           {customer.contaPlataformaDetectada && (
             <button
               onClick={() => setIsVincularContaOpen(true)}
