@@ -109,8 +109,8 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
 
   const handleSaveComissao = async () => {
     const valor = parseFloat(comissaoInput);
-    if (Number.isNaN(valor) || valor < 5 || valor > 20) {
-      setComissaoError('Informe um valor entre 5 e 20');
+    if (Number.isNaN(valor) || valor < 0 || valor > 30) {
+      setComissaoError('Informe um valor entre 0 e 30');
       return;
     }
     if (!onSaveComissao) return;
@@ -295,14 +295,14 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                   <Percent className="h-3.5 w-3.5 text-orange-500" /> Comissão da plataforma
                 </h3>
                 <p className="mb-3 text-xs text-gray-400">
-                  Percentual sobre as vendas entregues desta empresa, destinado ao dono da plataforma (5 a 20%).
+                  Percentual sobre as vendas entregues desta empresa, destinado ao dono da plataforma (0 a 30%).
                 </p>
                 <div className="flex flex-wrap items-end gap-3">
                   <div>
                     <input
                       type="number"
-                      min={5}
-                      max={20}
+                      min={0}
+                      max={30}
                       step={0.5}
                       value={comissaoInput}
                       onChange={(e) => setComissaoInput(e.target.value)}

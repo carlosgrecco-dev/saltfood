@@ -91,8 +91,8 @@ const SuperAdminNovaEmpresaPage: React.FC = () => {
     setComissaoAvulsaError('');
     if (!form.planoId) {
       const valor = Number(comissaoAvulsaInput);
-      if (Number.isNaN(valor) || valor < 1 || valor > 20) {
-        setComissaoAvulsaError('Informe um valor entre 1 e 20');
+      if (Number.isNaN(valor) || valor < 0 || valor > 30) {
+        setComissaoAvulsaError('Informe um valor entre 0 e 30');
         return false;
       }
     }
@@ -300,8 +300,8 @@ const SuperAdminNovaEmpresaPage: React.FC = () => {
                       <div className="relative">
                         <input
                           type="number"
-                          min={1}
-                          max={20}
+                          min={0}
+                          max={30}
                           step={0.5}
                           value={comissaoAvulsaInput}
                           onChange={(e) => setComissaoAvulsaInput(e.target.value)}
@@ -309,7 +309,7 @@ const SuperAdminNovaEmpresaPage: React.FC = () => {
                         />
                         <Percent className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
                       </div>
-                      <span className="text-[11px] text-gray-400">(1 a 20%)</span>
+                      <span className="text-[11px] text-gray-400">(0 a 30%)</span>
                     </div>
                   )}
                   {!form.planoId && comissaoAvulsaError && (
