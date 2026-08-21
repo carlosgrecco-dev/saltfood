@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer, CalendarClock, Wallet } from 'lucide-react';
+import { CheckCircle2, Loader2, Search, Gift, MapPin, Check, Ticket, X, AlarmClockOff, Timer, CalendarClock, Wallet, Coins } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
@@ -52,10 +52,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const cashbackDisponivel = customer ? Number(customer.saldoCashback) : 0;
   const [usarCashback, setUsarCashback] = useState(false);
   const cashbackDesconto = usarCashback ? Math.min(cashbackDisponivel, subtotalPosCupom) : 0;
+  const subtotalPosCashback = Math.max(0, subtotalPosCupom - cashbackDesconto);
+
+  // SaltFood Coins — em paralelo ao cashback acima, aplicado depois dele. Só aparece se a loja
+  // participar (opt-in do Super Admin) e o cliente tiver saldo vinculado (vale em outras lojas).
+  const coinsDisponivel = empresa.participaSaltfoodCoins && customer ? Number(customer.saldoCoinsPlataforma ?? 0) : 0;
+  const [usarCoins, setUsarCoins] = useState(false);
+  const coinsDesconto = usarCoins ? Math.min(coinsDisponivel, subtotalPosCashback) : 0;
 
   const [taxaCalculada, setTaxaCalculada] = useState<number | null>(null);
   const deliveryFeeFinal = freteGratisAplicado ? 0 : (taxaCalculada ?? deliveryFee);
-  const displayTotal = subtotalPosCupom - cashbackDesconto + deliveryFeeFinal;
+  const displayTotal = subtotalPosCashback - coinsDesconto + deliveryFeeFinal;
 
   const pedidoMinimo = empresa.pedidoMinimo || 0;
   const abaixoDoPedidoMinimo = pedidoMinimo > 0 && subtotal < pedidoMinimo;
@@ -143,6 +150,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setAgendarPedido(false);
       setHorarioAgendado('');
       setUsarCashback(false);
+      setUsarCoins(false);
     }
   }, [isOpen, customer, empresa.id]);
 
@@ -216,6 +224,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         cupomCodigo: cupomAplicado?.codigo,
         agendadoPara: agendarPedido && horarioAgendado ? new Date(horarioAgendado).toISOString() : undefined,
         usarCashback: cashbackDesconto > 0 ? cashbackDesconto : undefined,
+        usarCoins: coinsDesconto > 0 ? coinsDesconto : undefined,
         itens: items.map((item) => ({
           produtoId: item.productId,
           quantidade: item.quantity,
@@ -496,6 +505,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
             </label>
           )}
 
+          {coinsDisponivel > 0 && (
+            <label className="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl px-4 py-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={usarCoins}
+                onChange={(e) => setUsarCoins(e.target.checked)}
+                className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+              />
+              <Coins className="h-5 w-5 text-amber-600 shrink-0" />
+              <span className="text-sm text-gray-700">
+                Você tem <strong>R$ {coinsDisponivel.toFixed(2)}</strong> em SaltFood Coins — usar neste pedido
+              </span>
+            </label>
+          )}
+
           <div>
             <label className="block text-gray-700 font-medium mb-1 text-sm">Cupom de desconto</label>
             {cupomAplicado ? (
@@ -632,6 +656,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               <div className="flex justify-between text-emerald-600">
                 <span>Cashback</span>
                 <span>- R$ {cashbackDesconto.toFixed(2)}</span>
+              </div>
+            )}
+            {coinsDesconto > 0 && (
+              <div className="flex justify-between text-amber-600">
+                <span>SaltFood Coins</span>
+                <span>- R$ {coinsDesconto.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-600">

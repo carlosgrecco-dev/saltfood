@@ -16,6 +16,8 @@ export interface Cliente {
   contaPlataformaId?: string | null;
   /** true quando existe uma conta SaltFood Coins com este e-mail em outra loja, mas ESTE cliente ainda não está vinculado a ela — front pode oferecer vincular (com confirmação de senha). */
   contaPlataformaDetectada?: boolean;
+  /** Saldo de SaltFood Coins da conta de plataforma vinculada — 0 se contaPlataformaId for nulo. Vale em qualquer loja participante, diferente de saldoCashback (isolado desta loja). */
+  saldoCoinsPlataforma?: number;
   createdAt: string;
   updatedAt: string;
 }

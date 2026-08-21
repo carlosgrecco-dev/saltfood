@@ -72,6 +72,8 @@ export interface Pedido {
   descontoCupom: number | null;
   cashbackUsado: number | null;
   cashbackCreditado: number | null;
+  coinsUsado: number | null;
+  coinsCreditado: number | null;
   notaPedido: number | null;
   comentarioPedido: string | null;
   fotosAvaliacao: string[];
@@ -111,5 +113,6 @@ export interface PedidoInput {
   cupomCodigo?: string;
   agendadoPara?: string;
   usarCashback?: number;
+  usarCoins?: number;
   itens: PedidoItemInput[];
 }
