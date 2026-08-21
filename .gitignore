@@ -13,6 +13,9 @@ dist-ssr
 dist-*.zip
 *.local
 
+# APK do app do lojista (Flutter) — gerado localmente e servido como estático, não versionado (binário grande)
+public/downloads/*.apk
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
