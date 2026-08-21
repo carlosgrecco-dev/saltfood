@@ -9,6 +9,7 @@ import { fetchAddressByCep } from '../lib/viacep';
 import { fetchEnderecos, createEndereco } from '../lib/enderecos';
 import { validarCupom as validarCupomApi } from '../lib/cupons';
 import { calcularFrete } from '../lib/frete';
+import { salvarPedidoConvidado } from '../lib/guestOrders';
 import { FormaPagamento } from '../types/Pedido';
 import { loyaltyExpiracao } from '../types/Cliente';
 import { EnderecoCliente } from '../types/Endereco';
@@ -69,7 +70,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
     neighborhood: '',
     city: '',
     reference: '',
-    paymentMethod: 'PIX' as FormaPagamento,
+    paymentMethod: '' as FormaPagamento | '',
     cashChangeFor: '',
     notes: '',
   });
@@ -187,6 +188,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setError('Escolha o horário desejado para o agendamento.');
       return;
     }
+    if (!form.paymentMethod) {
+      setError('Escolha uma forma de pagamento.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const enderecoFinal = usandoEnderecoSalvo && enderecoSelecionado
@@ -234,6 +239,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setSuccessOrderId({ numero: pedido.numero, id: pedido.id });
       clearCart();
       if (customer) refreshCustomer();
+      else salvarPedidoConvidado(empresa.id, pedido.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao enviar pedido. Tente novamente.');
     } finally {
@@ -365,10 +371,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1 text-sm">CEP</label>
+                  <label className="block text-gray-700 font-medium mb-1 text-sm">
+                    CEP <span className="text-gray-400 font-normal">(opcional, ajuda a preencher o resto)</span>
+                  </label>
                   <div className="relative">
                     <input
-                      required
                       inputMode="numeric"
                       value={form.cep}
                       onChange={(e) => handleCepChange(e.target.value)}
@@ -409,6 +416,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                 <div>
                   <label className="block text-gray-700 font-medium mb-1 text-sm">Bairro</label>
                   <input
+                    required
                     value={form.neighborhood}
                     onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -427,9 +435,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               <div>
                 <label className="block text-gray-700 font-medium mb-1 text-sm">Referência</label>
                 <input
+                  required
                   value={form.reference}
                   onChange={(e) => setForm({ ...form, reference: e.target.value })}
-                  placeholder="Ponto de referência (opcional)"
+                  placeholder="Ex: próximo ao mercado tal"
                   className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
@@ -559,10 +568,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
           <div>
             <label className="block text-gray-700 font-medium mb-1 text-sm">Forma de pagamento</label>
             <select
+              required
               value={form.paymentMethod}
               onChange={(e) => setForm({ ...form, paymentMethod: e.target.value as FormaPagamento })}
               className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
+              <option value="" disabled>Selecione...</option>
               <option value="PIX">PIX</option>
               <option value="DINHEIRO">Dinheiro</option>
               <option value="CARTAO">Cartão na entrega</option>

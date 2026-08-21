@@ -220,6 +220,11 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
                 <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                   {FORMA_PAGAMENTO_LABELS[pedido.formaPagamento]}
                 </span>
+                {pedido.formaPagamento === 'DINHEIRO' && pedido.trocoPara != null && (
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                    Troco para R$ {pedido.trocoPara.toFixed(2)}
+                  </span>
+                )}
                 {pedido.itemGratisResgatado && (
                   <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                     <Gift className="h-3 w-3" /> item grátis

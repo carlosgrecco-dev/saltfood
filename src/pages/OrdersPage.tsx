@@ -7,6 +7,8 @@ import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 import { useCart } from '../context/CartContext';
 import { fetchMeusPedidos } from '../lib/clientes';
+import { fetchPedidoById } from '../lib/pedidos';
+import { getPedidoIdsConvidado } from '../lib/guestOrders';
 import { Pedido, STATUS_PEDIDO_LABELS, FORMA_PAGAMENTO_LABELS, StatusPedido } from '../types/Pedido';
 
 const STATUS_COLORS: Record<StatusPedido, string> = {
@@ -54,12 +56,32 @@ const OrdersPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!customer) return;
+    let cancelled = false;
     setLoading(true);
-    fetchMeusPedidos(empresa.id, customer.id)
-      .then(setOrders)
-      .catch(() => setOrders([]))
-      .finally(() => setLoading(false));
+
+    const guestIds = getPedidoIdsConvidado(empresa.id);
+    Promise.all([
+      customer ? fetchMeusPedidos(empresa.id, customer.id).catch(() => []) : Promise.resolve([]),
+      Promise.all(guestIds.map((id) => fetchPedidoById(empresa.id, id).catch(() => null))),
+    ])
+      .then(([meusPedidos, guestPedidos]) => {
+        if (cancelled) return;
+        // Um pedido de convidado feito antes de criar conta pode acabar nas duas listas — dedup por id.
+        const mapa = new Map<string, Pedido>();
+        for (const p of meusPedidos) mapa.set(p.id, p);
+        for (const p of guestPedidos) if (p) mapa.set(p.id, p);
+        setOrders(Array.from(mapa.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+      })
+      .catch(() => {
+        if (!cancelled) setOrders([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [customer, empresa.id]);
 
   const handleAvaliacaoAtualizada = (atualizado: Pedido) => {
@@ -81,20 +103,7 @@ const OrdersPage: React.FC = () => {
         </h1>
       </div>
 
-      {!isLoading && !customer && (
-        <div className="text-center bg-white border border-gray-100 rounded-2xl p-8">
-          <p className="text-gray-600 mb-4">Entre na sua conta para ver o histórico dos seus pedidos.</p>
-          <button
-            onClick={openCustomerAuth}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all"
-          >
-            <LogIn className="h-4 w-4" /> Entrar / Criar conta
-          </button>
-        </div>
-      )}
-
-      {customer && (
-        <div className="space-y-3">
+      <div className="space-y-3">
           {loading && <p className="text-sm text-gray-500">Carregando...</p>}
 
           {orders.map((order) => (
@@ -177,8 +186,19 @@ const OrdersPage: React.FC = () => {
           ))}
 
           {!loading && orders.length === 0 && (
-            <p className="text-center text-gray-400 py-12 text-sm">Você ainda não fez nenhum pedido.</p>
+            <p className="text-center text-gray-400 py-12 text-sm">Você ainda não fez nenhum pedido nesta loja.</p>
           )}
+      </div>
+
+      {!isLoading && !customer && (
+        <div className="text-center bg-white border border-gray-100 rounded-2xl p-5 mt-4">
+          <p className="text-sm text-gray-600 mb-3">Entre na sua conta para sincronizar seu histórico entre aparelhos.</p>
+          <button
+            onClick={openCustomerAuth}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-orange-600 hover:to-red-600 transition-all"
+          >
+            <LogIn className="h-4 w-4" /> Entrar / Criar conta
+          </button>
         </div>
       )}
 
