@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy, Coins } from 'lucide-react';
+import { Save, Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy } from 'lucide-react';
 import { fetchEmpresaById, updateFuncionalidadesConfig } from '../../lib/empresas';
 import { FuncionalidadesConfigInput } from '../../types/Empresa';
 
@@ -75,12 +75,6 @@ const FUNCOES: {
     descricao: 'Cliente abre um chamado (opcionalmente ligado a um pedido) e você responde pelo admin.',
     icon: LifeBuoy,
   },
-  {
-    campo: 'participaSaltfoodCoins',
-    titulo: 'SaltFood Coins',
-    descricao: 'Sua loja passa a participar da carteira de coins válida em outras lojas da plataforma — clientes ganham e/ou gastam aqui, conforme o percentual configurado na aba Fidelidade.',
-    icon: Coins,
-  },
 ];
 
 const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) => {
@@ -105,7 +99,6 @@ const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) =>
         habilitarIndicacaoAvancada: empresa.habilitarIndicacaoAvancada,
         habilitarAvaliacaoDetalhada: empresa.habilitarAvaliacaoDetalhada,
         habilitarCentralSuporte: empresa.habilitarCentralSuporte,
-        participaSaltfoodCoins: empresa.participaSaltfoodCoins,
         indicacaoRecompensaUnidades: empresa.indicacaoRecompensaUnidades,
       });
     } catch {

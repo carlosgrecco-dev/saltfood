@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save, Gift,
+  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save, Gift, Coins,
 } from 'lucide-react';
 import { Empresa, EmpresaFormInput } from '../../types/Empresa';
 import { maskDocumento, maskTelefone, onlyDigits } from '../../lib/masks';
@@ -20,6 +20,7 @@ interface EmpresaFormModalProps {
   onRequestEdit?: () => void;
   onSaveComissao?: (percent: number) => Promise<void>;
   onSaveComissaoVisibilidade?: (ocultar: boolean) => Promise<void>;
+  onSaveSaltfoodCoins?: (participa: boolean, percent: number | null) => Promise<void>;
 }
 
 const emptyForm: EmpresaFormInput = {
@@ -37,7 +38,7 @@ const emptyForm: EmpresaFormInput = {
 
 const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   isOpen, mode, empresa, submitting = false, errorMessage, onClose, onSubmit, onRequestEdit, onSaveComissao,
-  onSaveComissaoVisibilidade,
+  onSaveComissaoVisibilidade, onSaveSaltfoodCoins,
 }) => {
   const [form, setForm] = useState<EmpresaFormInput>(emptyForm);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -46,6 +47,10 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   const [comissaoError, setComissaoError] = useState('');
   const [savingVisibilidade, setSavingVisibilidade] = useState(false);
   const [visibilidadeError, setVisibilidadeError] = useState('');
+  const [saltfoodCoinsAtivo, setSaltfoodCoinsAtivo] = useState(false);
+  const [saltfoodCoinsPercentInput, setSaltfoodCoinsPercentInput] = useState('');
+  const [savingSaltfoodCoins, setSavingSaltfoodCoins] = useState(false);
+  const [saltfoodCoinsError, setSaltfoodCoinsError] = useState('');
 
   const readOnly = mode === 'view';
 
@@ -71,6 +76,9 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
     setFieldErrors({});
     setComissaoInput(String(empresa?.comissaoPercent ?? 10));
     setComissaoError('');
+    setSaltfoodCoinsAtivo(empresa?.participaSaltfoodCoins ?? false);
+    setSaltfoodCoinsPercentInput(empresa?.saltfoodCoinsPercent != null ? String(empresa.saltfoodCoinsPercent) : '');
+    setSaltfoodCoinsError('');
   }, [isOpen, empresa]);
 
   if (!isOpen) return null;
@@ -135,6 +143,27 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
       setVisibilidadeError(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {
       setSavingVisibilidade(false);
+    }
+  };
+
+  const handleSaveSaltfoodCoins = async () => {
+    let percentValor: number | null = null;
+    if (saltfoodCoinsPercentInput) {
+      percentValor = parseFloat(saltfoodCoinsPercentInput);
+      if (Number.isNaN(percentValor) || percentValor < 0 || percentValor > 100) {
+        setSaltfoodCoinsError('Informe um valor entre 0 e 100');
+        return;
+      }
+    }
+    if (!onSaveSaltfoodCoins) return;
+    setSaltfoodCoinsError('');
+    setSavingSaltfoodCoins(true);
+    try {
+      await onSaveSaltfoodCoins(saltfoodCoinsAtivo, percentValor);
+    } catch (err) {
+      setSaltfoodCoinsError(err instanceof Error ? err.message : 'Erro ao salvar SaltFood Coins');
+    } finally {
+      setSavingSaltfoodCoins(false);
     }
   };
 
@@ -334,6 +363,50 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                     Quando oculta, o card "Comissão da plataforma" some do CRM que o lojista vê.
                   </p>
                   {visibilidadeError && <p className="mt-1 text-xs font-medium text-red-600">{visibilidadeError}</p>}
+                </div>
+              </section>
+            )}
+
+            {empresa && (
+              <section className="rounded-2xl border border-gray-100 px-4 py-4">
+                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800">
+                  <Coins className="h-3.5 w-3.5 text-amber-600" /> SaltFood Coins
+                </h3>
+                <p className="mb-3 text-xs text-gray-400">
+                  Carteira de fidelidade compartilhada entre lojas da plataforma — diferente do cashback local
+                  (que o próprio lojista configura), esta é uma decisão do Super Admin, já que envolve exposição
+                  financeira entre lojas diferentes.
+                </p>
+                <ToggleSwitch
+                  label="Participa do SaltFood Coins"
+                  checked={saltfoodCoinsAtivo}
+                  onChange={setSaltfoodCoinsAtivo}
+                  activeLabel="Participa"
+                  inactiveLabel="Não participa"
+                />
+                <div className="mt-3 flex flex-wrap items-end gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs text-gray-400">% do subtotal, sobre a entrega</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={saltfoodCoinsPercentInput}
+                      onChange={(e) => setSaltfoodCoinsPercentInput(e.target.value)}
+                      className="w-32 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSaveSaltfoodCoins}
+                    disabled={savingSaltfoodCoins}
+                    className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
+                  >
+                    {savingSaltfoodCoins ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Salvar
+                  </button>
+                  {saltfoodCoinsError && <p className="text-xs font-medium text-red-600">{saltfoodCoinsError}</p>}
                 </div>
               </section>
             )}

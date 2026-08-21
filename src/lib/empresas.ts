@@ -52,6 +52,15 @@ export async function setComissaoVisibilidade(id: string, ocultarComissaoTenant:
   });
 }
 
+/** Só o Super Admin liga/desliga e configura o percentual do SaltFood Coins — diferente das demais
+ * funcionalidades opt-in (essas o próprio lojista controla em FuncionalidadesTab). */
+export async function setSaltfoodCoinsConfig(id: string, participaSaltfoodCoins: boolean, saltfoodCoinsPercent: number | null): Promise<Empresa> {
+  return apiRequestAsSuperAdmin<Empresa>(`/empresas/${id}/saltfood-coins`, {
+    method: 'PATCH',
+    body: JSON.stringify({ participaSaltfoodCoins, saltfoodCoinsPercent }),
+  });
+}
+
 export async function updateAparencia(id: string, input: AparenciaInput): Promise<Empresa> {
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/aparencia`, { method: 'PUT', body: JSON.stringify(input) });
 }

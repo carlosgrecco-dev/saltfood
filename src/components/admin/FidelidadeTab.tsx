@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, ImageIcon, Clock, BellRing, Tag, Users, Settings, Wallet, Coins } from 'lucide-react';
+import { Save, ImageIcon, Clock, BellRing, Tag, Users, Settings, Wallet } from 'lucide-react';
 import { fetchEmpresaById, updateFidelidadeConfig } from '../../lib/empresas';
 import { LOYALTY_STAMPS_GOAL } from '../../types/Cliente';
 import FidelidadeClientesTab from './FidelidadeClientesTab';
@@ -22,7 +22,6 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
   const [fidelidadeAvisoFaltam, setFidelidadeAvisoFaltam] = useState('');
   const [fidelidadeNomeItem, setFidelidadeNomeItem] = useState('');
   const [cashbackPercent, setCashbackPercent] = useState('');
-  const [saltfoodCoinsPercent, setSaltfoodCoinsPercent] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,7 +32,6 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
       setFidelidadeAvisoFaltam(empresa.fidelidadeAvisoFaltam != null ? String(empresa.fidelidadeAvisoFaltam) : '');
       setFidelidadeNomeItem(empresa.fidelidadeNomeItem || '');
       setCashbackPercent(empresa.cashbackPercent != null ? String(empresa.cashbackPercent) : '');
-      setSaltfoodCoinsPercent(empresa.saltfoodCoinsPercent != null ? String(empresa.saltfoodCoinsPercent) : '');
     } catch {
       /* silencioso */
     } finally {
@@ -58,10 +56,6 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
       setError('O percentual de cashback deve ser entre 0 e 100');
       return;
     }
-    if (saltfoodCoinsPercent && (Number(saltfoodCoinsPercent) < 0 || Number(saltfoodCoinsPercent) > 100)) {
-      setError('O percentual de SaltFood Coins deve ser entre 0 e 100');
-      return;
-    }
 
     setSaving(true);
     try {
@@ -71,7 +65,6 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         fidelidadeAvisoFaltam: fidelidadeAvisoFaltam ? Number(fidelidadeAvisoFaltam) : null,
         fidelidadeNomeItem: fidelidadeNomeItem || null,
         cashbackPercent: cashbackPercent ? Number(cashbackPercent) : null,
-        saltfoodCoinsPercent: saltfoodCoinsPercent ? Number(saltfoodCoinsPercent) : null,
       });
       setSuccess(true);
     } catch (err) {
@@ -226,31 +219,6 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
           </div>
           <p className="text-xs text-gray-400 mt-1.5">
             O cliente pode usar o saldo acumulado como desconto num pedido futuro. Deixe em branco ou 0 para desativar.
-          </p>
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <Coins className="h-4 w-4 text-amber-600" /> SaltFood Coins
-        </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step="0.1"
-              value={saltfoodCoinsPercent}
-              onChange={(e) => setSaltfoodCoinsPercent(e.target.value)}
-              placeholder="0"
-              className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-            <span className="text-sm text-gray-500">% do subtotal, creditado na carteira SaltFood Coins quando o pedido é entregue</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-1.5">
-            Diferente do cashback acima, o saldo de SaltFood Coins vale em qualquer loja da plataforma que também
-            participar. Só tem efeito com "SaltFood Coins" ligado na aba Funcionalidades. Deixe em branco ou 0 para desativar.
           </p>
         </div>
       </section>

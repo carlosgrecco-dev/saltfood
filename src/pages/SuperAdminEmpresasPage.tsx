@@ -11,7 +11,7 @@ import ToggleSwitch from '../components/superadmin/ToggleSwitch';
 import { Empresa, EmpresaFormInput } from '../types/Empresa';
 import {
   fetchEmpresas, updateEmpresa, deleteEmpresa, setEmpresaStatus, setAdminStatus, resetEmpresaSenha,
-  setComissaoEmpresa, setComissaoVisibilidade,
+  setComissaoEmpresa, setComissaoVisibilidade, setSaltfoodCoinsConfig,
 } from '../lib/empresas';
 import { maskDocumento, maskTelefone, documentoLabel } from '../lib/masks';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
@@ -461,6 +461,16 @@ const SuperAdminEmpresasPage: React.FC = () => {
           setFeedback({
             type: 'success',
             message: `Comissão da plataforma ${ocultar ? 'ocultada' : 'visível'} para "${atualizado.nome}".`,
+          });
+        }}
+        onSaveSaltfoodCoins={async (participa, percent) => {
+          if (!selectedEmpresa) return;
+          const atualizado = await setSaltfoodCoinsConfig(selectedEmpresa.id, participa, percent);
+          setSelectedEmpresa(atualizado);
+          setEmpresas((prev) => prev.map((e) => (e.id === atualizado.id ? atualizado : e)));
+          setFeedback({
+            type: 'success',
+            message: `SaltFood Coins ${participa ? 'ativado' : 'desativado'} para "${atualizado.nome}".`,
           });
         }}
       />

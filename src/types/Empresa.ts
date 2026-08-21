@@ -157,7 +157,6 @@ export interface FidelidadeConfigInput {
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
   cashbackPercent: number | null;
-  saltfoodCoinsPercent: number | null;
 }
 
 export interface FuncionalidadesConfigInput {
@@ -171,7 +170,6 @@ export interface FuncionalidadesConfigInput {
   habilitarIndicacaoAvancada: boolean;
   habilitarAvaliacaoDetalhada: boolean;
   habilitarCentralSuporte: boolean;
-  participaSaltfoodCoins: boolean;
   indicacaoRecompensaUnidades: number;
 }
 
