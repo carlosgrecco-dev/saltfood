@@ -12,6 +12,10 @@ export interface Cliente {
   indicadoPorId: string | null;
   indicacoesConcluidas: number;
   saldoCashback: number;
+  /** Já vinculado a uma conta SaltFood Coins (compartilhada entre lojas)? Ver contaPlataformaDetectada abaixo pro caso "ainda não, mas existe uma pra vincular". */
+  contaPlataformaId?: string | null;
+  /** true quando existe uma conta SaltFood Coins com este e-mail em outra loja, mas ESTE cliente ainda não está vinculado a ela — front pode oferecer vincular (com confirmação de senha). */
+  contaPlataformaDetectada?: boolean;
   createdAt: string;
   updatedAt: string;
 }

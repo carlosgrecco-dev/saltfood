@@ -54,3 +54,11 @@ export async function adicionarUnidadesFidelidade(empresaId: string, clienteId: 
     body: JSON.stringify({ unidades }),
   });
 }
+
+/** Vincula o cliente a uma conta SaltFood Coins existente de outra loja — exige a senha de lá pra confirmar. */
+export async function vincularContaPlataforma(empresaId: string, clienteId: string, email: string, senha: string): Promise<Cliente> {
+  return apiRequestAsCliente<Cliente>(empresaId, `/empresas/${empresaId}/clientes/${clienteId}/vincular-conta-plataforma`, {
+    method: 'POST',
+    body: JSON.stringify({ email, senha }),
+  });
+}

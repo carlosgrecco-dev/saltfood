@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, LogOut, Package, MapPin, Ticket, Gift, Copy, Share2, Check, Heart, Wallet, Target, LifeBuoy, Award } from 'lucide-react';
+import { ChevronRight, LogOut, Package, MapPin, Ticket, Gift, Copy, Share2, Check, Heart, Wallet, Coins, Target, LifeBuoy, Award } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import LoyaltyCard from './LoyaltyCard';
 import EnderecosSalvosModal from './EnderecosSalvosModal';
@@ -8,6 +8,7 @@ import CuponsDisponiveisModal from './CuponsDisponiveisModal';
 import FavoritosModal from './FavoritosModal';
 import MissoesModal from './MissoesModal';
 import SuporteModal from './SuporteModal';
+import VincularContaModal from './VincularContaModal';
 import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 import { indicadorNivel, NIVEL_INDICADOR_LABELS } from '../types/Cliente';
@@ -26,6 +27,7 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
   const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
   const [isMissoesOpen, setIsMissoesOpen] = useState(false);
   const [isSuporteOpen, setIsSuporteOpen] = useState(false);
+  const [isVincularContaOpen, setIsVincularContaOpen] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
   const handleLogout = () => {
@@ -90,6 +92,22 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
                 <p className="text-lg font-bold text-emerald-800">R$ {customer.saldoCashback.toFixed(2)}</p>
               </div>
             </div>
+          )}
+
+          {customer.contaPlataformaDetectada && (
+            <button
+              onClick={() => setIsVincularContaOpen(true)}
+              className="flex w-full items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left hover:bg-amber-100 transition-colors"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                <Coins className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-amber-700 font-medium">Encontramos uma conta SaltFood Coins pra você</p>
+                <p className="text-sm font-bold text-amber-800">Vincular e usar em outras lojas</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-amber-500 shrink-0" />
+            </button>
           )}
 
           {customer.codigoIndicacao && (
@@ -201,6 +219,7 @@ const CustomerArea: React.FC<CustomerAreaProps> = ({ isOpen, onClose }) => {
       <FavoritosModal isOpen={isFavoritosOpen} onClose={() => setIsFavoritosOpen(false)} />
       <MissoesModal isOpen={isMissoesOpen} onClose={() => setIsMissoesOpen(false)} clienteId={customer.id} />
       <SuporteModal isOpen={isSuporteOpen} onClose={() => setIsSuporteOpen(false)} clienteId={customer.id} />
+      <VincularContaModal isOpen={isVincularContaOpen} onClose={() => setIsVincularContaOpen(false)} />
     </>
   );
 };

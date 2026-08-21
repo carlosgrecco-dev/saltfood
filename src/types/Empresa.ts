@@ -38,6 +38,9 @@ export interface EmpresaPublic {
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
   cashbackPercent: number | null;
+  /** SaltFood Coins — opt-in pra participar da carteira global (independente do cashback local acima). */
+  participaSaltfoodCoins: boolean;
+  saltfoodCoinsPercent: number | null;
   habilitarFavoritos: boolean;
   habilitarPedirDeNovo: boolean;
   habilitarRankingFidelidade: boolean;
@@ -97,6 +100,9 @@ export interface Empresa {
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
   cashbackPercent: number | null;
+  /** SaltFood Coins — opt-in pra participar da carteira global (independente do cashback local acima). */
+  participaSaltfoodCoins: boolean;
+  saltfoodCoinsPercent: number | null;
   habilitarFavoritos: boolean;
   habilitarPedirDeNovo: boolean;
   habilitarRankingFidelidade: boolean;
@@ -139,7 +145,7 @@ export interface EmpresaFormInput {
   adminAtivo: boolean;
   /** Só usado na criação — atribui o plano já no ato do cadastro (sincroniza a comissão automaticamente). */
   planoId?: string;
-  /** Só usado na criação quando nenhum plano é escolhido — comissão avulsa (5 a 20%). */
+  /** Só usado na criação quando nenhum plano é escolhido — comissão avulsa (0 a 30%). */
   comissaoPercent?: number;
   /** Só usado na criação — código de indicação de outra loja da plataforma (indicação tenant-a-tenant), opcional. */
   indicadoPor?: string;
@@ -151,6 +157,7 @@ export interface FidelidadeConfigInput {
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
   cashbackPercent: number | null;
+  saltfoodCoinsPercent: number | null;
 }
 
 export interface FuncionalidadesConfigInput {
@@ -164,6 +171,7 @@ export interface FuncionalidadesConfigInput {
   habilitarIndicacaoAvancada: boolean;
   habilitarAvaliacaoDetalhada: boolean;
   habilitarCentralSuporte: boolean;
+  participaSaltfoodCoins: boolean;
   indicacaoRecompensaUnidades: number;
 }
 
