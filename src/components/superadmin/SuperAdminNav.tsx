@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react';
+import { Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Coins } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 
 const ITEMS = [
   { path: '/super-admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/super-admin/empresas', label: 'Empresas', icon: Building2 },
   { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
+  { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
   { path: '/super-admin/planos', label: 'Planos', icon: Layers },
   { path: '/super-admin/logs', label: 'Logs', icon: ScrollText },
   { path: '/super-admin/configuracoes', label: 'Configurações', icon: Settings },

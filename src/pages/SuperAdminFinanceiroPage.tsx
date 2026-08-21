@@ -2,22 +2,20 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Wallet, Plus, Layers, AlertTriangle, ShieldOff, Loader2, Trash2, ArrowLeft,
-  Building2, CheckCircle2, Unlock, Receipt, Clock3, HandCoins, Users, Coins, TrendingUp, TrendingDown,
+  Building2, CheckCircle2, Unlock, Receipt, Clock3, HandCoins, Users,
 } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchEmpresas, setEmpresaStatus } from '../lib/empresas';
 import { fetchPlanos } from '../lib/planos';
 import { fetchFaturas, gerarFatura, gerarFaturasEmLote, setFaturaStatus, deleteFatura } from '../lib/faturas';
-import { fetchSaltfoodCoinsReport } from '../lib/saltfoodCoinsReport';
 import { Empresa } from '../types/Empresa';
 import { Plano } from '../types/Plano';
 import { Fatura, StatusFatura } from '../types/Fatura';
-import { SaltfoodCoinsReport } from '../types/SaltfoodCoinsReport';
 import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
-type Tab = 'tenants' | 'atraso' | 'em-dia' | 'bloqueados' | 'faturas' | 'saltfood-coins';
+type Tab = 'tenants' | 'atraso' | 'em-dia' | 'bloqueados' | 'faturas';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const firstOfMonthISO = () => {
@@ -38,7 +36,6 @@ const TABS: { id: Tab; label: string; icon: typeof Building2 }[] = [
   { id: 'em-dia', label: 'Em dia', icon: CheckCircle2 },
   { id: 'bloqueados', label: 'Bloqueados', icon: ShieldOff },
   { id: 'faturas', label: 'Faturas', icon: Receipt },
-  { id: 'saltfood-coins', label: 'SaltFood Coins', icon: Coins },
 ];
 
 const SuperAdminFinanceiroPage: React.FC = () => {
@@ -73,11 +70,6 @@ const SuperAdminFinanceiroPage: React.FC = () => {
   const [vencimento, setVencimento] = useState(todayISO());
   const [gerando, setGerando] = useState(false);
 
-  const [coinsReport, setCoinsReport] = useState<SaltfoodCoinsReport | null>(null);
-  const [coinsLoading, setCoinsLoading] = useState(false);
-  const [coinsDe, setCoinsDe] = useState('');
-  const [coinsAte, setCoinsAte] = useState('');
-
   useEffect(() => {
     if (!authorized) navigate('/super-admin', { replace: true });
   }, [authorized, navigate]);
@@ -106,14 +98,6 @@ const SuperAdminFinanceiroPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [feedback]);
 
-  useEffect(() => {
-    if (tab !== 'saltfood-coins' || !authorized) return;
-    setCoinsLoading(true);
-    fetchSaltfoodCoinsReport(coinsDe || undefined, coinsAte || undefined)
-      .then(setCoinsReport)
-      .catch((err) => setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao carregar relatório do SaltFood Coins' }))
-      .finally(() => setCoinsLoading(false));
-  }, [tab, authorized, coinsDe, coinsAte]);
 
   const planosPorId = useMemo(() => new Map(planos.map((p) => [p.id, p])), [planos]);
 
@@ -590,116 +574,6 @@ const SuperAdminFinanceiroPage: React.FC = () => {
                 </>
               )}
 
-              {tab === 'saltfood-coins' && (
-                <>
-                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                      <h2 className="flex items-center gap-2 font-bold text-gray-800">
-                        <Coins className="h-4 w-4 text-amber-500" /> SaltFood Coins — carteira entre lojas
-                      </h2>
-                      <div className="flex flex-wrap items-end gap-2">
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">Ganho/gasto de</label>
-                          <input type="date" value={coinsDe} onChange={(e) => setCoinsDe(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">até</label>
-                          <input type="date" value={coinsAte} onChange={(e) => setCoinsAte(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                        </div>
-                        {(coinsDe || coinsAte) && (
-                          <button
-                            type="button"
-                            onClick={() => { setCoinsDe(''); setCoinsAte(''); }}
-                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
-                          >
-                            Limpar período
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400 mb-4">
-                      Ganho/gasto refletem só o período filtrado (todo o histórico se em branco); o saldo total é
-                      sempre o estado atual da carteira. Ativar/desativar cada loja é feito na tela de Empresas.
-                    </p>
-
-                    {coinsLoading ? (
-                      <div className="flex items-center justify-center py-16">
-                        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
-                      </div>
-                    ) : coinsReport ? (
-                      <>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                          <div className="bg-gradient-to-br from-amber-500 to-yellow-600 text-white rounded-2xl p-4">
-                            <p className="flex items-center gap-1.5 text-amber-100 text-xs mb-1 font-semibold uppercase tracking-wide">
-                              <Wallet className="h-3.5 w-3.5" /> Saldo total na carteira
-                            </p>
-                            <p className="text-2xl font-bold">R$ {coinsReport.saldoTotalAtual.toFixed(2)}</p>
-                          </div>
-                          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                            <p className="flex items-center gap-1.5 text-emerald-600 text-xs mb-1 font-semibold uppercase tracking-wide">
-                              <TrendingUp className="h-3.5 w-3.5" /> Ganho no período
-                            </p>
-                            <p className="text-2xl font-bold text-gray-800">R$ {coinsReport.totalGanhoPeriodo.toFixed(2)}</p>
-                          </div>
-                          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                            <p className="flex items-center gap-1.5 text-rose-600 text-xs mb-1 font-semibold uppercase tracking-wide">
-                              <TrendingDown className="h-3.5 w-3.5" /> Gasto no período
-                            </p>
-                            <p className="text-2xl font-bold text-gray-800">R$ {coinsReport.totalGastoPeriodo.toFixed(2)}</p>
-                          </div>
-                          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                            <p className="flex items-center gap-1.5 text-gray-500 text-xs mb-1 font-semibold uppercase tracking-wide">
-                              <Users className="h-3.5 w-3.5" /> Lojas participando
-                            </p>
-                            <p className="text-2xl font-bold text-gray-800">{coinsReport.tenantsParticipando}</p>
-                          </div>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-sm">
-                            <thead>
-                              <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <th className="py-2 pr-3">Empresa</th>
-                                <th className="py-2 pr-3">Participa</th>
-                                <th className="py-2 pr-3">%</th>
-                                <th className="py-2 pr-3">Ganho no período</th>
-                                <th className="py-2 pr-3">Gasto no período</th>
-                                <th className="py-2 pr-3">Líquido</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {coinsReport.porLoja.map((loja) => (
-                                <tr key={loja.id}>
-                                  <td className="py-3 pr-3">
-                                    <p className="font-medium text-gray-800">{loja.nome}</p>
-                                    <p className="text-xs text-gray-400 font-mono">/{loja.slug}</p>
-                                  </td>
-                                  <td className="py-3 pr-3">
-                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${loja.participa ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}`}>
-                                      {loja.participa ? 'Sim' : 'Não'}
-                                    </span>
-                                  </td>
-                                  <td className="py-3 pr-3 text-gray-600">{loja.percentual != null ? `${loja.percentual}%` : '—'}</td>
-                                  <td className="py-3 pr-3 text-emerald-600">R$ {loja.ganhoNoPeriodo.toFixed(2)}</td>
-                                  <td className="py-3 pr-3 text-rose-600">R$ {loja.gastoNoPeriodo.toFixed(2)}</td>
-                                  <td className={`py-3 pr-3 font-semibold ${loja.liquidoNoPeriodo >= 0 ? 'text-gray-800' : 'text-rose-600'}`}>
-                                    R$ {loja.liquidoNoPeriodo.toFixed(2)}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          {coinsReport.porLoja.length === 0 && (
-                            <p className="text-center text-gray-400 py-8 text-sm">Nenhuma loja participa do SaltFood Coins ainda.</p>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-center text-gray-400 py-12 text-sm">Não foi possível carregar o relatório.</p>
-                    )}
-                  </div>
-                </>
-              )}
             </>
           )}
         </div>
