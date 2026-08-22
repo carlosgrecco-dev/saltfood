@@ -1,17 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Coins } from 'lucide-react';
+import {
+  Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
+  ChevronDown, LayoutDashboard, Coins, Wrench,
+} from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 
-const ITEMS = [
+type NavEntry = { path: string; label: string; icon: typeof Building2 };
+type NavGroup = { id: string; label: string; icon: typeof Building2; items: NavEntry[] };
+
+/** Páginas mais usadas ficam soltas; o resto agrupado em dropdowns pra não virar uma lista longa. */
+const STANDALONE: NavEntry[] = [
   { path: '/super-admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/super-admin/empresas', label: 'Empresas', icon: Building2 },
-  { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
-  { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
-  { path: '/super-admin/planos', label: 'Planos', icon: Layers },
-  { path: '/super-admin/logs', label: 'Logs', icon: ScrollText },
-  { path: '/super-admin/configuracoes', label: 'Configurações', icon: Settings },
 ];
+
+const GROUPS: NavGroup[] = [
+  {
+    id: 'financeiro',
+    label: 'Financeiro',
+    icon: Wallet,
+    items: [
+      { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
+      { path: '/super-admin/planos', label: 'Planos', icon: Layers },
+      { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
+    ],
+  },
+  {
+    id: 'plataforma',
+    label: 'Plataforma',
+    icon: Wrench,
+    items: [
+      { path: '/super-admin/logs', label: 'Logs', icon: ScrollText },
+      { path: '/super-admin/configuracoes', label: 'Configurações', icon: Settings },
+    ],
+  },
+];
+
+const TODOS_OS_ITENS: NavEntry[] = [...STANDALONE, ...GROUPS.flatMap((g) => g.items)];
 
 interface SuperAdminNavProps {
   /** Avisa a página quando o menu expande/recolhe, para ajustar a largura do conteúdo ao lado. */
@@ -27,6 +53,25 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
   // Desktop começa expandido; mobile começa totalmente retraído — some por completo até o admin
   // tocar no hambúrguer.
   const [open, setOpen] = useState(() => window.matchMedia(DESKTOP_QUERY).matches);
+
+  const activeGroupId = GROUPS.find((g) => g.items.some((i) => location.pathname.startsWith(i.path)))?.id;
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(activeGroupId ? [activeGroupId] : []));
+
+  // Navegar pra dentro de um grupo (ex: link direto pra Planos) abre esse grupo automaticamente,
+  // sem nunca recolher um grupo que o admin já tenha aberto manualmente.
+  useEffect(() => {
+    if (!activeGroupId) return;
+    setOpenGroups((prev) => (prev.has(activeGroupId) ? prev : new Set(prev).add(activeGroupId)));
+  }, [activeGroupId]);
+
+  const toggleGroup = (id: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => {
     onOpenChange?.(open);
@@ -102,24 +147,87 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3">
-          {ITEMS.map(({ path, label, icon: Icon }) => {
-            const active = location.pathname.startsWith(path);
-            return (
-              <button
-                key={path}
-                onClick={() => navigate(path)}
-                title={!open ? label : undefined}
-                className={`flex w-full items-center gap-3 py-3 text-sm font-medium transition-colors ${open ? 'px-5' : 'justify-center px-0'} ${
-                  active
-                    ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-500'
-                    : 'border-r-4 border-transparent text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {open && <span>{label}</span>}
-              </button>
-            );
-          })}
+          {!open ? (
+            // Recolhido: sem espaço pra cabeçalho de grupo, todos os itens viram um rail plano de ícones.
+            TODOS_OS_ITENS.map(({ path, label, icon: Icon }) => {
+              const active = location.pathname.startsWith(path);
+              return (
+                <button
+                  key={path}
+                  onClick={() => navigate(path)}
+                  title={label}
+                  className={`flex w-full items-center justify-center py-3 text-sm font-medium transition-colors ${
+                    active
+                      ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-500'
+                      : 'border-r-4 border-transparent text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                </button>
+              );
+            })
+          ) : (
+            <>
+              {STANDALONE.map(({ path, label, icon: Icon }) => {
+                const active = location.pathname.startsWith(path);
+                return (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    className={`flex w-full items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                      active
+                        ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-500'
+                        : 'border-r-4 border-transparent text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+
+              {GROUPS.map((group) => {
+                const groupOpen = openGroups.has(group.id);
+                const groupActive = group.id === activeGroupId;
+                return (
+                  <div key={group.id}>
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      aria-expanded={groupOpen}
+                      className={`flex w-full items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                        groupActive ? 'text-orange-500' : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <group.icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 text-left">{group.label}</span>
+                      <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${groupOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {groupOpen && (
+                      <div>
+                        {group.items.map(({ path, label, icon: Icon }) => {
+                          const active = location.pathname.startsWith(path);
+                          return (
+                            <button
+                              key={path}
+                              onClick={() => navigate(path)}
+                              className={`flex w-full items-center gap-3 py-2.5 pl-9 pr-5 text-sm font-medium transition-colors ${
+                                active
+                                  ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-500'
+                                  : 'border-r-4 border-transparent text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              <Icon className="h-3.5 w-3.5 shrink-0" />
+                              <span>{label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {open && (
