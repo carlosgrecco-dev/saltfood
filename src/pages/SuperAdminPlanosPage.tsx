@@ -1,19 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Plus, Pencil, Trash2, X, ArrowLeft, Loader2, Building2, Star, ListChecks } from 'lucide-react';
+import { Layers, Plus, Pencil, Trash2, X, ArrowLeft, Loader2, Building2, Star, ListChecks, Sparkles } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchPlanos, createPlano, updatePlano, setPlanoStatus, deletePlano } from '../lib/planos';
 import { fetchEmpresas, setEmpresaPlano } from '../lib/empresas';
 import { Plano } from '../types/Plano';
 import { Empresa } from '../types/Empresa';
+import { FUNCOES, CampoFuncionalidade } from '../data/funcionalidades';
 import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
 
+const funcionalidadesVazias = (): Record<CampoFuncionalidade, boolean> =>
+  Object.fromEntries(FUNCOES.map((f) => [f.campo, false])) as Record<CampoFuncionalidade, boolean>;
+
 const emptyForm = {
   nome: '', valorMensal: '', comissaoPercent: '', descricao: '', recursosText: '',
   limitePedidosMes: '', limiteProdutos: '', limiteUsuarios: '', limiteEntregadores: '', destaque: false,
+  funcionalidades: funcionalidadesVazias(),
 };
 
 const formatLimite = (valor: number | null, sufixo: string) => (valor == null ? `${sufixo} ilimitado*` : `${valor} ${sufixo}`);
@@ -90,6 +95,7 @@ const SuperAdminPlanosPage: React.FC = () => {
       limiteUsuarios: plano.limiteUsuarios != null ? String(plano.limiteUsuarios) : '',
       limiteEntregadores: plano.limiteEntregadores != null ? String(plano.limiteEntregadores) : '',
       destaque: plano.destaque,
+      funcionalidades: Object.fromEntries(FUNCOES.map((f) => [f.campo, plano[f.campo]])) as Record<CampoFuncionalidade, boolean>,
     });
   };
 
@@ -113,6 +119,7 @@ const SuperAdminPlanosPage: React.FC = () => {
       limiteUsuarios: form.limiteUsuarios ? Number(form.limiteUsuarios) : null,
       limiteEntregadores: form.limiteEntregadores ? Number(form.limiteEntregadores) : null,
       destaque: form.destaque,
+      ...form.funcionalidades,
     };
 
     setSaving(true);
@@ -150,7 +157,7 @@ const SuperAdminPlanosPage: React.FC = () => {
   const handleAtribuir = async (empresaId: string, planoId: string) => {
     try {
       await setEmpresaPlano(empresaId, planoId || null);
-      setFeedback({ type: 'success', message: 'Plano atribuído com sucesso — comissão sincronizada.' });
+      setFeedback({ type: 'success', message: 'Plano atribuído com sucesso — comissão e funcionalidades sincronizadas.' });
       load();
     } catch (err) {
       setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao atribuir plano' });
@@ -305,7 +312,7 @@ const SuperAdminPlanosPage: React.FC = () => {
             </div>
 
             <div className="w-full">
-              <label className="block text-xs text-gray-500 mb-1">Recursos inclusos (um por linha)</label>
+              <label className="block text-xs text-gray-500 mb-1">Recursos inclusos (um por linha, só texto pra vitrine do plano)</label>
               <textarea
                 value={form.recursosText}
                 onChange={(e) => setForm({ ...form, recursosText: e.target.value })}
@@ -313,6 +320,35 @@ const SuperAdminPlanosPage: React.FC = () => {
                 placeholder={'Gestão de pedidos\nDashboard\nPIX\n...'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-y"
               />
+            </div>
+
+            <div className="w-full">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 mb-2">
+                <Sparkles className="h-3.5 w-3.5 text-orange-500" /> Funcionalidades incluídas no plano
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Ao atribuir este plano a uma loja, essas funções ligam automaticamente (o Super Admin ainda pode
+                ajustar uma exceção pontual depois, sem mudar o plano da loja).
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                {FUNCOES.map(({ campo, titulo, icon: Icon }) => (
+                  <label
+                    key={campo}
+                    className={`flex items-center gap-1.5 border rounded-lg px-2.5 py-2 cursor-pointer text-xs transition-colors ${
+                      form.funcionalidades[campo] ? 'border-orange-300 bg-orange-50/60 text-orange-700' : 'border-gray-200 text-gray-600'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.funcionalidades[campo]}
+                      onChange={(e) => setForm({ ...form, funcionalidades: { ...form.funcionalidades, [campo]: e.target.checked } })}
+                      className="w-3.5 h-3.5 text-orange-500 rounded focus:ring-orange-500"
+                    />
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{titulo}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <button
@@ -389,6 +425,9 @@ const SuperAdminPlanosPage: React.FC = () => {
 
                   <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
                     <Building2 className="h-3 w-3" /> {plano._count?.empresas ?? 0} loja(s) neste plano
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> {FUNCOES.filter((f) => plano[f.campo]).length} de {FUNCOES.length} funcionalidades
                   </p>
                   <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
                     <button onClick={() => handleEdit(plano)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-orange-500">

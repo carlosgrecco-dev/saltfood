@@ -94,6 +94,7 @@ export async function updateFidelidadeConfig(id: string, input: FidelidadeConfig
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/fidelidade-config`, { method: 'PUT', body: JSON.stringify(input) });
 }
 
-export async function updateFuncionalidadesConfig(id: string, input: FuncionalidadesConfigInput): Promise<Empresa> {
-  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/funcionalidades-config`, { method: 'PUT', body: JSON.stringify(input) });
+/** Só o Super Admin usa — liga uma exceção pontual de funcionalidade numa loja específica, fora do pacote do plano dela. */
+export async function setFuncionalidadesConfig(id: string, input: Partial<FuncionalidadesConfigInput>): Promise<Empresa> {
+  return apiRequestAsSuperAdmin<Empresa>(`/empresas/${id}/funcionalidades-config`, { method: 'PUT', body: JSON.stringify(input) });
 }

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save, Gift, Coins,
+  X, Building2, User, Mail, Phone, FileText, Link2, UserCircle, Lock, Loader2, Pencil, Percent, Save, Gift, Coins, Sparkles,
 } from 'lucide-react';
 import { Empresa, EmpresaFormInput } from '../../types/Empresa';
 import { maskDocumento, maskTelefone, onlyDigits } from '../../lib/masks';
 import { Field, inputClasses } from './EmpresaFormFields';
 import ToggleSwitch from './ToggleSwitch';
+import { FUNCOES, CampoFuncionalidade } from '../../data/funcionalidades';
 
 export type EmpresaModalMode = 'edit' | 'view';
 
@@ -21,6 +22,7 @@ interface EmpresaFormModalProps {
   onSaveComissao?: (percent: number) => Promise<void>;
   onSaveComissaoVisibilidade?: (ocultar: boolean) => Promise<void>;
   onSaveSaltfoodCoins?: (participa: boolean, percent: number | null) => Promise<void>;
+  onSaveFuncionalidades?: (input: Record<CampoFuncionalidade, boolean>) => Promise<void>;
 }
 
 const emptyForm: EmpresaFormInput = {
@@ -38,7 +40,7 @@ const emptyForm: EmpresaFormInput = {
 
 const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   isOpen, mode, empresa, submitting = false, errorMessage, onClose, onSubmit, onRequestEdit, onSaveComissao,
-  onSaveComissaoVisibilidade, onSaveSaltfoodCoins,
+  onSaveComissaoVisibilidade, onSaveSaltfoodCoins, onSaveFuncionalidades,
 }) => {
   const [form, setForm] = useState<EmpresaFormInput>(emptyForm);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -51,6 +53,11 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   const [saltfoodCoinsPercentInput, setSaltfoodCoinsPercentInput] = useState('');
   const [savingSaltfoodCoins, setSavingSaltfoodCoins] = useState(false);
   const [saltfoodCoinsError, setSaltfoodCoinsError] = useState('');
+  const [funcionalidadesForm, setFuncionalidadesForm] = useState<Record<CampoFuncionalidade, boolean>>(
+    () => Object.fromEntries(FUNCOES.map((f) => [f.campo, false])) as Record<CampoFuncionalidade, boolean>
+  );
+  const [savingFuncionalidades, setSavingFuncionalidades] = useState(false);
+  const [funcionalidadesError, setFuncionalidadesError] = useState('');
 
   const readOnly = mode === 'view';
 
@@ -79,6 +86,10 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
     setSaltfoodCoinsAtivo(empresa?.participaSaltfoodCoins ?? false);
     setSaltfoodCoinsPercentInput(empresa?.saltfoodCoinsPercent != null ? String(empresa.saltfoodCoinsPercent) : '');
     setSaltfoodCoinsError('');
+    setFuncionalidadesForm(
+      Object.fromEntries(FUNCOES.map((f) => [f.campo, empresa ? empresa[f.campo] : false])) as Record<CampoFuncionalidade, boolean>
+    );
+    setFuncionalidadesError('');
   }, [isOpen, empresa]);
 
   if (!isOpen) return null;
@@ -164,6 +175,19 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
       setSaltfoodCoinsError(err instanceof Error ? err.message : 'Erro ao salvar SaltFood Coins');
     } finally {
       setSavingSaltfoodCoins(false);
+    }
+  };
+
+  const handleSaveFuncionalidades = async () => {
+    if (!onSaveFuncionalidades) return;
+    setFuncionalidadesError('');
+    setSavingFuncionalidades(true);
+    try {
+      await onSaveFuncionalidades(funcionalidadesForm);
+    } catch (err) {
+      setFuncionalidadesError(err instanceof Error ? err.message : 'Erro ao salvar funcionalidades');
+    } finally {
+      setSavingFuncionalidades(false);
     }
   };
 
@@ -407,6 +431,50 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
                     Salvar
                   </button>
                   {saltfoodCoinsError && <p className="text-xs font-medium text-red-600">{saltfoodCoinsError}</p>}
+                </div>
+              </section>
+            )}
+
+            {empresa && (
+              <section className="rounded-2xl border border-gray-100 px-4 py-4">
+                <h3 className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800">
+                  <Sparkles className="h-3.5 w-3.5 text-orange-500" /> Funcionalidades
+                </h3>
+                <p className="mb-3 text-xs text-gray-400">
+                  Definidas pelo pacote do plano da loja (aba Planos) — aqui dá pra abrir uma exceção pontual sem
+                  trocar o plano dela. Atenção: reatribuir o plano depois sobrescreve essa exceção de volta ao
+                  pacote padrão.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {FUNCOES.map(({ campo, titulo, icon: Icon }) => (
+                    <label
+                      key={campo}
+                      className={`flex items-center gap-1.5 border rounded-lg px-2.5 py-2 cursor-pointer text-xs transition-colors ${
+                        funcionalidadesForm[campo] ? 'border-orange-300 bg-orange-50/60 text-orange-700' : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={funcionalidadesForm[campo]}
+                        onChange={(e) => setFuncionalidadesForm({ ...funcionalidadesForm, [campo]: e.target.checked })}
+                        className="w-3.5 h-3.5 text-orange-500 rounded focus:ring-orange-500"
+                      />
+                      <Icon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{titulo}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleSaveFuncionalidades}
+                    disabled={savingFuncionalidades}
+                    className="flex items-center gap-1.5 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 transition-colors"
+                  >
+                    {savingFuncionalidades ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Salvar
+                  </button>
+                  {funcionalidadesError && <p className="text-xs font-medium text-red-600">{funcionalidadesError}</p>}
                 </div>
               </section>
             )}

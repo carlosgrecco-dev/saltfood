@@ -1,4 +1,18 @@
-export interface Plano {
+/** Pacote de funcionalidades incluídas no plano — sincronizado pra Empresa ao atribuir o plano (ver types/Empresa.ts pros mesmos campos). */
+export interface PacoteFuncionalidades {
+  habilitarFavoritos: boolean;
+  habilitarPedirDeNovo: boolean;
+  habilitarRankingFidelidade: boolean;
+  habilitarAgendamento: boolean;
+  habilitarAvaliacaoComFotos: boolean;
+  habilitarNotificacoesInApp: boolean;
+  habilitarMissoes: boolean;
+  habilitarIndicacaoAvancada: boolean;
+  habilitarAvaliacaoDetalhada: boolean;
+  habilitarCentralSuporte: boolean;
+}
+
+export interface Plano extends PacoteFuncionalidades {
   id: string;
   nome: string;
   valorMensal: number;
@@ -17,7 +31,7 @@ export interface Plano {
   _count?: { empresas: number };
 }
 
-export interface PlanoInput {
+export interface PlanoInput extends Partial<PacoteFuncionalidades> {
   nome: string;
   valorMensal: number;
   comissaoPercent: number;
