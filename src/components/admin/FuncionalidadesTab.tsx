@@ -1,106 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy } from 'lucide-react';
-import { fetchEmpresaById, updateFuncionalidadesConfig } from '../../lib/empresas';
-import { FuncionalidadesConfigInput } from '../../types/Empresa';
+import { Check, Lock } from 'lucide-react';
+import { fetchEmpresaById } from '../../lib/empresas';
+import { Empresa } from '../../types/Empresa';
+import { FUNCOES } from '../../data/funcionalidades';
 
 interface FuncionalidadesTabProps {
   empresaId: string;
 }
 
-type CampoToggle = Exclude<keyof FuncionalidadesConfigInput, 'indicacaoRecompensaUnidades'>;
-
-const FUNCOES: {
-  campo: CampoToggle;
-  titulo: string;
-  descricao: string;
-  icon: typeof Heart;
-}[] = [
-  {
-    campo: 'habilitarFavoritos',
-    titulo: 'Favoritos',
-    descricao: 'Cliente pode marcar produtos com ❤ no cardápio e ver a lista em "Meus Favoritos".',
-    icon: Heart,
-  },
-  {
-    campo: 'habilitarPedirDeNovo',
-    titulo: 'Peça de novo',
-    descricao: 'Tira com os produtos mais comprados na home, e o botão "Pedir de novo" em Meus Pedidos.',
-    icon: RotateCcw,
-  },
-  {
-    campo: 'habilitarRankingFidelidade',
-    titulo: 'Nível de fidelidade',
-    descricao: 'Selo Bronze/Prata/Ouro no cartão fidelidade, calculado sobre o histórico de compras.',
-    icon: Medal,
-  },
-  {
-    campo: 'habilitarAgendamento',
-    titulo: 'Agendar pedido',
-    descricao: 'Cliente escolhe "assim que possível" ou marca um horário no checkout.',
-    icon: CalendarClock,
-  },
-  {
-    campo: 'habilitarAvaliacaoComFotos',
-    titulo: 'Fotos na avaliação',
-    descricao: 'Cliente pode anexar até 3 fotos ao avaliar o pedido entregue.',
-    icon: Camera,
-  },
-  {
-    campo: 'habilitarNotificacoesInApp',
-    titulo: 'Central de notificações',
-    descricao: 'Sininho com o histórico de atualizações do pedido — funciona mesmo sem o cliente ativar o push.',
-    icon: Bell,
-  },
-  {
-    campo: 'habilitarMissoes',
-    titulo: 'Missões de fidelidade',
-    descricao: 'Ex: "peça 2x essa semana e ganhe 5 unidades" — você cria as missões na aba Missões.',
-    icon: Target,
-  },
-  {
-    campo: 'habilitarIndicacaoAvancada',
-    titulo: 'Indicação avançada',
-    descricao: 'Recompensa configurável por indicação + bônus de marco (3/10/25 indicações concluídas).',
-    icon: UserPlus,
-  },
-  {
-    campo: 'habilitarAvaliacaoDetalhada',
-    titulo: 'Avaliação detalhada',
-    descricao: 'Além da nota geral, cliente avalia separadamente comida, embalagem e tempo de entrega.',
-    icon: Star,
-  },
-  {
-    campo: 'habilitarCentralSuporte',
-    titulo: 'Central de suporte',
-    descricao: 'Cliente abre um chamado (opcionalmente ligado a um pedido) e você responde pelo admin.',
-    icon: LifeBuoy,
-  },
-];
-
 const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) => {
-  const [config, setConfig] = useState<FuncionalidadesConfigInput | null>(null);
+  const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const empresa = await fetchEmpresaById(empresaId);
-      setConfig({
-        habilitarFavoritos: empresa.habilitarFavoritos,
-        habilitarPedirDeNovo: empresa.habilitarPedirDeNovo,
-        habilitarRankingFidelidade: empresa.habilitarRankingFidelidade,
-        habilitarAgendamento: empresa.habilitarAgendamento,
-        habilitarAvaliacaoComFotos: empresa.habilitarAvaliacaoComFotos,
-        habilitarNotificacoesInApp: empresa.habilitarNotificacoesInApp,
-        habilitarMissoes: empresa.habilitarMissoes,
-        habilitarIndicacaoAvancada: empresa.habilitarIndicacaoAvancada,
-        habilitarAvaliacaoDetalhada: empresa.habilitarAvaliacaoDetalhada,
-        habilitarCentralSuporte: empresa.habilitarCentralSuporte,
-        indicacaoRecompensaUnidades: empresa.indicacaoRecompensaUnidades,
-      });
+      const dados = await fetchEmpresaById(empresaId);
+      setEmpresa(dados);
     } catch {
       /* silencioso */
     } finally {
@@ -112,85 +28,47 @@ const FuncionalidadesTab: React.FC<FuncionalidadesTabProps> = ({ empresaId }) =>
     load();
   }, [load]);
 
-  const handleToggle = (campo: CampoToggle) => {
-    setConfig((prev) => (prev ? { ...prev, [campo]: !prev[campo] } : prev));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!config) return;
-    setError('');
-    setSuccess(false);
-    setSaving(true);
-    try {
-      await updateFuncionalidadesConfig(empresaId, config);
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar funcionalidades');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading || !config) {
+  if (loading || !empresa) {
     return <p className="text-center text-gray-500 py-8">Carregando...</p>;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       <p className="text-sm text-gray-500">
-        Funções novas nascem desligadas — ligue aqui as que fazem sentido pra sua loja. O que estiver desligado
-        não aparece pros seus clientes.
+        Essas funcionalidades são definidas pelo pacote do seu plano — não são autoatendimento aqui. Se quiser
+        mudar alguma, fale com o suporte da plataforma.
       </p>
 
       <div className="space-y-3">
-        {FUNCOES.map(({ campo, titulo, descricao, icon: Icon }) => (
-          <React.Fragment key={campo}>
-            <label
-              className={`flex items-start gap-3 border rounded-xl p-4 cursor-pointer transition-colors ${
-                config[campo] ? 'border-orange-300 bg-orange-50/40' : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={config[campo]}
-                onChange={() => handleToggle(campo)}
-                className="mt-1 w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-              />
-              <Icon className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-gray-800 text-sm">{titulo}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{descricao}</p>
+        {FUNCOES.map(({ campo, titulo, descricao, icon: Icon }) => {
+          const ativo = empresa[campo];
+          return (
+            <React.Fragment key={campo}>
+              <div
+                className={`flex items-start gap-3 border rounded-xl p-4 ${
+                  ativo ? 'border-orange-200 bg-orange-50/40' : 'border-gray-200 bg-gray-50'
+                }`}
+              >
+                <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${ativo ? 'bg-orange-100' : 'bg-gray-200'}`}>
+                  {ativo ? <Check className="h-3.5 w-3.5 text-orange-600" /> : <Lock className="h-3 w-3 text-gray-400" />}
+                </div>
+                <Icon className={`h-5 w-5 shrink-0 mt-0.5 ${ativo ? 'text-orange-600' : 'text-gray-400'}`} />
+                <div>
+                  <p className={`font-bold text-sm ${ativo ? 'text-gray-800' : 'text-gray-500'}`}>{titulo}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{descricao}</p>
+                </div>
               </div>
-            </label>
 
-            {campo === 'habilitarIndicacaoAvancada' && config.habilitarIndicacaoAvancada && (
-              <div className="ml-7 flex items-center gap-2 -mt-1">
-                <span className="text-sm text-gray-500">Unidades por indicação concluída:</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={config.indicacaoRecompensaUnidades}
-                  onChange={(e) => setConfig((prev) => (prev ? { ...prev, indicacaoRecompensaUnidades: Number(e.target.value) || 1 } : prev))}
-                  className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center"
-                />
-              </div>
-            )}
-          </React.Fragment>
-        ))}
+              {campo === 'habilitarIndicacaoAvancada' && ativo && (
+                <div className="ml-9 -mt-1 text-sm text-gray-500">
+                  Unidades por indicação concluída: <span className="font-semibold text-gray-700">{empresa.indicacaoRecompensaUnidades}</span>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
-
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">Funcionalidades salvas com sucesso!</div>}
-
-      <button
-        type="submit"
-        disabled={saving}
-        className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-lg disabled:opacity-60"
-      >
-        <Save className="h-4 w-4" /> {saving ? 'Salvando...' : 'Salvar funcionalidades'}
-      </button>
-    </form>
+    </div>
   );
 };
 
