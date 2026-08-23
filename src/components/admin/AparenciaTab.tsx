@@ -4,6 +4,7 @@ import { fetchEmpresaById, updateAparencia } from '../../lib/empresas';
 import { fetchHeroSlides, createHeroSlide, updateHeroSlide, setHeroSlideStatus, deleteHeroSlide } from '../../lib/heroSlides';
 import { AparenciaInput } from '../../types/Empresa';
 import { HeroSlide } from '../../types/HeroSlide';
+import FotoInput from './FotoInput';
 
 interface AparenciaTabProps {
   empresaId: string;
@@ -208,22 +209,12 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
           </h3>
           <div className="grid sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl">
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">URL do logo</label>
-              <input
-                value={form.logoUrl}
-                onChange={(e) => set('logoUrl', e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
+              <label className="block text-xs text-gray-500 mb-1.5">Logo</label>
+              <FotoInput value={form.logoUrl} onChange={(url) => set('logoUrl', url)} placeholder="URL do logo (opcional)" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">URL do favicon</label>
-              <input
-                value={form.faviconUrl}
-                onChange={(e) => set('faviconUrl', e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
+              <label className="block text-xs text-gray-500 mb-1.5">Favicon</label>
+              <FotoInput value={form.faviconUrl} onChange={(url) => set('faviconUrl', url)} placeholder="URL do favicon (opcional)" />
             </div>
           </div>
         </section>
@@ -269,12 +260,13 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
                   placeholder="Link ao tocar (opcional)"
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
-                <input
-                  value={form.heroImagemUrl}
-                  onChange={(e) => set('heroImagemUrl', e.target.value)}
-                  placeholder="URL da imagem de fundo (opcional — sem imagem usa gradiente das cores da loja)"
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:col-span-2"
-                />
+                <div className="sm:col-span-2">
+                  <FotoInput
+                    value={form.heroImagemUrl}
+                    onChange={(url) => set('heroImagemUrl', url)}
+                    placeholder="URL da imagem de fundo (opcional — sem imagem usa gradiente das cores da loja)"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -363,13 +355,13 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
                 placeholder="Subtítulo (opcional)"
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:col-span-2"
               />
-              <input
-                value={slideForm.imagemUrl}
-                onChange={(e) => setSlideForm({ ...slideForm, imagemUrl: e.target.value })}
-                placeholder="URL da imagem (obrigatório)"
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:col-span-2"
-                required
-              />
+              <div className="sm:col-span-2">
+                <FotoInput
+                  value={slideForm.imagemUrl}
+                  onChange={(url) => setSlideForm({ ...slideForm, imagemUrl: url })}
+                  placeholder="URL da imagem (obrigatório)"
+                />
+              </div>
               <input
                 value={slideForm.linkUrl}
                 onChange={(e) => setSlideForm({ ...slideForm, linkUrl: e.target.value })}

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, GripVertical, Layers, ListChecks, Upload, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, GripVertical, Layers, ListChecks, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
 import {
   DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core';
@@ -9,7 +9,7 @@ import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria } from '../../ty
 import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto, reordenarProdutos } from '../../lib/produtos';
 import { fetchProdutoVariacoes, createProdutoVariacao, updateProdutoVariacao, deleteProdutoVariacao } from '../../lib/produtoVariacoes';
 import { fetchCategorias } from '../../lib/categorias';
-import { uploadImagem } from '../../lib/upload';
+import FotoInput from './FotoInput';
 import {
   fetchProdutoGruposOpcao,
   createProdutoGrupoOpcao,
@@ -19,64 +19,6 @@ import {
   updateProdutoOpcao,
   deleteProdutoOpcao,
 } from '../../lib/produtoGruposOpcao';
-
-const FotoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({ value, onChange }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [enviando, setEnviando] = useState(false);
-  const [erro, setErro] = useState('');
-
-  const handleFile = async (file: File | undefined) => {
-    if (!file) return;
-    setErro('');
-    setEnviando(true);
-    try {
-      const url = await uploadImagem(file);
-      onChange(url);
-    } catch (err) {
-      setErro(err instanceof Error ? err.message : 'Erro ao enviar imagem');
-    } finally {
-      setEnviando(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        {value ? (
-          <img src={value} alt="Prévia" className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0" />
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0">
-            <ImageOff className="h-4 w-4 text-gray-300" />
-          </div>
-        )}
-        <input
-          placeholder="URL da foto (opcional)"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm min-w-0"
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0])}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={enviando}
-          className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-3 py-2 rounded-lg shrink-0 disabled:opacity-60"
-        >
-          {enviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          {enviando ? 'Enviando...' : 'Enviar do PC'}
-        </button>
-      </div>
-      {erro && <p className="text-xs text-red-600">{erro}</p>}
-    </div>
-  );
-};
 
 interface ProdutosTabProps {
   empresaId: string;
