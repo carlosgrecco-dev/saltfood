@@ -402,6 +402,15 @@ const AdminPage: React.FC = () => {
         }
       />
 
+      {/* No mobile, o menu aberto cobre a tela — toca fora (nesse fundo escurecido) pra fechar. */}
+      {isMobile && navOpen && (
+        <div
+          onClick={() => setNavOpen(false)}
+          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-gray-900/40"
+        />
+      )}
+
       {/* Drawer vertical do lado esquerdo. No desktop, recolhido vira um rail só com os ícones e
           expandido mostra os rótulos — nunca some da tela. No mobile, começa totalmente retraído
           (fora da tela) e só aparece quando o admin toca no hambúrguer (no Header). */}
@@ -431,7 +440,7 @@ const AdminPage: React.FC = () => {
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              onClick={() => { setTab(id); if (isMobile) setNavOpen(false); }}
               title={!navOpen ? label : undefined}
               className={`flex w-full items-center gap-3 py-3 text-sm font-medium transition-colors ${
                 navOpen ? 'px-5' : 'justify-center px-0'
