@@ -23,6 +23,8 @@ interface EmpresaFormModalProps {
   onSaveComissaoVisibilidade?: (ocultar: boolean) => Promise<void>;
   onSaveSaltfoodCoins?: (participa: boolean, percent: number | null) => Promise<void>;
   onSaveFuncionalidades?: (input: Record<CampoFuncionalidade, boolean>) => Promise<void>;
+  onSaveEmpresaAtiva?: (ativo: boolean) => Promise<void>;
+  onSaveAdminAtivo?: (ativo: boolean) => Promise<void>;
 }
 
 const emptyForm: EmpresaFormInput = {
@@ -40,7 +42,7 @@ const emptyForm: EmpresaFormInput = {
 
 const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   isOpen, mode, empresa, submitting = false, errorMessage, onClose, onSubmit, onRequestEdit, onSaveComissao,
-  onSaveComissaoVisibilidade, onSaveSaltfoodCoins, onSaveFuncionalidades,
+  onSaveComissaoVisibilidade, onSaveSaltfoodCoins, onSaveFuncionalidades, onSaveEmpresaAtiva, onSaveAdminAtivo,
 }) => {
   const [form, setForm] = useState<EmpresaFormInput>(emptyForm);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -58,6 +60,9 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
   );
   const [savingFuncionalidades, setSavingFuncionalidades] = useState(false);
   const [funcionalidadesError, setFuncionalidadesError] = useState('');
+  const [savingEmpresaAtiva, setSavingEmpresaAtiva] = useState(false);
+  const [savingAdminAtivo, setSavingAdminAtivo] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   const readOnly = mode === 'view';
 
@@ -90,6 +95,7 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
       Object.fromEntries(FUNCOES.map((f) => [f.campo, empresa ? empresa[f.campo] : false])) as Record<CampoFuncionalidade, boolean>
     );
     setFuncionalidadesError('');
+    setStatusError('');
   }, [isOpen, empresa]);
 
   if (!isOpen) return null;
@@ -188,6 +194,36 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
       setFuncionalidadesError(err instanceof Error ? err.message : 'Erro ao salvar funcionalidades');
     } finally {
       setSavingFuncionalidades(false);
+    }
+  };
+
+  const handleToggleEmpresaAtiva = async (ativo: boolean) => {
+    set('empresaAtiva', ativo);
+    if (!empresa || !onSaveEmpresaAtiva) return;
+    setStatusError('');
+    setSavingEmpresaAtiva(true);
+    try {
+      await onSaveEmpresaAtiva(ativo);
+    } catch (err) {
+      set('empresaAtiva', !ativo);
+      setStatusError(err instanceof Error ? err.message : 'Erro ao salvar status da empresa');
+    } finally {
+      setSavingEmpresaAtiva(false);
+    }
+  };
+
+  const handleToggleAdminAtivo = async (ativo: boolean) => {
+    set('adminAtivo', ativo);
+    if (!empresa || !onSaveAdminAtivo) return;
+    setStatusError('');
+    setSavingAdminAtivo(true);
+    try {
+      await onSaveAdminAtivo(ativo);
+    } catch (err) {
+      set('adminAtivo', !ativo);
+      setStatusError(err instanceof Error ? err.message : 'Erro ao salvar status do administrador');
+    } finally {
+      setSavingAdminAtivo(false);
     }
   };
 
@@ -327,19 +363,24 @@ const EmpresaFormModal: React.FC<EmpresaFormModalProps> = ({
               </div>
             </section>
 
-            <section className="flex flex-wrap gap-6 rounded-2xl bg-gray-50 px-4 py-4">
-              <ToggleSwitch
-                label="Status da empresa"
-                checked={form.empresaAtiva}
-                onChange={(v) => set('empresaAtiva', v)}
-                disabled={readOnly}
-              />
-              <ToggleSwitch
-                label="Status do administrador"
-                checked={form.adminAtivo}
-                onChange={(v) => set('adminAtivo', v)}
-                disabled={readOnly}
-              />
+            <section className="rounded-2xl bg-gray-50 px-4 py-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <ToggleSwitch
+                  label="Status da empresa"
+                  checked={form.empresaAtiva}
+                  onChange={handleToggleEmpresaAtiva}
+                  disabled={readOnly || savingEmpresaAtiva}
+                />
+                <ToggleSwitch
+                  label="Status do administrador"
+                  checked={form.adminAtivo}
+                  onChange={handleToggleAdminAtivo}
+                  disabled={readOnly || savingAdminAtivo}
+                />
+                {(savingEmpresaAtiva || savingAdminAtivo) && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />}
+              </div>
+              {empresa && <p className="mt-1.5 text-xs text-gray-400">Salva na hora, assim que você troca — não precisa do botão "Salvar alterações" lá embaixo.</p>}
+              {statusError && <p className="mt-1.5 text-xs font-medium text-red-600">{statusError}</p>}
             </section>
 
             {empresa && (

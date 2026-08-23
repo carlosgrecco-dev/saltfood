@@ -480,6 +480,18 @@ const SuperAdminEmpresasPage: React.FC = () => {
           setEmpresas((prev) => prev.map((e) => (e.id === atualizado.id ? atualizado : e)));
           setFeedback({ type: 'success', message: `Funcionalidades atualizadas para "${atualizado.nome}".` });
         }}
+        onSaveEmpresaAtiva={async (ativo) => {
+          if (!selectedEmpresa) return;
+          const atualizado = await setEmpresaStatus(selectedEmpresa.id, ativo);
+          setSelectedEmpresa(atualizado);
+          setEmpresas((prev) => prev.map((e) => (e.id === atualizado.id ? atualizado : e)));
+        }}
+        onSaveAdminAtivo={async (ativo) => {
+          if (!selectedEmpresa) return;
+          const atualizado = await setAdminStatus(selectedEmpresa.id, ativo);
+          setSelectedEmpresa(atualizado);
+          setEmpresas((prev) => prev.map((e) => (e.id === atualizado.id ? atualizado : e)));
+        }}
       />
 
       <ConfirmDialog
