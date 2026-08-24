@@ -582,7 +582,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                 required
                 value={horarioAgendado}
                 onChange={(e) => setHorarioAgendado(e.target.value)}
-                min={new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16)}
+                min={new Date(Date.now() + (empresa.tempoEstimadoMin ?? empresa.tempoEstimadoMax ?? 30) * 60 * 1000).toISOString().slice(0, 16)}
                 className="w-full mt-2 px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             )}
