@@ -1,4 +1,4 @@
-const CACHE_NAME = 'saltfood-v2';
+const CACHE_NAME = 'saltfood-v3';
 const APP_SHELL = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', (event) => {
@@ -17,7 +17,9 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first para chamadas de API (Supabase), cache-first para o app shell.
+// Network-first pra tudo — sempre busca a versão mais nova primeiro (essencial num app que
+// deploya várias vezes por dia; cache-first deixava celular/PWA preso numa versão antiga até
+// o app ser fechado e reaberto várias vezes). Cache só entra como fallback de modo offline.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -26,27 +28,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.origin.includes('supabase.co')) {
-    return; // nunca cachear chamadas ao banco/API
-  }
-
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone).catch(() => {}));
-          }
-          return response;
-        })
-        // Sem isso, uma falha de rede sem nada em cache tentava resolver com `undefined`,
-        // e o navegador acusava "Failed to convert value to 'Response'".
-        .catch(() => cached || Response.error());
-      return cached || networkFetch;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone).catch(() => {}));
+        }
+        return response;
+      })
+      // Sem rede (offline de verdade) — cai pro que tiver em cache; sem isso e sem nada em
+      // cache, o navegador acusava "Failed to convert value to 'Response'".
+      .catch(() => caches.match(event.request).then((cached) => cached || Response.error()))
   );
 });
 
