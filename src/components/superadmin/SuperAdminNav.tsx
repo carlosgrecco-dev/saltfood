@@ -5,6 +5,7 @@ import {
   ChevronDown, LayoutDashboard, Coins, Wrench,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
+import { getSuperAdminSession } from '../../lib/superAdminAuth';
 
 type NavEntry = { path: string; label: string; icon: typeof Building2 };
 type NavGroup = { id: string; label: string; icon: typeof Building2; items: NavEntry[] };
@@ -49,6 +50,7 @@ const DESKTOP_QUERY = '(min-width: 640px)';
 const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const session = getSuperAdminSession();
   const [isMobile, setIsMobile] = useState(() => !window.matchMedia(DESKTOP_QUERY).matches);
   // Desktop começa expandido; mobile começa totalmente retraído — some por completo até o admin
   // tocar no hambúrguer.
@@ -113,7 +115,12 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
             <div className="h-9 w-9 shrink-0 rounded-lg bg-black p-1">
               <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-sm" />
             </div>
-            {open && <span className="font-bold text-gray-800 truncate">SaltFood Admin</span>}
+            {open && (
+              <div className="min-w-0">
+                <span className="block font-bold text-gray-800 truncate">SaltFood Admin</span>
+                {session && <span className="block text-xs text-gray-400 truncate">Olá, {session.usuario}</span>}
+              </div>
+            )}
           </div>
           {open && (
             <button onClick={() => setOpen(false)} aria-label="Recolher menu" className="shrink-0 text-gray-400 hover:text-gray-700 p-1">

@@ -53,6 +53,12 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
+const TITULO_LOGIN_POR_TAB: Record<LoginTab, string> = {
+  admin: 'Administração',
+  usuario: 'Portal do Cliente',
+  motoboy: 'Portal do Motoboy',
+};
+
 const DESKTOP_QUERY = '(min-width: 640px)';
 
 const AdminPage: React.FC = () => {
@@ -192,8 +198,8 @@ const AdminPage: React.FC = () => {
             <Link to={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-6">
               <ArrowLeft className="h-4 w-4" /> Voltar para a loja
             </Link>
-            <h1 className="text-xl font-bold text-gray-800 mb-1">Painel Administrativo</h1>
-            <p className="text-sm text-gray-500 mb-6">{empresa.nome}</p>
+            <h1 className="text-xl font-bold text-gray-800 mb-1">{empresa.nome}</h1>
+            <p className="text-sm text-gray-500 mb-6">{TITULO_LOGIN_POR_TAB[loginTab]}</p>
 
             <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
               {([
