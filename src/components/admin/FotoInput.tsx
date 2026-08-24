@@ -6,10 +6,14 @@ interface FotoInputProps {
   value: string;
   onChange: (url: string) => void;
   placeholder?: string;
+  /** Chamado só quando um arquivo termina de subir do PC (nunca ao digitar/colar uma URL) — use
+   * pra salvar a imagem na hora, sem depender do usuário lembrar de clicar num botão de salvar
+   * separado mais embaixo na página. */
+  onUploaded?: (url: string) => void;
 }
 
 /** Campo de imagem reutilizado em todo o admin — aceita colar uma URL ou enviar um arquivo do PC (os dois escrevem no mesmo valor). */
-const FotoInput: React.FC<FotoInputProps> = ({ value, onChange, placeholder = 'URL da imagem (opcional)' }) => {
+const FotoInput: React.FC<FotoInputProps> = ({ value, onChange, placeholder = 'URL da imagem (opcional)', onUploaded }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState('');
@@ -21,6 +25,7 @@ const FotoInput: React.FC<FotoInputProps> = ({ value, onChange, placeholder = 'U
     try {
       const url = await uploadImagem(file);
       onChange(url);
+      onUploaded?.(url);
     } catch (err) {
       setErro(err instanceof Error ? err.message : 'Erro ao enviar imagem');
     } finally {

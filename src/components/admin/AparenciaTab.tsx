@@ -34,6 +34,10 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const [autoSalvando, setAutoSalvando] = useState<'logo' | 'favicon' | null>(null);
+  const [autoSalvoMsg, setAutoSalvoMsg] = useState<'logo' | 'favicon' | null>(null);
+  const [autoSalvoErro, setAutoSalvoErro] = useState('');
+
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [slideForm, setSlideForm] = useState(emptySlideForm);
   const [editingSlideId, setEditingSlideId] = useState<string | null>(null);
@@ -80,6 +84,27 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
 
   const set = <K extends keyof AparenciaInput>(key: K, value: AparenciaInput[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  /** Logo e favicon enviados do PC salvam sozinhos, sem depender do botão "Salvar aparência" lá
+   * embaixo — antes disso, dava a impressão de que o upload "não salvava" (só atualizava a
+   * prévia). Os outros campos do formulário continuam salvando juntos, como antes. */
+  const handleImagemEnviada = async (campo: 'logoUrl' | 'faviconUrl', url: string) => {
+    const proximo = { ...form, [campo]: url };
+    setForm(proximo);
+    setAutoSalvando(campo === 'logoUrl' ? 'logo' : 'favicon');
+    setAutoSalvoErro('');
+    setAutoSalvoMsg(null);
+    try {
+      await updateAparencia(empresaId, proximo);
+      const chave = campo === 'logoUrl' ? 'logo' : 'favicon';
+      setAutoSalvoMsg(chave);
+      setTimeout(() => setAutoSalvoMsg((atual) => (atual === chave ? null : atual)), 3000);
+    } catch (err) {
+      setAutoSalvoErro(err instanceof Error ? err.message : 'Erro ao salvar imagem');
+    } finally {
+      setAutoSalvando(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -207,16 +232,32 @@ const AparenciaTab: React.FC<AparenciaTabProps> = ({ empresaId }) => {
           <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
             <ImageIcon className="h-4 w-4 text-orange-600" /> Logo e favicon
           </h3>
+          <p className="text-xs text-gray-400 mb-2">Enviar do PC salva na hora — colar uma URL ainda precisa do "Salvar aparência" lá embaixo.</p>
           <div className="grid sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl">
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">Logo</label>
-              <FotoInput value={form.logoUrl} onChange={(url) => set('logoUrl', url)} placeholder="URL do logo (opcional)" />
+              <FotoInput
+                value={form.logoUrl}
+                onChange={(url) => set('logoUrl', url)}
+                onUploaded={(url) => handleImagemEnviada('logoUrl', url)}
+                placeholder="URL do logo (opcional)"
+              />
+              {autoSalvando === 'logo' && <p className="text-xs text-gray-400 mt-1">Salvando...</p>}
+              {autoSalvoMsg === 'logo' && <p className="text-xs text-emerald-600 mt-1">Salvo!</p>}
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">Favicon</label>
-              <FotoInput value={form.faviconUrl} onChange={(url) => set('faviconUrl', url)} placeholder="URL do favicon (opcional)" />
+              <FotoInput
+                value={form.faviconUrl}
+                onChange={(url) => set('faviconUrl', url)}
+                onUploaded={(url) => handleImagemEnviada('faviconUrl', url)}
+                placeholder="URL do favicon (opcional)"
+              />
+              {autoSalvando === 'favicon' && <p className="text-xs text-gray-400 mt-1">Salvando...</p>}
+              {autoSalvoMsg === 'favicon' && <p className="text-xs text-emerald-600 mt-1">Salvo!</p>}
             </div>
           </div>
+          {autoSalvoErro && <p className="text-xs text-red-600 mt-2">{autoSalvoErro}</p>}
         </section>
 
         <section>
