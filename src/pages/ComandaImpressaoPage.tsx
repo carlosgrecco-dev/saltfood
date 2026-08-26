@@ -88,7 +88,14 @@ const ComandaImpressaoPage: React.FC = () => {
 
         <div>
           <p>Pagamento: {FORMA_PAGAMENTO_LABELS[pedido.formaPagamento]}</p>
-          {pedido.trocoPara != null && <p>Troco para: R$ {pedido.trocoPara.toFixed(2)}</p>}
+          {pedido.trocoPara != null && (
+            <p>
+              Cliente paga com: R$ {pedido.trocoPara.toFixed(2)}
+              {pedido.trocoPara > pedido.total && (
+                <strong> — LEVAR R$ {(pedido.trocoPara - pedido.total).toFixed(2)} DE TROCO</strong>
+              )}
+            </p>
+          )}
           {pedido.motoboy && <p>Motoboy: {pedido.motoboy.nome}</p>}
         </div>
       </div>

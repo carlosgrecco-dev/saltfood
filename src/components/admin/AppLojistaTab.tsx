@@ -2,7 +2,7 @@ import React from 'react';
 import { Smartphone, Download, ShieldAlert, LogIn, Printer, Bell } from 'lucide-react';
 
 const APK_URL = '/downloads/saltfood-pedidos.apk';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 const AppLojistaTab: React.FC = () => {
   return (
