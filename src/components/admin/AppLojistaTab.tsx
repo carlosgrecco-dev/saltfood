@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Smartphone, Download, ShieldAlert, LogIn, Printer, Bell } from 'lucide-react';
+import { fetchAppVersion } from '../../lib/appVersion';
 
 const APK_URL = '/downloads/saltfood-pedidos.apk';
-const APP_VERSION = '1.0.3';
 
 const AppLojistaTab: React.FC = () => {
+  const [versao, setVersao] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAppVersion()
+      .then((info) => setVersao(info.ultimaVersao))
+      .catch(() => setVersao(null));
+  }, []);
+
   return (
     <div className="space-y-6 max-w-2xl">
       <section>
@@ -22,7 +30,7 @@ const AppLojistaTab: React.FC = () => {
             download
             className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-3 rounded-xl transition-colors"
           >
-            <Download className="h-4 w-4" /> Baixar app (Android) — v{APP_VERSION}
+            <Download className="h-4 w-4" /> Baixar app (Android){versao ? ` — v${versao}` : ''}
           </a>
           <p className="text-xs text-gray-400 mt-2">Arquivo .apk, cerca de 55 MB. Só funciona em aparelhos Android.</p>
         </div>
