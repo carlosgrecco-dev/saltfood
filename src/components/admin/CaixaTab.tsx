@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Trash2, Wallet, MinusCircle, Bike, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Wallet, MinusCircle, Bike, Loader2, ClipboardCheck } from 'lucide-react';
 import { MovimentoCaixa, TipoMovimentoCaixa, TIPO_MOVIMENTO_LABELS } from '../../types/MovimentoCaixa';
 import { Motoboy } from '../../types/Motoboy';
 import { fetchMovimentosCaixa, createMovimentoCaixa, deleteMovimentoCaixa } from '../../lib/movimentosCaixa';
 import { fetchMotoboys } from '../../lib/motoboysApi';
-import { fetchPedidos, pagarMotoboy } from '../../lib/pedidos';
+import { fetchPedidos, pagarMotoboy, fetchConferenciaMotoboys, ConferenciaMotoboys } from '../../lib/pedidos';
 
 interface CaixaTabProps {
   empresaId: string;
@@ -31,6 +31,9 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
   const [pendencias, setPendencias] = useState<PendenciaMotoboy[]>([]);
   const [loadingPendencias, setLoadingPendencias] = useState(true);
   const [payingMotoboyId, setPayingMotoboyId] = useState<string | null>(null);
+
+  const [conferencia, setConferencia] = useState<ConferenciaMotoboys | null>(null);
+  const [loadingConferencia, setLoadingConferencia] = useState(true);
 
   const loadMovimentos = useCallback(async () => {
     try {
@@ -59,6 +62,17 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
     }
   }, [empresaId]);
 
+  const loadConferencia = useCallback(async () => {
+    setLoadingConferencia(true);
+    try {
+      setConferencia(await fetchConferenciaMotoboys(empresaId, data, data));
+    } catch {
+      setConferencia(null);
+    } finally {
+      setLoadingConferencia(false);
+    }
+  }, [empresaId, data]);
+
   useEffect(() => {
     loadMovimentos();
   }, [loadMovimentos]);
@@ -66,6 +80,10 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
   useEffect(() => {
     loadPendencias();
   }, [loadPendencias]);
+
+  useEffect(() => {
+    loadConferencia();
+  }, [loadConferencia]);
 
   const handleCreateMovimento = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +188,52 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-8">
+        <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+          <ClipboardCheck className="h-4 w-4 text-orange-600" /> Conferência de recebimento por motoboy
+        </h3>
+
+        {loadingConferencia ? (
+          <p className="text-center text-gray-500 py-6 text-sm flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" /> Calculando...
+          </p>
+        ) : !conferencia || conferencia.motoboys.length === 0 ? (
+          <p className="text-center text-gray-500 py-6 text-sm">Nenhuma entrega confirmada nesta data.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border border-gray-200 rounded-xl overflow-hidden">
+              <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                <tr>
+                  <th className="text-left px-4 py-2">Motoboy</th>
+                  <th className="text-right px-4 py-2">Pix</th>
+                  <th className="text-right px-4 py-2">Dinheiro</th>
+                  <th className="text-right px-4 py-2">Cartão</th>
+                  <th className="text-right px-4 py-2">Total</th>
+                  <th className="text-right px-4 py-2">Entregas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {conferencia.motoboys.map((m) => (
+                  <tr key={m.motoboyId} className="border-t border-gray-100">
+                    <td className="px-4 py-2 font-medium text-gray-800">{m.motoboyNome}</td>
+                    <td className="px-4 py-2 text-right">R$ {m.totais.PIX.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">R$ {m.totais.DINHEIRO.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">R$ {m.totais.CARTAO.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right font-bold text-orange-600">R$ {m.total.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">{m.entregas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {conferencia.naoConfirmados > 0 && (
+              <p className="text-xs text-gray-400 mt-2">
+                {conferencia.naoConfirmados} entrega(s) nesta data sem confirmação de recebimento — não entram nos totais acima.
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -50,11 +50,44 @@ export async function createPedido(empresaId: string, input: PedidoInput): Promi
   }, session?.token);
 }
 
-export async function updatePedidoStatus(empresaId: string, id: string, status: StatusPedido, fotoEntrega?: string): Promise<Pedido> {
+export async function updatePedidoStatus(
+  empresaId: string,
+  id: string,
+  status: StatusPedido,
+  fotoEntrega?: string,
+  pagamentoRecebido?: boolean,
+  valorRecebido?: number,
+): Promise<Pedido> {
   return apiRequestAsAdminOuMotoboy<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status, ...(fotoEntrega ? { fotoEntrega } : {}) }),
+    body: JSON.stringify({
+      status,
+      ...(fotoEntrega ? { fotoEntrega } : {}),
+      ...(pagamentoRecebido !== undefined ? { pagamentoRecebido } : {}),
+      ...(valorRecebido !== undefined ? { valorRecebido } : {}),
+    }),
   });
+}
+
+export interface ConferenciaMotoboy {
+  motoboyId: string;
+  motoboyNome: string;
+  entregas: number;
+  totais: { PIX: number; DINHEIRO: number; CARTAO: number };
+  total: number;
+}
+
+export interface ConferenciaMotoboys {
+  motoboys: ConferenciaMotoboy[];
+  naoConfirmados: number;
+}
+
+export async function fetchConferenciaMotoboys(empresaId: string, de?: string, ate?: string): Promise<ConferenciaMotoboys> {
+  const params = new URLSearchParams();
+  if (de) params.set('de', de);
+  if (ate) params.set('ate', ate);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequestAsAdmin<ConferenciaMotoboys>(empresaId, `/empresas/${empresaId}/pedidos/conferencia-motoboys${query}`);
 }
 
 export async function assignMotoboy(empresaId: string, id: string, motoboyId: string | null): Promise<Pedido> {

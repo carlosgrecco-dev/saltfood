@@ -13,6 +13,7 @@ import { MotoboySession } from '../types/Motoboy';
 import { useTenant } from '../context/TenantContext';
 import Header from '../components/Header';
 import MotoboyDashboard from '../components/MotoboyDashboard';
+import ConfirmarPagamentoEntrega from '../components/ConfirmarPagamentoEntrega';
 
 const POLL_INTERVAL_MS = 12000;
 
@@ -29,6 +30,7 @@ const MotoboyPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [fotosEntrega, setFotosEntrega] = useState<Record<string, string>>({});
+  const [pagamentosConfirmados, setPagamentosConfirmados] = useState<Record<string, number | null>>({});
   const [uploadingFotoId, setUploadingFotoId] = useState<string | null>(null);
   const [togglingDisponibilidade, setTogglingDisponibilidade] = useState(false);
 
@@ -130,11 +132,19 @@ const MotoboyPage: React.FC = () => {
   };
 
   const handleConfirm = async (pedidoId: string) => {
+    const valorRecebido = pagamentosConfirmados[pedidoId];
+    if (valorRecebido == null) return;
     setConfirmingId(pedidoId);
     try {
-      await updatePedidoStatus(empresa.id, pedidoId, 'ENTREGUE', fotosEntrega[pedidoId]);
+      await updatePedidoStatus(empresa.id, pedidoId, 'ENTREGUE', fotosEntrega[pedidoId], true, valorRecebido);
       setFotosEntrega((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [pedidoId]: _removida, ...resto } = prev;
+        return resto;
+      });
+      setPagamentosConfirmados((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [pedidoId]: _removido, ...resto } = prev;
         return resto;
       });
       loadPedidos();
@@ -353,9 +363,15 @@ const MotoboyPage: React.FC = () => {
                     />
                   </label>
                 )}
+                <ConfirmarPagamentoEntrega
+                  formaPagamento={p.formaPagamento}
+                  trocoPara={p.trocoPara}
+                  total={p.total}
+                  onChange={(valor) => setPagamentosConfirmados((prev) => ({ ...prev, [p.id]: valor }))}
+                />
                 <button
                   onClick={() => handleConfirm(p.id)}
-                  disabled={confirmingId === p.id}
+                  disabled={confirmingId === p.id || pagamentosConfirmados[p.id] == null}
                   className="w-full flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2.5 rounded-xl disabled:opacity-60"
                 >
                   <CheckCircle2 className="h-4 w-4" /> {confirmingId === p.id ? 'Confirmando...' : 'Confirmar entrega'}

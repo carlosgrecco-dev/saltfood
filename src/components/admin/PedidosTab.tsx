@@ -5,6 +5,7 @@ import { Motoboy } from '../../types/Motoboy';
 import { fetchPedidos, updatePedidoStatus, assignMotoboy, liberarResgateFidelidade } from '../../lib/pedidos';
 import { fetchMotoboys } from '../../lib/motoboysApi';
 import { useTenant } from '../../context/TenantContext';
+import ConfirmarPagamentoEntrega from '../ConfirmarPagamentoEntrega';
 
 interface PedidosTabProps {
   empresaId: string;
@@ -63,6 +64,7 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
   const [error, setError] = useState('');
   const [subTab, setSubTab] = useState<'todos' | StatusPedido>('todos');
   const [alarmeAtivo, setAlarmeAtivo] = useState(false);
+  const [pagamentosConfirmados, setPagamentosConfirmados] = useState<Record<string, number | null>>({});
 
   const idsConhecidosRef = useRef<Set<string> | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -129,6 +131,18 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
 
   const handleAvancar = async (pedido: Pedido, status: StatusPedido) => {
     await updatePedidoStatus(empresaId, pedido.id, status);
+    load();
+  };
+
+  const handleConfirmarEntrega = async (pedido: Pedido) => {
+    const valorRecebido = pagamentosConfirmados[pedido.id];
+    if (valorRecebido == null) return;
+    await updatePedidoStatus(empresaId, pedido.id, 'ENTREGUE', undefined, true, valorRecebido);
+    setPagamentosConfirmados((prev) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [pedido.id]: _removido, ...resto } = prev;
+      return resto;
+    });
     load();
   };
 
@@ -271,6 +285,17 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
               )}
             </div>
 
+            {pedido.status === 'SAIU_ENTREGA' && (
+              <div className="pt-3">
+                <ConfirmarPagamentoEntrega
+                  formaPagamento={pedido.formaPagamento}
+                  trocoPara={pedido.trocoPara}
+                  total={pedido.total}
+                  onChange={(valor) => setPagamentosConfirmados((prev) => ({ ...prev, [pedido.id]: valor }))}
+                />
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
               <p className="font-bold text-lg text-orange-600">R$ {pedido.total.toFixed(2)}</p>
 
@@ -342,8 +367,9 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
 
                 {pedido.status === 'SAIU_ENTREGA' && (
                   <button
-                    onClick={() => handleAvancar(pedido, 'ENTREGUE')}
-                    className="flex items-center space-x-1 bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-600"
+                    onClick={() => handleConfirmarEntrega(pedido)}
+                    disabled={pagamentosConfirmados[pedido.id] == null}
+                    className="flex items-center space-x-1 bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <CheckCircle2 className="h-4 w-4" /> <span>Confirmar entrega</span>
                   </button>
