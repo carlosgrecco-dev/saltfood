@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, ShieldCheck, Store, Zap, Wallet,
+  ArrowRight, Search, ShieldCheck, Store, Zap, Wallet,
   UtensilsCrossed, Sandwich, Pizza, IceCream2, CupSoda, MapPin, Sparkles,
 } from 'lucide-react';
 import { slugify } from '../lib/masks';
