@@ -9,6 +9,8 @@ import PedidoAcompanhamentoPage from './pages/PedidoAcompanhamentoPage';
 import ComandaImpressaoPage from './pages/ComandaImpressaoPage';
 import TermosPage from './pages/TermosPage';
 import LandingPage from './pages/LandingPage';
+import ParceiroPage from './pages/ParceiroPage';
+import PoliticaPrivacidadePage from './pages/PoliticaPrivacidadePage';
 import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
 import SuperAdminDashboardPage from './pages/SuperAdminDashboardPage';
 import SuperAdminEmpresasPage from './pages/SuperAdminEmpresasPage';
@@ -67,6 +69,8 @@ function App() {
           </Route>
 
           <Route path="/" element={<LandingPage />} />
+          <Route path="/parceiro" element={<ParceiroPage />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>

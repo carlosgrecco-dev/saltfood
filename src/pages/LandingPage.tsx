@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Mail, MessageCircle, Search, ShieldCheck, Store, Zap, Wallet,
+  ArrowRight, ShieldCheck, Store, Zap, Wallet,
   UtensilsCrossed, Sandwich, Pizza, IceCream2, CupSoda, MapPin, Sparkles,
 } from 'lucide-react';
-import { fetchConfiguracaoPublica } from '../lib/configuracoesPlataforma';
 import { slugify } from '../lib/masks';
 import InstallAppButton from '../components/InstallAppButton';
+import PlatformFooter from '../components/PlatformFooter';
 
 const CATEGORIAS = [
   { icon: UtensilsCrossed, label: 'Restaurantes' },
@@ -26,24 +26,12 @@ const FEATURES = [
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [busca, setBusca] = useState('');
-  const [contato, setContato] = useState<{ emailSuporte: string | null; telefoneSuporte: string | null } | null>(null);
-
-  useEffect(() => {
-    fetchConfiguracaoPublica()
-      .then(setContato)
-      .catch(() => setContato(null));
-  }, []);
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault();
     const slug = slugify(busca.trim());
     if (slug) navigate(`/${slug}`);
   };
-
-  const whatsappUrl = contato?.telefoneSuporte
-    ? `https://wa.me/${contato.telefoneSuporte.replace(/\D/g, '')}?text=${encodeURIComponent('Olá! Quero saber mais sobre o SaltFood para o meu negócio.')}`
-    : null;
-  const mailtoUrl = contato?.emailSuporte ? `mailto:${contato.emailSuporte}` : null;
 
   const buscaForm = (
     <form onSubmit={handleBuscar} className="flex items-stretch gap-2 max-w-md">
@@ -74,8 +62,8 @@ const LandingPage: React.FC = () => {
           <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
         </div>
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-600">
-          <a href="#como-funciona" className="hover:text-slate-900 transition-colors">Como funciona</a>
-          <a href="#parceiro" className="hover:text-slate-900 transition-colors">Seja um parceiro</a>
+          <Link to="/parceiro" className="hover:text-slate-900 transition-colors">Seja um parceiro</Link>
+          <Link to="/politica-de-privacidade" className="hover:text-slate-900 transition-colors">Política de Privacidade</Link>
         </nav>
         <InstallAppButton />
       </header>
@@ -106,7 +94,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Categorias */}
-      <section id="como-funciona" className="max-w-6xl mx-auto px-6 py-16 border-t border-slate-100">
+      <section className="max-w-6xl mx-auto px-6 py-16 border-t border-slate-100">
         <p className="text-center text-orange-600 font-semibold text-sm">#vemcomfome</p>
         <h2 className="mt-2 text-center text-2xl sm:text-3xl font-bold text-slate-900">
           Sempre tem o que você quer no <span className="text-orange-600">SaltFood</span>
@@ -171,7 +159,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Seja parceiro */}
-      <section id="parceiro" className="max-w-5xl mx-auto px-6 py-20">
+      <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="bg-slate-900 rounded-3xl px-6 py-10 sm:px-12 sm:py-12 text-center">
           <div className="h-11 w-11 rounded-2xl bg-orange-600/20 flex items-center justify-center mx-auto mb-4">
             <Store className="h-5 w-5 text-orange-400" />
@@ -180,40 +168,18 @@ const LandingPage: React.FC = () => {
           <p className="text-slate-300 text-sm mt-2 max-w-md mx-auto">
             Leve o SaltFood pro seu negócio — cardápio digital, pedidos e entrega, tudo em um só lugar, com a sua própria marca.
           </p>
-          {(whatsappUrl || mailtoUrl) && (
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              {whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
-                </a>
-              )}
-              {mailtoUrl && (
-                <a
-                  href={mailtoUrl}
-                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors border border-white/20"
-                >
-                  <Mail className="h-4 w-4" /> Enviar e-mail
-                </a>
-              )}
-            </div>
-          )}
+          <div className="mt-6">
+            <Link
+              to="/parceiro"
+              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+            >
+              Conhecer o programa de parceiros <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      <footer className="max-w-6xl mx-auto px-6 py-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 shrink-0 rounded-lg bg-black p-1">
-            <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-sm" />
-          </div>
-          <span className="text-xs text-slate-400">SaltFood — uma plataforma Sigma Soluções Digitais</span>
-        </div>
-        <span className="text-xs text-slate-400">© {new Date().getFullYear()} Todos os direitos reservados.</span>
-      </footer>
+      <PlatformFooter />
     </div>
   );
 };
