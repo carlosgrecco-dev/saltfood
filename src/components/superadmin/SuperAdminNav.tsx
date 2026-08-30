@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
-  ChevronDown, LayoutDashboard, Coins, Wrench,
+  ChevronDown, LayoutDashboard, Coins, Wrench, Inbox,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -25,6 +25,7 @@ const GROUPS: NavGroup[] = [
       { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
       { path: '/super-admin/planos', label: 'Planos', icon: Layers },
       { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
+      { path: '/super-admin/leads', label: 'Leads', icon: Inbox },
     ],
   },
   {

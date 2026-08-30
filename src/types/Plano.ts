@@ -44,3 +44,19 @@ export interface PlanoInput extends Partial<PacoteFuncionalidades> {
   limiteEntregadores?: number | null;
   destaque?: boolean;
 }
+
+/** Subconjunto público de Plano (GET /planos/publico) — sem _count nem nada interno de outra loja. */
+export interface PlanoPublico {
+  id: string;
+  nome: string;
+  valorMensal: number;
+  comissaoPercent: number;
+  descricao: string | null;
+  recursos: string[];
+  limitePedidosMes: number | null;
+  limiteProdutos: number | null;
+  limiteUsuarios: number | null;
+  limiteEntregadores: number | null;
+  destaque: boolean;
+  ordem: number;
+}

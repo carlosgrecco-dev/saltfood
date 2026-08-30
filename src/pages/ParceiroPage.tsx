@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, ArrowRight, Bike, ClipboardList, HandCoins, Link2, Mail, MessageCircle, Search, Wallet,
+  ArrowRight, Bike, Check, ClipboardList, HandCoins, Link2, Mail, MessageCircle,
+  MessageSquarePlus, Search, Star, Wallet,
 } from 'lucide-react';
 import { fetchConfiguracaoPublica } from '../lib/configuracoesPlataforma';
+import { fetchPlanosPublico } from '../lib/planos';
+import { PlanoPublico } from '../types/Plano';
 import { slugify } from '../lib/masks';
 import PlatformFooter from '../components/PlatformFooter';
+import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
 
 const VANTAGENS = [
   { icon: Link2, titulo: 'Link exclusivo', texto: 'Sua loja ganha um endereço só seu (saltfood.com.br/sua-loja) pra divulgar nas redes sociais.' },
@@ -19,17 +23,28 @@ const ParceiroPage: React.FC = () => {
   const navigate = useNavigate();
   const [slugBusca, setSlugBusca] = useState('');
   const [contato, setContato] = useState<{ emailSuporte: string | null; telefoneSuporte: string | null } | null>(null);
+  const [planos, setPlanos] = useState<PlanoPublico[]>([]);
+  const [drawerAberto, setDrawerAberto] = useState(false);
+  const [planoSelecionado, setPlanoSelecionado] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     fetchConfiguracaoPublica()
       .then(setContato)
       .catch(() => setContato(null));
+    fetchPlanosPublico()
+      .then(setPlanos)
+      .catch(() => setPlanos([]));
   }, []);
 
   const handleAcessarPainel = (e: React.FormEvent) => {
     e.preventDefault();
     const slug = slugify(slugBusca.trim());
     if (slug) navigate(`/${slug}/admin`);
+  };
+
+  const abrirContato = (planoId?: string) => {
+    setPlanoSelecionado(planoId);
+    setDrawerAberto(true);
   };
 
   const whatsappUrl = contato?.telefoneSuporte
@@ -43,9 +58,16 @@ const ParceiroPage: React.FC = () => {
         <Link to="/" className="h-10 w-10 shrink-0 rounded-xl bg-black p-1">
           <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
         </Link>
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Link>
+        <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-600">
+          <Link to="/recursos" className="hover:text-slate-900 transition-colors">Recursos</Link>
+          <Link to="/" className="hover:text-slate-900 transition-colors">Voltar pro início</Link>
+        </nav>
+        <button
+          onClick={() => abrirContato()}
+          className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+        >
+          <MessageSquarePlus className="h-4 w-4" /> Falar com a gente
+        </button>
       </header>
 
       {/* Hero */}
@@ -58,28 +80,32 @@ const ParceiroPage: React.FC = () => {
           <p className="mt-4 text-slate-300 max-w-lg mx-auto">
             Leve seu restaurante pro SaltFood — cardápio digital, pedidos, entrega e gestão dos seus motoboys, tudo em um só lugar, com a sua própria marca.
           </p>
-          {(whatsappUrl || mailtoUrl) && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              {whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
-                </a>
-              )}
-              {mailtoUrl && (
-                <a
-                  href={mailtoUrl}
-                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors border border-white/20"
-                >
-                  <Mail className="h-4 w-4" /> Enviar e-mail
-                </a>
-              )}
-            </div>
-          )}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => abrirContato()}
+              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+            >
+              <MessageSquarePlus className="h-4 w-4" /> Quero contratar
+            </button>
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+              </a>
+            )}
+            {mailtoUrl && (
+              <a
+                href={mailtoUrl}
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors border border-white/20"
+              >
+                <Mail className="h-4 w-4" /> Enviar e-mail
+              </a>
+            )}
+          </div>
         </div>
       </section>
 
@@ -131,7 +157,67 @@ const ParceiroPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Planos */}
+      {planos.length > 0 && (
+        <section id="planos" className="max-w-6xl mx-auto px-6 py-16 border-t border-slate-100">
+          <p className="text-center text-orange-600 font-semibold text-sm">sem letra miúda</p>
+          <h2 className="mt-2 text-center text-2xl sm:text-3xl font-bold text-slate-900">
+            Escolha o plano do tamanho do seu negócio
+          </h2>
+
+          <div className="mt-10 grid md:grid-cols-3 gap-6 items-start">
+            {planos.map((plano) => (
+              <div
+                key={plano.id}
+                className={`relative rounded-3xl p-6 bg-white ${plano.destaque ? 'border-2 border-orange-400 shadow-lg shadow-orange-100' : 'border border-slate-200'}`}
+              >
+                {plano.destaque && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                    <Star className="h-3 w-3" /> MAIS POPULAR
+                  </span>
+                )}
+                <h3 className="font-bold text-slate-900 text-lg">{plano.nome}</h3>
+                {plano.descricao && <p className="text-xs text-slate-500 mt-1">{plano.descricao}</p>}
+                <p className="mt-4">
+                  <span className="text-3xl font-bold text-slate-900">R$ {plano.valorMensal.toFixed(2)}</span>
+                  <span className="text-sm text-slate-400">/mês</span>
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {plano.comissaoPercent > 0 ? `+ ${plano.comissaoPercent}% de comissão sobre vendas` : 'sem comissão sobre vendas'}
+                </p>
+                {plano.recursos.length > 0 && (
+                  <ul className="mt-5 space-y-2">
+                    {plano.recursos.map((recurso) => (
+                      <li key={recurso} className="flex items-start gap-2 text-sm text-slate-600">
+                        <Check className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" /> {recurso}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  onClick={() => abrirContato(plano.id)}
+                  className={`mt-6 w-full text-sm font-semibold py-2.5 rounded-xl transition-colors ${
+                    plano.destaque
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white'
+                  }`}
+                >
+                  Quero este plano
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <PlatformFooter />
+
+      <ContatoComercialDrawer
+        isOpen={drawerAberto}
+        onClose={() => setDrawerAberto(false)}
+        origem="parceiro"
+        planoIdInicial={planoSelecionado}
+      />
     </div>
   );
 };

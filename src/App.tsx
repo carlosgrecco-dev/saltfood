@@ -10,6 +10,7 @@ import ComandaImpressaoPage from './pages/ComandaImpressaoPage';
 import TermosPage from './pages/TermosPage';
 import LandingPage from './pages/LandingPage';
 import ParceiroPage from './pages/ParceiroPage';
+import RecursosPage from './pages/RecursosPage';
 import PoliticaPrivacidadePage from './pages/PoliticaPrivacidadePage';
 import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
 import SuperAdminDashboardPage from './pages/SuperAdminDashboardPage';
@@ -19,6 +20,7 @@ import SuperAdminFinanceiroPage from './pages/SuperAdminFinanceiroPage';
 import SuperAdminSaltfoodCoinsPage from './pages/SuperAdminSaltfoodCoinsPage';
 import SuperAdminPlanosPage from './pages/SuperAdminPlanosPage';
 import SuperAdminLogsPage from './pages/SuperAdminLogsPage';
+import SuperAdminLeadsPage from './pages/SuperAdminLeadsPage';
 import SuperAdminConfiguracoesPage from './pages/SuperAdminConfiguracoesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TenantProvider, { useTenant } from './context/TenantContext';
@@ -51,6 +53,7 @@ function App() {
           <Route path="/super-admin/saltfood-coins" element={<SuperAdminSaltfoodCoinsPage />} />
           <Route path="/super-admin/planos" element={<SuperAdminPlanosPage />} />
           <Route path="/super-admin/logs" element={<SuperAdminLogsPage />} />
+          <Route path="/super-admin/leads" element={<SuperAdminLeadsPage />} />
           <Route path="/super-admin/configuracoes" element={<SuperAdminConfiguracoesPage />} />
 
           <Route path="/:slug" element={<TenantProvider />}>
@@ -70,6 +73,7 @@ function App() {
 
           <Route path="/" element={<LandingPage />} />
           <Route path="/parceiro" element={<ParceiroPage />} />
+          <Route path="/recursos" element={<RecursosPage />} />
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

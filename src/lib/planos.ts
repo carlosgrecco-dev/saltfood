@@ -1,8 +1,14 @@
-import { Plano, PlanoInput } from '../types/Plano';
+import { Plano, PlanoInput, PlanoPublico } from '../types/Plano';
+import { apiRequest } from './apiClient';
 import { apiRequestAsSuperAdmin } from './superAdminAuth';
 
 export async function fetchPlanos(): Promise<Plano[]> {
   return apiRequestAsSuperAdmin<Plano[]>('/planos');
+}
+
+/** Sem autenticação — usado na vitrine pública do site (ver ParceiroPage.tsx). */
+export async function fetchPlanosPublico(): Promise<PlanoPublico[]> {
+  return apiRequest<PlanoPublico[]>('/planos/publico');
 }
 
 export async function createPlano(payload: PlanoInput): Promise<Plano> {
