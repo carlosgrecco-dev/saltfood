@@ -4,6 +4,7 @@ import { useCustomer } from '../context/CustomerContext';
 import { useTenant } from '../context/TenantContext';
 import { vincularContaPlataforma } from '../lib/clientes';
 import { getClienteId } from '../lib/clienteSession';
+import BottomSheet from './BottomSheet';
 
 interface VincularContaModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ const VincularContaModal: React.FC<VincularContaModalProps> = ({ isOpen, onClose
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!isOpen || !customer) return null;
+  if (!customer) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,10 +44,8 @@ const VincularContaModal: React.FC<VincularContaModalProps> = ({ isOpen, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={loading ? undefined : onClose} />
-
-      <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+    <BottomSheet isOpen={isOpen} onClose={loading ? () => {} : onClose} hideHeader>
+      <div className="relative p-6">
         <button
           onClick={onClose}
           disabled={loading}
@@ -107,7 +106,7 @@ const VincularContaModal: React.FC<VincularContaModalProps> = ({ isOpen, onClose
           </div>
         </form>
       </div>
-    </div>
+    </BottomSheet>
   );
 };
 
