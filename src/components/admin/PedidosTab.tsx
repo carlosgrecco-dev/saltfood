@@ -309,6 +309,7 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId }) => {
                 </button>
 
                 {(() => {
+                  if (!pedido.clienteTelefone) return null;
                   const link = linkWhatsapp(pedido.clienteTelefone, MENSAGEM_POR_STATUS[pedido.status](pedido.numero));
                   if (!link) return null;
                   return (
