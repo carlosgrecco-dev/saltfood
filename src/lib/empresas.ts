@@ -81,6 +81,17 @@ export async function updateOperacional(id: string, input: OperacionalInput): Pr
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/operacional`, { method: 'PUT', body: JSON.stringify(input) });
 }
 
+export interface PdvConfigInput {
+  pdvMesaAbertaContinua: boolean;
+  pdvPermiteSplitPagamento: boolean;
+}
+
+/** Autoatendimento do lojista — o próprio tenant escolhe o comportamento do PDV dele. `pdvHabilitado`
+ * em si não está aqui: é governado só pelo Super Admin via Planos/Funcionalidades. */
+export async function updatePdvConfig(id: string, input: PdvConfigInput): Promise<Empresa> {
+  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/pdv-config`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
 export async function updateFreteConfig(id: string, freteGratisAcimaDe: number | null): Promise<Empresa> {
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/frete-config`, { method: 'PUT', body: JSON.stringify({ freteGratisAcimaDe }) });
 }

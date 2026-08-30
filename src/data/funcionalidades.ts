@@ -1,4 +1,4 @@
-import { Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy } from 'lucide-react';
+import { Heart, RotateCcw, Medal, CalendarClock, Camera, Bell, Target, UserPlus, Star, LifeBuoy, ShoppingBag } from 'lucide-react';
 import { FuncionalidadesConfigInput } from '../types/Empresa';
 
 export type CampoFuncionalidade = Exclude<keyof FuncionalidadesConfigInput, 'indicacaoRecompensaUnidades'>;
@@ -73,5 +73,11 @@ export const FUNCOES: {
     titulo: 'Central de suporte',
     descricao: 'Cliente abre um chamado (opcionalmente ligado a um pedido) e você responde pelo admin.',
     icon: LifeBuoy,
+  },
+  {
+    campo: 'pdvHabilitado',
+    titulo: 'PDV — balcão e mesa',
+    descricao: 'Libera a aba de PDV no app do lojista: venda de balcão/mesa/retirada, pagamento e caixa.',
+    icon: ShoppingBag,
   },
 ];

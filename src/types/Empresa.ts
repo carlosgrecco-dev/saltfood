@@ -51,6 +51,9 @@ export interface EmpresaPublic {
   habilitarIndicacaoAvancada: boolean;
   habilitarAvaliacaoDetalhada: boolean;
   habilitarCentralSuporte: boolean;
+  pdvHabilitado: boolean;
+  pdvMesaAbertaContinua: boolean;
+  pdvPermiteSplitPagamento: boolean;
   indicacaoRecompensaUnidades: number;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
@@ -113,6 +116,9 @@ export interface Empresa {
   habilitarIndicacaoAvancada: boolean;
   habilitarAvaliacaoDetalhada: boolean;
   habilitarCentralSuporte: boolean;
+  pdvHabilitado: boolean;
+  pdvMesaAbertaContinua: boolean;
+  pdvPermiteSplitPagamento: boolean;
   indicacaoRecompensaUnidades: number;
   /** Código próprio da loja pra indicar outros lojistas à plataforma (indicação tenant-a-tenant, diferente da indicação cliente-a-cliente). */
   codigoIndicacao: string | null;
@@ -160,6 +166,7 @@ export interface FidelidadeConfigInput {
 }
 
 export interface FuncionalidadesConfigInput {
+  pdvHabilitado: boolean;
   habilitarFavoritos: boolean;
   habilitarPedirDeNovo: boolean;
   habilitarRankingFidelidade: boolean;

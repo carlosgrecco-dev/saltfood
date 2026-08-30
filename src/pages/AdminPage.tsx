@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Package, Bike, DollarSign, ShoppingBag, LogOut, ArrowLeft, UserCircle, Lock, Loader2, BarChart3, CreditCard, Palette, Ticket,
-  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles, Target, LifeBuoy, Smartphone,
+  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
@@ -22,6 +22,7 @@ import GatewaysTab from '../components/admin/GatewaysTab';
 import AparenciaTab from '../components/admin/AparenciaTab';
 import CuponsTab from '../components/admin/CuponsTab';
 import OperacionalTab from '../components/admin/OperacionalTab';
+import PdvConfigTab from '../components/admin/PdvConfigTab';
 import ZonasEntregaTab from '../components/admin/ZonasEntregaTab';
 import FidelidadeTab from '../components/admin/FidelidadeTab';
 import CategoriasTab from '../components/admin/CategoriasTab';
@@ -30,7 +31,7 @@ import MissoesTab from '../components/admin/MissoesTab';
 import SuporteTab from '../components/admin/SuporteTab';
 import AppLojistaTab from '../components/admin/AppLojistaTab';
 
-type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades' | 'missoes' | 'suporte' | 'app-lojista';
+type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'pdv' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades' | 'missoes' | 'suporte' | 'app-lojista';
 
 const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'crm', label: 'CRM', icon: BarChart3 },
@@ -39,6 +40,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: 'categorias', label: 'Categorias', icon: Tag },
   { id: 'motoboys', label: 'Motoboys', icon: Bike },
   { id: 'fechamento', label: 'Caixa', icon: DollarSign },
+  { id: 'pdv', label: 'PDV', icon: Receipt },
   { id: 'gateways', label: 'Gateways', icon: CreditCard },
   { id: 'cupons', label: 'Cupons', icon: Ticket },
   { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
@@ -484,6 +486,7 @@ const AdminPage: React.FC = () => {
         {tab === 'gateways' && <GatewaysTab empresaId={empresa.id} />}
         {tab === 'cupons' && <CuponsTab empresaId={empresa.id} />}
         {tab === 'fidelidade' && <FidelidadeTab empresaId={empresa.id} />}
+        {tab === 'pdv' && <PdvConfigTab empresaId={empresa.id} />}
         {tab === 'operacional' && <OperacionalTab empresaId={empresa.id} />}
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'aparencia' && <AparenciaTab empresaId={empresa.id} />}

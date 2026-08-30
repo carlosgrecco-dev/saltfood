@@ -10,6 +10,7 @@ export interface PacoteFuncionalidades {
   habilitarIndicacaoAvancada: boolean;
   habilitarAvaliacaoDetalhada: boolean;
   habilitarCentralSuporte: boolean;
+  pdvHabilitado: boolean;
 }
 
 export interface Plano extends PacoteFuncionalidades {
