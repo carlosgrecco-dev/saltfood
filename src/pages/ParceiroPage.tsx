@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Bike, Check, ClipboardList, HandCoins, Link2, Mail, MessageCircle,
   MessageSquarePlus, Search, Star, Wallet,
@@ -8,6 +8,7 @@ import { fetchConfiguracaoPublica } from '../lib/configuracoesPlataforma';
 import { fetchPlanosPublico } from '../lib/planos';
 import { PlanoPublico } from '../types/Plano';
 import { slugify } from '../lib/masks';
+import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
 
@@ -54,21 +55,7 @@ const ParceiroPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4">
-        <Link to="/" className="h-10 w-10 shrink-0 rounded-xl bg-black p-1">
-          <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
-        </Link>
-        <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-600">
-          <Link to="/recursos" className="hover:text-slate-900 transition-colors">Recursos</Link>
-          <Link to="/" className="hover:text-slate-900 transition-colors">Voltar pro início</Link>
-        </nav>
-        <button
-          onClick={() => abrirContato()}
-          className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-        >
-          <MessageSquarePlus className="h-4 w-4" /> Falar com a gente
-        </button>
-      </header>
+      <PublicHeader onFalarComAGente={() => abrirContato()} />
 
       {/* Hero */}
       <section className="bg-slate-900">

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
-  ArrowLeft, Bike, Boxes, ChefHat, CheckCircle2, Clock3, Heart, Landmark, MessageSquarePlus,
+  Bike, Boxes, ChefHat, CheckCircle2, Clock3, Heart, Landmark, MessageSquarePlus,
   ShieldCheck, Smartphone, UtensilsCrossed, Users, Wallet,
 } from 'lucide-react';
+import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
 
@@ -123,14 +123,7 @@ const RecursosPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4">
-        <Link to="/" className="h-10 w-10 shrink-0 rounded-xl bg-black p-1">
-          <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
-        </Link>
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Link>
-      </header>
+      <PublicHeader onFalarComAGente={() => setDrawerAberto(true)} />
 
       <section className="max-w-4xl mx-auto px-6 pt-8 pb-14 text-center">
         <p className="text-orange-600 font-semibold text-sm">Recursos</p>

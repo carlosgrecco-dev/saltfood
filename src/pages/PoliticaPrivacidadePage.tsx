@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { fetchConfiguracaoPublica } from '../lib/configuracoesPlataforma';
+import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
+import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
 
 const PoliticaPrivacidadePage: React.FC = () => {
   const [contato, setContato] = useState<{ emailSuporte: string | null; telefoneSuporte: string | null } | null>(null);
+  const [drawerAberto, setDrawerAberto] = useState(false);
 
   useEffect(() => {
     fetchConfiguracaoPublica()
@@ -17,14 +19,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4 w-full">
-        <Link to="/" className="h-10 w-10 shrink-0 rounded-xl bg-black p-1">
-          <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
-        </Link>
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Link>
-      </header>
+      <PublicHeader onFalarComAGente={() => setDrawerAberto(true)} />
 
       <main className="max-w-3xl mx-auto px-6 pb-16 w-full flex-1">
         <div className="flex items-center gap-2 mb-2">
@@ -106,6 +101,8 @@ const PoliticaPrivacidadePage: React.FC = () => {
       </main>
 
       <PlatformFooter />
+
+      <ContatoComercialDrawer isOpen={drawerAberto} onClose={() => setDrawerAberto(false)} origem="politica-privacidade" />
     </div>
   );
 };

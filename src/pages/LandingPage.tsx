@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, MessageSquarePlus, Search, ShieldCheck, Store, Zap, Wallet,
+  ArrowRight, Search, ShieldCheck, Store, Zap, Wallet,
   UtensilsCrossed, Sandwich, Pizza, IceCream2, CupSoda, MapPin, Sparkles,
 } from 'lucide-react';
 import { slugify } from '../lib/masks';
-import InstallAppButton from '../components/InstallAppButton';
+import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
 
@@ -59,25 +59,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4">
-        <div className="h-10 w-10 shrink-0 rounded-xl bg-black p-1">
-          <img src="/logo.png" alt="SaltFood" className="h-full w-full rounded-md" />
-        </div>
-        <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-600">
-          <Link to="/recursos" className="hover:text-slate-900 transition-colors">Recursos</Link>
-          <Link to="/parceiro" className="hover:text-slate-900 transition-colors">Seja um parceiro</Link>
-          <Link to="/politica-de-privacidade" className="hover:text-slate-900 transition-colors">Política de Privacidade</Link>
-        </nav>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setDrawerAberto(true)}
-            className="hidden sm:inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-          >
-            <MessageSquarePlus className="h-4 w-4" /> Falar com a gente
-          </button>
-          <InstallAppButton />
-        </div>
-      </header>
+      <PublicHeader onFalarComAGente={() => setDrawerAberto(true)} />
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-8 pb-16 grid md:grid-cols-2 gap-12 items-center">
