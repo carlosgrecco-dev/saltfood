@@ -10,6 +10,7 @@ import ComandaImpressaoPage from './pages/ComandaImpressaoPage';
 import TermosPage from './pages/TermosPage';
 import LandingPage from './pages/LandingPage';
 import ParceiroPage from './pages/ParceiroPage';
+import PlanosPage from './pages/PlanosPage';
 import RecursosPage from './pages/RecursosPage';
 import PoliticaPrivacidadePage from './pages/PoliticaPrivacidadePage';
 import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
@@ -75,6 +76,7 @@ function App() {
 
           <Route path="/" element={<LandingPage />} />
           <Route path="/parceiro" element={<ParceiroPage />} />
+          <Route path="/planos" element={<PlanosPage />} />
           <Route path="/recursos" element={<RecursosPage />} />
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
           <Route path="*" element={<NotFoundPage />} />

@@ -11,6 +11,7 @@ import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 const PAGINAS: { valor: PaginaSite; label: string }[] = [
   { valor: 'LANDING', label: 'Landing' },
   { valor: 'PARCEIRO', label: 'Parceiro' },
+  { valor: 'PLANOS', label: 'Planos' },
   { valor: 'RECURSOS', label: 'Recursos' },
   { valor: 'POLITICA_PRIVACIDADE', label: 'Política de Privacidade' },
 ];
@@ -25,7 +26,11 @@ const BLOCOS_ESPERADOS: Record<PaginaSite, { chave: string; tipo: TipoBlocoSite;
   ],
   PARCEIRO: [
     { chave: 'hero', tipo: 'HERO', label: 'Hero (topo da página)' },
+  ],
+  PLANOS: [
+    { chave: 'hero', tipo: 'HERO', label: 'Hero (topo da página)' },
     { chave: 'vantagens', tipo: 'LISTA_ICONES', label: 'Vantagens' },
+    { chave: 'cta-rodape', tipo: 'CTA_BANNER', label: 'Banner de CTA (rodapé)' },
   ],
   RECURSOS: [
     { chave: 'hero', tipo: 'HERO', label: 'Hero (topo da página)' },

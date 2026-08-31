@@ -9,7 +9,7 @@ interface ContatoComercialDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   /** De qual página pública o drawer foi aberto — só pra saber o que está convertendo. */
-  origem: 'landing' | 'parceiro' | 'recursos' | 'politica-privacidade';
+  origem: 'landing' | 'parceiro' | 'planos' | 'recursos' | 'politica-privacidade';
   /** Pré-seleciona um plano quando o drawer é aberto a partir de um card de plano específico. */
   planoIdInicial?: string;
 }

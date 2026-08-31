@@ -13,6 +13,7 @@ const PlatformFooter: React.FC = () => {
         <span className="text-xs text-slate-400">SaltFood — uma plataforma Sigma Soluções Digitais</span>
       </div>
       <div className="flex items-center gap-4 text-xs text-slate-400">
+        <Link to="/planos" className="hover:text-slate-600 transition-colors">Planos</Link>
         <Link to="/parceiro" className="hover:text-slate-600 transition-colors">Seja um parceiro</Link>
         <Link to="/politica-de-privacidade" className="hover:text-slate-600 transition-colors">Política de Privacidade</Link>
         <span>© {new Date().getFullYear()}</span>

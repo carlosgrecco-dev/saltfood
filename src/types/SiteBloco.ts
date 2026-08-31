@@ -1,4 +1,4 @@
-export type PaginaSite = 'LANDING' | 'PARCEIRO' | 'RECURSOS' | 'POLITICA_PRIVACIDADE';
+export type PaginaSite = 'LANDING' | 'PARCEIRO' | 'PLANOS' | 'RECURSOS' | 'POLITICA_PRIVACIDADE';
 
 export type TipoBlocoSite = 'HERO' | 'LISTA_ICONES' | 'CTA_BANNER';
 
