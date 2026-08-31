@@ -1,7 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { LifeBuoy, Package, Send } from 'lucide-react';
-import { fetchTicketsAsAdmin, updateTicket } from '../../lib/tickets';
-import { TicketSuporte, StatusTicketSuporte, STATUS_TICKET_LABELS } from '../../types/Ticket';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { LifeBuoy, Package, Send, Headset, CheckCircle2, AlertTriangle, AlertOctagon } from 'lucide-react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
+import { fetchTicketsAsAdmin, updateTicket, abrirChamadoLojista } from '../../lib/tickets';
+import {
+  TicketSuporte, StatusTicketSuporte, STATUS_TICKET_LABELS,
+  PrioridadeChamado, PRIORIDADE_CHAMADO_LABELS, PRIORIDADE_CHAMADO_SLA,
+} from '../../types/Ticket';
+import BottomSheet from '../BottomSheet';
 
 interface SuporteTabProps {
   empresaId: string;
@@ -13,12 +20,30 @@ const STATUS_COLORS: Record<StatusTicketSuporte, string> = {
   RESOLVIDO: 'bg-green-100 text-green-800',
 };
 
+const PRIORIDADE_OPCOES: { valor: PrioridadeChamado; icon: typeof CheckCircle2; corCard: string; corIcone: string }[] = [
+  { valor: 'RELEVANTE', icon: CheckCircle2, corCard: 'border-green-200 bg-green-50 hover:bg-green-100', corIcone: 'text-green-600' },
+  { valor: 'PRIORITARIA', icon: AlertTriangle, corCard: 'border-amber-200 bg-amber-50 hover:bg-amber-100', corIcone: 'text-amber-600' },
+  { valor: 'URGENTE', icon: AlertOctagon, corCard: 'border-red-200 bg-red-50 hover:bg-red-100', corIcone: 'text-red-600' },
+];
+
+const PRIORIDADE_BADGE: Record<PrioridadeChamado, string> = {
+  RELEVANTE: 'bg-green-100 text-green-800',
+  PRIORITARIA: 'bg-amber-100 text-amber-800',
+  URGENTE: 'bg-red-100 text-red-800',
+};
+
 const SuporteTab: React.FC<SuporteTabProps> = ({ empresaId }) => {
   const [tickets, setTickets] = useState<TicketSuporte[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<StatusTicketSuporte | ''>('');
   const [respostaDrafts, setRespostaDrafts] = useState<Record<string, string>>({});
   const [salvandoId, setSalvandoId] = useState<string | null>(null);
+
+  const [drawerAberto, setDrawerAberto] = useState(false);
+  const [novoAssunto, setNovoAssunto] = useState('');
+  const [novaMensagem, setNovaMensagem] = useState('');
+  const [novaPrioridade, setNovaPrioridade] = useState<PrioridadeChamado | null>(null);
+  const [enviandoChamado, setEnviandoChamado] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,10 +73,81 @@ const SuporteTab: React.FC<SuporteTabProps> = ({ empresaId }) => {
     }
   };
 
-  const filtrados = filtroStatus ? tickets.filter((t) => t.status === filtroStatus) : tickets;
+  const fecharDrawer = () => {
+    setDrawerAberto(false);
+    setNovoAssunto('');
+    setNovaMensagem('');
+    setNovaPrioridade(null);
+  };
+
+  const handleAbrirChamado = async () => {
+    const mensagemTexto = novaMensagem.replace(/<[^>]*>/g, '').trim();
+    if (!novoAssunto.trim() || !mensagemTexto || !novaPrioridade) {
+      alert('Preencha o assunto, a mensagem e escolha a prioridade.');
+      return;
+    }
+    setEnviandoChamado(true);
+    try {
+      await abrirChamadoLojista(empresaId, { assunto: novoAssunto.trim(), mensagem: novaMensagem, prioridade: novaPrioridade });
+      fecharDrawer();
+      load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível abrir o chamado.');
+    } finally {
+      setEnviandoChamado(false);
+    }
+  };
+
+  const meusChamados = useMemo(() => tickets.filter((t) => t.clienteId === null), [tickets]);
+  const ticketsClientes = useMemo(() => tickets.filter((t) => t.clienteId !== null), [tickets]);
+  const filtrados = filtroStatus ? ticketsClientes.filter((t) => t.status === filtroStatus) : ticketsClientes;
 
   return (
     <div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <h3 className="font-bold text-gray-800 flex items-center gap-2">
+          <LifeBuoy className="h-4 w-4 text-orange-600" /> Central de suporte
+        </h3>
+        <button
+          onClick={() => setDrawerAberto(true)}
+          className="flex items-center gap-1.5 bg-gray-900 hover:bg-black text-white text-sm px-4 py-2 rounded-lg"
+        >
+          <Headset className="h-4 w-4" /> Abrir chamado com a Sigma
+        </button>
+      </div>
+
+      {meusChamados.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-bold text-gray-700 mb-3">Seus chamados com a Sigma</h4>
+          <div className="space-y-3">
+            {meusChamados.map((chamado) => (
+              <div key={chamado.id} className="border border-gray-200 rounded-2xl p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                  <p className="font-bold text-gray-800 text-sm">{chamado.assunto}</p>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {chamado.prioridade && (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${PRIORIDADE_BADGE[chamado.prioridade]}`}>
+                        {PRIORIDADE_CHAMADO_LABELS[chamado.prioridade]}
+                      </span>
+                    )}
+                    {chamado.status === 'RESOLVIDO' && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">Resolvido</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 mb-2" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(chamado.mensagem) }} />
+                {chamado.respostaAdmin && (
+                  <p className="text-sm text-emerald-700 bg-emerald-50 rounded-xl p-3">
+                    <strong>Resposta da Sigma:</strong> {chamado.respostaAdmin}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <h4 className="text-sm font-bold text-gray-700 mb-3">Chamados de clientes</h4>
       <div className="flex flex-wrap gap-2 mb-5">
         {(['', 'ABERTO', 'EM_ANDAMENTO', 'RESOLVIDO'] as const).map((s) => (
           <button
@@ -133,6 +229,55 @@ const SuporteTab: React.FC<SuporteTabProps> = ({ empresaId }) => {
           )}
         </div>
       )}
+
+      <BottomSheet isOpen={drawerAberto} onClose={fecharDrawer} title="Abrir chamado com a Sigma">
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Assunto</label>
+            <input
+              value={novoAssunto}
+              onChange={(e) => setNovoAssunto(e.target.value)}
+              placeholder="Ex: Caixa não fecha corretamente"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Mensagem</label>
+            <ReactQuill theme="snow" value={novaMensagem} onChange={setNovaMensagem} placeholder="Descreva o problema ou a dúvida com detalhes..." />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Prioridade</label>
+            <div className="space-y-2">
+              {PRIORIDADE_OPCOES.map(({ valor, icon: Icon, corCard, corIcone }) => (
+                <button
+                  key={valor}
+                  type="button"
+                  onClick={() => setNovaPrioridade(valor)}
+                  className={`w-full flex items-center gap-3 border-2 rounded-xl px-4 py-3 text-left transition-colors ${corCard} ${
+                    novaPrioridade === valor ? 'ring-2 ring-offset-1 ring-gray-800' : ''
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 shrink-0 ${corIcone}`} />
+                  <div>
+                    <p className="text-sm font-bold text-gray-800">{PRIORIDADE_CHAMADO_LABELS[valor]}</p>
+                    <p className="text-xs text-gray-500">{PRIORIDADE_CHAMADO_SLA[valor]}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleAbrirChamado}
+            disabled={enviandoChamado}
+            className="w-full flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-3 rounded-lg disabled:opacity-60"
+          >
+            <Send className="h-4 w-4" /> {enviandoChamado ? 'Enviando...' : 'Enviar chamado'}
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 };

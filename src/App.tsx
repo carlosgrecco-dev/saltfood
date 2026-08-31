@@ -22,6 +22,7 @@ import SuperAdminSaltfoodCoinsPage from './pages/SuperAdminSaltfoodCoinsPage';
 import SuperAdminPlanosPage from './pages/SuperAdminPlanosPage';
 import SuperAdminLogsPage from './pages/SuperAdminLogsPage';
 import SuperAdminLeadsPage from './pages/SuperAdminLeadsPage';
+import SuperAdminChamadosLojistasPage from './pages/SuperAdminChamadosLojistasPage';
 import SuperAdminSitePage from './pages/SuperAdminSitePage';
 import SuperAdminConfiguracoesPage from './pages/SuperAdminConfiguracoesPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -56,6 +57,7 @@ function App() {
           <Route path="/super-admin/planos" element={<SuperAdminPlanosPage />} />
           <Route path="/super-admin/logs" element={<SuperAdminLogsPage />} />
           <Route path="/super-admin/leads" element={<SuperAdminLeadsPage />} />
+          <Route path="/super-admin/chamados" element={<SuperAdminChamadosLojistasPage />} />
           <Route path="/super-admin/site" element={<SuperAdminSitePage />} />
           <Route path="/super-admin/configuracoes" element={<SuperAdminConfiguracoesPage />} />
 

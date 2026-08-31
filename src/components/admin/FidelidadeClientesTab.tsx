@@ -1,8 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, Gift, Plus, Clock, Wallet } from 'lucide-react';
+import { Search, Gift, Plus, Clock, Wallet, Medal, UserPlus } from 'lucide-react';
 import { fetchClientes, liberarResgateCliente, adicionarUnidadesFidelidade } from '../../lib/clientes';
 import { fetchEmpresaById } from '../../lib/empresas';
-import { Cliente, loyaltyProgress, loyaltyExpiracao, LOYALTY_STAMPS_GOAL } from '../../types/Cliente';
+import {
+  Cliente, loyaltyProgress, loyaltyExpiracao, LOYALTY_STAMPS_GOAL,
+  loyaltyTier, LOYALTY_TIER_LABELS, LoyaltyTier, indicadorNivel, NIVEL_INDICADOR_LABELS,
+} from '../../types/Cliente';
+
+const TIER_BADGE_COLORS: Record<LoyaltyTier, string> = {
+  BRONZE: 'bg-amber-100 text-amber-800',
+  PRATA: 'bg-slate-200 text-slate-700',
+  OURO: 'bg-yellow-100 text-yellow-800',
+};
 
 interface FidelidadeClientesTabProps {
   empresaId: string;
@@ -122,14 +131,26 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
             <div key={cliente.id} className="border border-gray-200 rounded-xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-bold text-gray-800">{cliente.nome}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="font-bold text-gray-800">{cliente.nome}</p>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${TIER_BADGE_COLORS[loyaltyTier(cliente)]}`}>
+                      <Medal className="h-2.5 w-2.5" /> {LOYALTY_TIER_LABELS[loyaltyTier(cliente)]}
+                    </span>
+                  </div>
                   <p className="text-sm text-gray-500 truncate">{cliente.email}{cliente.telefone ? ` · ${cliente.telefone}` : ''}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{cliente.totalUnidadesCompradas} unidades compradas no total</p>
-                  {cliente.saldoCashback > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
-                      <Wallet className="h-3 w-3" /> R$ {cliente.saldoCashback.toFixed(2)} em cashback
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    {cliente.saldoCashback > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        <Wallet className="h-3 w-3" /> R$ {cliente.saldoCashback.toFixed(2)} em cashback
+                      </span>
+                    )}
+                    {cliente.indicacoesConcluidas > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">
+                        <UserPlus className="h-3 w-3" /> {cliente.indicacoesConcluidas} indicaç{cliente.indicacoesConcluidas > 1 ? 'ões' : 'ão'} · Nível {NIVEL_INDICADOR_LABELS[indicadorNivel(cliente).nivel]}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-1 shrink-0">

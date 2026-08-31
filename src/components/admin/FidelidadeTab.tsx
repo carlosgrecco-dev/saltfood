@@ -11,7 +11,7 @@ interface FidelidadeTabProps {
 type SubTab = 'config' | 'clientes';
 
 const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
-  const [subTab, setSubTab] = useState<SubTab>('config');
+  const [subTab, setSubTab] = useState<SubTab>('clientes');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -78,21 +78,21 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
     <div className="flex bg-gray-100 rounded-xl p-1 mb-6 max-w-xs">
       <button
         type="button"
-        onClick={() => setSubTab('config')}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-          subTab === 'config' ? 'bg-white shadow text-orange-600' : 'text-gray-500'
-        }`}
-      >
-        <Settings className="h-3.5 w-3.5" /> Configurações
-      </button>
-      <button
-        type="button"
         onClick={() => setSubTab('clientes')}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
           subTab === 'clientes' ? 'bg-white shadow text-orange-600' : 'text-gray-500'
         }`}
       >
         <Users className="h-3.5 w-3.5" /> Clientes
+      </button>
+      <button
+        type="button"
+        onClick={() => setSubTab('config')}
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+          subTab === 'config' ? 'bg-white shadow text-orange-600' : 'text-gray-500'
+        }`}
+      >
+        <Settings className="h-3.5 w-3.5" /> Configurações
       </button>
     </div>
   );

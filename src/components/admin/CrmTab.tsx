@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShoppingBag, Truck, TrendingUp, Star, Percent, Trophy, Clock3, XCircle, Download, MapPin, CalendarDays, Users, Ticket } from 'lucide-react';
+import { ShoppingBag, Truck, TrendingUp, Star, Percent, Trophy, Clock3, XCircle, Download, MapPin, CalendarDays, Users, Ticket, ArrowUp, ArrowDown, Layers, BarChart3 } from 'lucide-react';
 import SimpleBarChart from '../SimpleBarChart';
 import StackedBar from '../StackedBar';
 import { fetchCrmResumo, baixarCrmCsv } from '../../lib/crm';
@@ -15,12 +15,56 @@ type Periodo = 'hoje' | 'semana' | 'quinzena' | 'mes' | 'personalizado';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const TIPO_PEDIDO_LABELS: Record<string, string> = {
+  DELIVERY: 'Delivery',
+  BALCAO: 'Balcão',
+  MESA: 'Mesa',
+  RETIRADA: 'Retirada',
+};
+const CLASSE_ABC_COLORS: Record<'A' | 'B' | 'C', string> = {
+  A: 'bg-emerald-100 text-emerald-800',
+  B: 'bg-amber-100 text-amber-800',
+  C: 'bg-gray-200 text-gray-700',
+};
+
+const Variacao: React.FC<{ atual: number; anterior: number }> = ({ atual, anterior }) => {
+  if (!anterior) return null;
+  const percentual = ((atual - anterior) / anterior) * 100;
+  const subiu = percentual >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
+        subiu ? 'bg-emerald-500/20 text-emerald-50' : 'bg-red-500/20 text-red-50'
+      }`}
+    >
+      {subiu ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+      {Math.abs(percentual).toFixed(0)}%
+    </span>
+  );
+};
+
+const VariacaoClara: React.FC<{ atual: number; anterior: number }> = ({ atual, anterior }) => {
+  if (!anterior) return null;
+  const percentual = ((atual - anterior) / anterior) * 100;
+  const subiu = percentual >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
+        subiu ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+      }`}
+    >
+      {subiu ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+      {Math.abs(percentual).toFixed(0)}%
+    </span>
+  );
+};
 
 const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
   const [periodo, setPeriodo] = useState<Periodo>('semana');
   const [customStart, setCustomStart] = useState(todayISO());
   const [customEnd, setCustomEnd] = useState(todayISO());
   const [data, setData] = useState<CrmSummary | null>(null);
+  const [dataAnterior, setDataAnterior] = useState<CrmSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [exportando, setExportando] = useState(false);
 
@@ -45,14 +89,36 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
     return { de: start.toISOString().slice(0, 10), ate: end.toISOString().slice(0, 10) };
   }, [periodo, customStart, customEnd]);
 
+  const getPreviousRange = useCallback((): { de: string; ate: string } => {
+    const { de, ate } = getRange();
+    const deDate = new Date(`${de}T00:00:00`);
+    const ateDate = new Date(`${ate}T00:00:00`);
+    const duracaoDias = Math.round((ateDate.getTime() - deDate.getTime()) / 86400000) + 1;
+    const prevAte = new Date(deDate);
+    prevAte.setDate(prevAte.getDate() - 1);
+    const prevDe = new Date(prevAte);
+    prevDe.setDate(prevDe.getDate() - (duracaoDias - 1));
+    return { de: prevDe.toISOString().slice(0, 10), ate: prevAte.toISOString().slice(0, 10) };
+  }, [getRange]);
+
   useEffect(() => {
     const { de, ate } = getRange();
+    const anterior = getPreviousRange();
     setLoading(true);
-    fetchCrmResumo(empresaId, de, ate)
-      .then(setData)
-      .catch(() => setData(null))
+    Promise.all([
+      fetchCrmResumo(empresaId, de, ate),
+      fetchCrmResumo(empresaId, anterior.de, anterior.ate).catch(() => null),
+    ])
+      .then(([atual, previo]) => {
+        setData(atual);
+        setDataAnterior(previo);
+      })
+      .catch(() => {
+        setData(null);
+        setDataAnterior(null);
+      })
       .finally(() => setLoading(false));
-  }, [empresaId, getRange]);
+  }, [empresaId, getRange, getPreviousRange]);
 
   const handleExportarCsv = async () => {
     const { de, ate } = getRange();
@@ -127,7 +193,10 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 rounded-2xl">
               <p className="text-orange-100 text-xs mb-1">Total Vendido</p>
-              <p className="text-2xl font-bold">R$ {data.totalRevenue.toFixed(2)}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-2xl font-bold">R$ {data.totalRevenue.toFixed(2)}</p>
+                {dataAnterior && <Variacao atual={data.totalRevenue} anterior={dataAnterior.totalRevenue} />}
+              </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">
               <p className="text-gray-500 text-xs mb-1 flex items-center gap-1">
@@ -139,13 +208,19 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
               <p className="text-gray-500 text-xs mb-1 flex items-center gap-1">
                 <Truck className="h-3.5 w-3.5" /> Entregas
               </p>
-              <p className="text-2xl font-bold text-gray-800">{data.totalOrders}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-2xl font-bold text-gray-800">{data.totalOrders}</p>
+                {dataAnterior && <VariacaoClara atual={data.totalOrders} anterior={dataAnterior.totalOrders} />}
+              </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">
               <p className="text-gray-500 text-xs mb-1 flex items-center gap-1">
                 <TrendingUp className="h-3.5 w-3.5" /> Ticket Médio
               </p>
-              <p className="text-2xl font-bold text-gray-800">R$ {data.ticketMedio.toFixed(2)}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-2xl font-bold text-gray-800">R$ {data.ticketMedio.toFixed(2)}</p>
+                {dataAnterior && <VariacaoClara atual={data.ticketMedio} anterior={dataAnterior.ticketMedio} />}
+              </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">
               <p className="text-gray-500 text-xs mb-1 flex items-center gap-1">
@@ -238,6 +313,22 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-orange-600" /> Vendas por Tipo de Pedido
+            </h3>
+            <StackedBar
+              segments={data.porTipoPedido.map((t, i) => ({
+                label: TIPO_PEDIDO_LABELS[t.tipoPedido] || t.tipoPedido,
+                value: t.total,
+                colorClass: ['bg-orange-500', 'bg-teal-500', 'bg-indigo-500', 'bg-pink-500'][i % 4],
+              }))}
+            />
+            {data.porTipoPedido.length === 0 && (
+              <p className="text-center text-gray-400 text-sm py-6">Nenhuma venda entregue neste período</p>
+            )}
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
             <h3 className="font-bold text-gray-800 mb-4">Vendas por Dia</h3>
             <SimpleBarChart
               data={data.daily.map((d) => ({
@@ -274,6 +365,49 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
                 </tbody>
               </table>
               {data.topProdutos.length === 0 && (
+                <p className="text-center text-gray-400 text-sm py-6">Nenhuma venda entregue neste período</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+            <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-orange-600" /> Curva ABC de Produtos
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Classe A = produtos que juntos somam até 80% da receita, B = até 95%, C = o restante.
+              Foco nos produtos A garante o maior impacto no faturamento.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-gray-500">
+                    <th className="py-2 px-3">#</th>
+                    <th className="py-2 px-3">Produto</th>
+                    <th className="py-2 px-3">Unidades</th>
+                    <th className="py-2 px-3">Receita</th>
+                    <th className="py-2 px-3">% Acumulado</th>
+                    <th className="py-2 px-3">Classe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.curvaAbc.map((p, i) => (
+                    <tr key={p.produtoId || p.nome} className="border-b border-gray-100">
+                      <td className="py-2 px-3 text-gray-400">{i + 1}º</td>
+                      <td className="py-2 px-3 font-medium">{p.nome}</td>
+                      <td className="py-2 px-3">{p.quantidade}</td>
+                      <td className="py-2 px-3 font-bold text-orange-600">R$ {p.receita.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-gray-500">{p.percentualAcumulado.toFixed(1)}%</td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold ${CLASSE_ABC_COLORS[p.classe]}`}>
+                          {p.classe}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {data.curvaAbc.length === 0 && (
                 <p className="text-center text-gray-400 text-sm py-6">Nenhuma venda entregue neste período</p>
               )}
             </div>

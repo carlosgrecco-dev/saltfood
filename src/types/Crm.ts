@@ -24,4 +24,6 @@ export interface CrmSummary {
   porDiaSemana: { dia: number; pedidos: number }[];
   novosVsRecorrentes: { novos: number; recorrentes: number };
   cuponsUsados: { codigo: string; usos: number; descontoTotal: number }[];
+  porTipoPedido: { tipoPedido: string; total: number; quantidade: number }[];
+  curvaAbc: { produtoId: string | null; nome: string; quantidade: number; receita: number; percentualAcumulado: number; classe: 'A' | 'B' | 'C' }[];
 }
