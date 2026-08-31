@@ -15,6 +15,10 @@
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
+  .animate-slide-in-right {
+    animation: slideInRight 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
   .animate-glow-pulse {
     animation: glowPulse 1.8s ease-in-out infinite;
   }
@@ -59,6 +63,15 @@
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 

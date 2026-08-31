@@ -6,7 +6,8 @@ interface BottomSheetProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
-  /** 'auto' cresce com o conteúdo (até 90vh); 'full' ocupa a tela toda (usado no painel admin) */
+  /** No mobile, 'auto' cresce com o conteúdo (até 92vh) e 'full' ocupa a tela toda; a partir de
+   * sm: ambos viram um painel lateral com a altura cheia da tela — 'full' só fica mais largo. */
   height?: 'auto' | 'full';
   /** esconde o cabeçalho padrão (usado quando o conteúdo já tem seu próprio cabeçalho, ex: tela de sucesso) */
   hideHeader?: boolean;
@@ -37,13 +38,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 ${zIndexClass} flex items-end justify-center sm:items-center`}>
+    <div className={`fixed inset-0 ${zIndexClass} flex items-end justify-center sm:items-stretch sm:justify-end`}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       <div
-        className={`relative w-full bg-white shadow-2xl flex flex-col animate-slide-up sm:animate-scale-in
-          ${height === 'full' ? 'h-[100dvh] sm:h-[90vh] sm:max-w-3xl sm:rounded-3xl' : 'max-h-[92vh] sm:max-w-lg sm:rounded-3xl'}
-          rounded-t-3xl sm:rounded-t-3xl
+        className={`relative w-full bg-white shadow-2xl flex flex-col animate-slide-up sm:animate-slide-in-right
+          sm:h-full sm:max-h-none
+          rounded-t-3xl sm:rounded-tr-none sm:rounded-bl-3xl
+          ${height === 'full' ? 'h-[100dvh] sm:max-w-3xl' : 'max-h-[92vh] sm:max-w-lg'}
         `}
       >
         {/* Alça de arrastar (só em telas pequenas, indica gesto de fechar) */}
