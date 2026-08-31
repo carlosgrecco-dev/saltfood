@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Bike, Boxes, ChefHat, CheckCircle2, Clock3, Heart, Landmark, MessageSquarePlus,
-  ShieldCheck, Smartphone, UtensilsCrossed, Users, Wallet,
+  Bike, Boxes, ChefHat, CheckCircle2, Clock3, Heart, Landmark,
+  Smartphone, UtensilsCrossed, Users, Wallet,
 } from 'lucide-react';
 import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
+import BlocoHero from '../components/site-cms/BlocoHero';
+import BlocoCtaBanner from '../components/site-cms/BlocoCtaBanner';
+import { useSiteBlocos } from '../hooks/useSiteBlocos';
+import { CTA_ABRIR_CONTATO } from '../types/SiteBloco';
 
 type StatusRecurso = 'disponivel' | 'em-breve';
 
@@ -120,20 +124,22 @@ const AREAS: AreaRecursos[] = [
 
 const RecursosPage: React.FC = () => {
   const [drawerAberto, setDrawerAberto] = useState(false);
+  const blocos = useSiteBlocos('RECURSOS');
 
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader onFalarComAGente={() => setDrawerAberto(true)} />
 
       <section className="max-w-4xl mx-auto px-6 pt-8 pb-14 text-center">
-        <p className="text-orange-600 font-semibold text-sm">Recursos</p>
-        <h1 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-          Tudo que o SaltFood oferece
-        </h1>
-        <p className="mt-4 text-slate-500 max-w-xl mx-auto">
-          Uma plataforma de verdade pra rodar seu delivery — do cardápio ao caixa. Alguns itens
-          marcados como "em breve" ainda estão no nosso roadmap; tudo o resto já está no ar hoje.
-        </p>
+        <BlocoHero
+          bloco={blocos['hero']}
+          fallback={{
+            eyebrow: 'Recursos',
+            titulo: 'Tudo que o SaltFood oferece',
+            subtitulo: 'Uma plataforma de verdade pra rodar seu delivery — do cardápio ao caixa. Alguns itens marcados como "em breve" ainda estão no nosso roadmap; tudo o resto já está no ar hoje.',
+          }}
+          subtituloClassName="max-w-xl mx-auto"
+        />
         <div className="mt-6 flex items-center justify-center gap-4 text-xs">
           <span className="inline-flex items-center gap-1.5 text-emerald-700">
             <CheckCircle2 className="h-3.5 w-3.5" /> Disponível hoje
@@ -142,6 +148,20 @@ const RecursosPage: React.FC = () => {
             <Clock3 className="h-3.5 w-3.5" /> Em breve
           </span>
         </div>
+      </section>
+
+      <section className="max-w-5xl mx-auto px-6 pb-14">
+        <BlocoCtaBanner
+          bloco={blocos['cta-cadastro']}
+          fallback={{
+            icone: 'Store',
+            titulo: 'Quer ver esses recursos rodando no seu restaurante?',
+            texto: 'Cadastre sua empresa no SaltFood e comece a vender com cardápio digital, pedidos, entrega e muito mais — tudo em um só lugar, com a sua própria marca.',
+            textoBotao: 'Cadastrar minha empresa',
+            linkBotao: '/parceiro',
+          }}
+          onAbrirContato={() => setDrawerAberto(true)}
+        />
       </section>
 
       <section className="max-w-6xl mx-auto px-6 pb-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -172,21 +192,17 @@ const RecursosPage: React.FC = () => {
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-20">
-        <div className="bg-slate-900 rounded-3xl px-6 py-10 sm:px-12 sm:py-12 text-center">
-          <div className="h-11 w-11 rounded-2xl bg-orange-600/20 flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="h-5 w-5 text-orange-400" />
-          </div>
-          <h2 className="text-white font-bold text-xl sm:text-2xl">Ficou com alguma dúvida sobre algum recurso?</h2>
-          <p className="text-slate-300 text-sm mt-2 max-w-md mx-auto">
-            Conta pra gente o que sua loja precisa e te mostramos como o SaltFood se encaixa.
-          </p>
-          <button
-            onClick={() => setDrawerAberto(true)}
-            className="mt-6 inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
-          >
-            <MessageSquarePlus className="h-4 w-4" /> Falar com a gente
-          </button>
-        </div>
+        <BlocoCtaBanner
+          bloco={blocos['cta-rodape']}
+          fallback={{
+            icone: 'ShieldCheck',
+            titulo: 'Ficou com alguma dúvida sobre algum recurso?',
+            texto: 'Conta pra gente o que sua loja precisa e te mostramos como o SaltFood se encaixa.',
+            textoBotao: 'Falar com a gente',
+            linkBotao: CTA_ABRIR_CONTATO,
+          }}
+          onAbrirContato={() => setDrawerAberto(true)}
+        />
       </section>
 
       <PlatformFooter />

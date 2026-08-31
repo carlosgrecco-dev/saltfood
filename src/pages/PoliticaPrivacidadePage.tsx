@@ -4,10 +4,13 @@ import { fetchConfiguracaoPublica } from '../lib/configuracoesPlataforma';
 import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
+import BlocoCtaBanner from '../components/site-cms/BlocoCtaBanner';
+import { useSiteBlocos } from '../hooks/useSiteBlocos';
 
 const PoliticaPrivacidadePage: React.FC = () => {
   const [contato, setContato] = useState<{ emailSuporte: string | null; telefoneSuporte: string | null } | null>(null);
   const [drawerAberto, setDrawerAberto] = useState(false);
+  const blocos = useSiteBlocos('POLITICA_PRIVACIDADE');
 
   useEffect(() => {
     fetchConfiguracaoPublica()
@@ -99,6 +102,20 @@ const PoliticaPrivacidadePage: React.FC = () => {
           </p>
         </div>
       </main>
+
+      <section className="max-w-3xl mx-auto px-6 pb-16 w-full">
+        <BlocoCtaBanner
+          bloco={blocos['cta-rodape']}
+          fallback={{
+            icone: 'Store',
+            titulo: 'Ainda não vende pelo SaltFood?',
+            texto: 'Cadastre seu restaurante na plataforma e leve cardápio digital, pedidos e entrega pro seu negócio — sem complicação, com a sua própria marca.',
+            textoBotao: 'Quero cadastrar meu restaurante',
+            linkBotao: '/parceiro',
+          }}
+          onAbrirContato={() => setDrawerAberto(true)}
+        />
+      </section>
 
       <PlatformFooter />
 

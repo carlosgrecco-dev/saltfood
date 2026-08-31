@@ -11,6 +11,9 @@ import { slugify } from '../lib/masks';
 import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
+import BlocoHero from '../components/site-cms/BlocoHero';
+import BlocoListaIcones from '../components/site-cms/BlocoListaIcones';
+import { useSiteBlocos } from '../hooks/useSiteBlocos';
 
 const VANTAGENS = [
   { icon: Link2, titulo: 'Link exclusivo', texto: 'Sua loja ganha um endereço só seu (saltfood.com.br/sua-loja) pra divulgar nas redes sociais.' },
@@ -27,6 +30,7 @@ const ParceiroPage: React.FC = () => {
   const [planos, setPlanos] = useState<PlanoPublico[]>([]);
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<string | undefined>(undefined);
+  const blocos = useSiteBlocos('PARCEIRO');
 
   useEffect(() => {
     fetchConfiguracaoPublica()
@@ -60,13 +64,16 @@ const ParceiroPage: React.FC = () => {
       {/* Hero */}
       <section className="bg-slate-900">
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <p className="text-orange-400 font-semibold text-sm">Seja nosso parceiro</p>
-          <h1 className="mt-2 text-3xl sm:text-4xl font-bold text-white leading-tight">
-            Quando você vende, todo mundo faz um bom negócio.
-          </h1>
-          <p className="mt-4 text-slate-300 max-w-lg mx-auto">
-            Leve seu restaurante pro SaltFood — cardápio digital, pedidos, entrega e gestão dos seus motoboys, tudo em um só lugar, com a sua própria marca.
-          </p>
+          <BlocoHero
+            bloco={blocos['hero']}
+            variant="dark"
+            fallback={{
+              eyebrow: 'Seja nosso parceiro',
+              titulo: 'Quando você vende, todo mundo faz um bom negócio.',
+              subtitulo: 'Leve seu restaurante pro SaltFood — cardápio digital, pedidos, entrega e gestão dos seus motoboys, tudo em um só lugar, com a sua própria marca.',
+            }}
+            subtituloClassName="max-w-lg mx-auto"
+          />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => abrirContato()}
@@ -131,17 +138,11 @@ const ParceiroPage: React.FC = () => {
           Receba seus pedidos prontos pra impressão, com notificação na hora, no computador ou no celular.
         </p>
 
-        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {VANTAGENS.map(({ icon: Icon, titulo, texto }) => (
-            <div key={titulo} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-              <div className="h-9 w-9 rounded-xl bg-orange-100 flex items-center justify-center mb-3">
-                <Icon className="h-4 w-4 text-orange-600" />
-              </div>
-              <h3 className="font-semibold text-slate-800 text-sm mb-1">{titulo}</h3>
-              <p className="text-xs text-slate-500">{texto}</p>
-            </div>
-          ))}
-        </div>
+        <BlocoListaIcones
+          bloco={blocos['vantagens']}
+          fallback={VANTAGENS}
+          gridClassName="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        />
       </section>
 
       {/* Planos */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Search, ShieldCheck, Store, Zap, Wallet,
   UtensilsCrossed, Sandwich, Pizza, IceCream2, CupSoda, MapPin, Sparkles,
@@ -8,6 +8,10 @@ import { slugify } from '../lib/masks';
 import PublicHeader from '../components/PublicHeader';
 import PlatformFooter from '../components/PlatformFooter';
 import ContatoComercialDrawer from '../components/ContatoComercialDrawer';
+import BlocoHero from '../components/site-cms/BlocoHero';
+import BlocoListaIcones from '../components/site-cms/BlocoListaIcones';
+import BlocoCtaBanner from '../components/site-cms/BlocoCtaBanner';
+import { useSiteBlocos } from '../hooks/useSiteBlocos';
 
 const CATEGORIAS = [
   { icon: UtensilsCrossed, label: 'Restaurantes' },
@@ -28,6 +32,7 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [busca, setBusca] = useState('');
   const [drawerAberto, setDrawerAberto] = useState(false);
+  const blocos = useSiteBlocos('LANDING');
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,13 +69,14 @@ const LandingPage: React.FC = () => {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-8 pb-16 grid md:grid-cols-2 gap-12 items-center">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            Peça online na sua loja favorita,
-            <br className="hidden sm:block" /> com entrega rápida.
-          </h1>
-          <p className="mt-4 text-slate-500 max-w-md">
-            Cada loja parceira do SaltFood tem seu próprio endereço. Digite o nome do restaurante pra ir direto pro cardápio dele.
-          </p>
+          <BlocoHero
+            bloco={blocos['hero']}
+            fallback={{
+              titulo: 'Peça online na sua loja favorita, com entrega rápida.',
+              subtitulo: 'Cada loja parceira do SaltFood tem seu próprio endereço. Digite o nome do restaurante pra ir direto pro cardápio dele.',
+            }}
+            subtituloClassName="max-w-md"
+          />
 
           <div className="mt-8">{buscaForm}</div>
           <p className="mt-2 text-xs text-slate-400">Não sabe o endereço certo? Confira o link direto com o restaurante.</p>
@@ -109,17 +115,11 @@ const LandingPage: React.FC = () => {
         </h3>
         <p className="mt-2 text-center text-sm text-slate-500">A gente cuida de todos os detalhes pra te servir bem.</p>
 
-        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {FEATURES.map(({ icon: Icon, titulo, texto }) => (
-            <div key={titulo} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-              <div className="h-9 w-9 rounded-xl bg-orange-100 flex items-center justify-center mb-3">
-                <Icon className="h-4 w-4 text-orange-600" />
-              </div>
-              <h4 className="font-semibold text-slate-800 text-sm mb-1">{titulo}</h4>
-              <p className="text-xs text-slate-500">{texto}</p>
-            </div>
-          ))}
-        </div>
+        <BlocoListaIcones
+          bloco={blocos['features']}
+          fallback={FEATURES}
+          gridClassName="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        />
       </section>
 
       {/* Banner escuro */}
@@ -153,23 +153,17 @@ const LandingPage: React.FC = () => {
 
       {/* Seja parceiro */}
       <section className="max-w-5xl mx-auto px-6 py-20">
-        <div className="bg-slate-900 rounded-3xl px-6 py-10 sm:px-12 sm:py-12 text-center">
-          <div className="h-11 w-11 rounded-2xl bg-orange-600/20 flex items-center justify-center mx-auto mb-4">
-            <Store className="h-5 w-5 text-orange-400" />
-          </div>
-          <h2 className="text-white font-bold text-xl sm:text-2xl">Tem um restaurante e quer vender por aqui?</h2>
-          <p className="text-slate-300 text-sm mt-2 max-w-md mx-auto">
-            Leve o SaltFood pro seu negócio — cardápio digital, pedidos e entrega, tudo em um só lugar, com a sua própria marca.
-          </p>
-          <div className="mt-6">
-            <Link
-              to="/parceiro"
-              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
-            >
-              Conhecer o programa de parceiros <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
+        <BlocoCtaBanner
+          bloco={blocos['cta-rodape']}
+          fallback={{
+            icone: 'Store',
+            titulo: 'Tem um restaurante e quer vender por aqui?',
+            texto: 'Leve o SaltFood pro seu negócio — cardápio digital, pedidos e entrega, tudo em um só lugar, com a sua própria marca.',
+            textoBotao: 'Conhecer o programa de parceiros',
+            linkBotao: '/parceiro',
+          }}
+          onAbrirContato={() => setDrawerAberto(true)}
+        />
       </section>
 
       <PlatformFooter />
