@@ -17,7 +17,7 @@ import AdminHeader from '../components/admin/AdminHeader';
 import ProdutosTab from '../components/admin/ProdutosTab';
 import PedidosTab from '../components/admin/PedidosTab';
 import MotoboysTab from '../components/admin/MotoboysTab';
-import CaixaTab from '../components/admin/CaixaTab';
+import FinanceiroTab from '../components/admin/FinanceiroTab';
 import CrmTab from '../components/admin/CrmTab';
 import GatewaysTab from '../components/admin/GatewaysTab';
 import AparenciaTab from '../components/admin/AparenciaTab';
@@ -441,7 +441,7 @@ const AdminPage: React.FC = () => {
         {tab === 'opcoes-grupos' && <OpcoesGruposTab empresaId={empresa.id} />}
         {tab === 'tabela-precos' && <TabelaPrecosTab empresaId={empresa.id} />}
         {tab === 'motoboys' && <MotoboysTab empresaId={empresa.id} />}
-        {tab === 'fechamento' && <CaixaTab empresaId={empresa.id} />}
+        {tab === 'fechamento' && <FinanceiroTab empresaId={empresa.id} onAbrirRelatorios={() => setTab('crm')} />}
         {tab === 'gateways' && <GatewaysTab empresaId={empresa.id} />}
         {tab === 'cupons' && <CuponsTab empresaId={empresa.id} />}
         {tab === 'fidelidade' && <FidelidadeTab empresaId={empresa.id} />}

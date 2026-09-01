@@ -1,4 +1,4 @@
-import { MovimentoCaixa, TipoMovimentoCaixa } from '../types/MovimentoCaixa';
+import { MovimentoCaixa, TipoMovimentoCaixa, CategoriaMovimentoCaixa } from '../types/MovimentoCaixa';
 import { apiRequestAsAdmin } from './adminAuth';
 import { apiRequestAsMotoboy, getMotoboySession } from './motoboySession';
 
@@ -15,6 +15,7 @@ export interface MovimentoCaixaPayload {
   descricao?: string;
   motoboyId?: string | null;
   dataMovimento?: string;
+  categoria?: CategoriaMovimentoCaixa | null;
 }
 
 /** Lê tanto pelo admin (caixa completo) quanto pelo dashboard do motoboy (só os próprios pagamentos). */

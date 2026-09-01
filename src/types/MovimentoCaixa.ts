@@ -1,4 +1,5 @@
 export type TipoMovimentoCaixa = 'ENTRADA' | 'SAIDA' | 'SANGRIA' | 'FECHAMENTO';
+export type CategoriaMovimentoCaixa = 'COMPRAS_ESTOQUE' | 'TAXAS_TARIFAS' | 'OUTROS';
 
 export interface MovimentoCaixa {
   id: string;
@@ -9,6 +10,9 @@ export interface MovimentoCaixa {
   valor: number;
   dataMovimento: string;
   createdAt: string;
+  pedidoId: string | null;
+  formaPagamento: 'PIX' | 'DINHEIRO' | 'CARTAO' | 'MULTIPLO' | null;
+  categoria: CategoriaMovimentoCaixa | null;
 }
 
 export const TIPO_MOVIMENTO_LABELS: Record<TipoMovimentoCaixa, string> = {
@@ -16,4 +20,10 @@ export const TIPO_MOVIMENTO_LABELS: Record<TipoMovimentoCaixa, string> = {
   SAIDA: 'Saída',
   SANGRIA: 'Sangria',
   FECHAMENTO: 'Fechamento',
+};
+
+export const CATEGORIA_MOVIMENTO_LABELS: Record<CategoriaMovimentoCaixa, string> = {
+  COMPRAS_ESTOQUE: 'Compras / Estoque',
+  TAXAS_TARIFAS: 'Taxas e tarifas',
+  OUTROS: 'Outros',
 };

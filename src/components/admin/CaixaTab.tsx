@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Plus, Trash2, Wallet, MinusCircle, Bike, Loader2, ClipboardCheck } from 'lucide-react';
-import { MovimentoCaixa, TipoMovimentoCaixa, TIPO_MOVIMENTO_LABELS } from '../../types/MovimentoCaixa';
+import { MovimentoCaixa, TipoMovimentoCaixa, TIPO_MOVIMENTO_LABELS, CategoriaMovimentoCaixa, CATEGORIA_MOVIMENTO_LABELS } from '../../types/MovimentoCaixa';
 import { Motoboy } from '../../types/Motoboy';
 import { fetchMovimentosCaixa, createMovimentoCaixa, deleteMovimentoCaixa } from '../../lib/movimentosCaixa';
 import { fetchMotoboys } from '../../lib/motoboysApi';
@@ -21,10 +21,11 @@ interface PendenciaMotoboy {
 const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
   const [data, setData] = useState(todayISO());
   const [movimentos, setMovimentos] = useState<MovimentoCaixa[]>([]);
-  const [novoMovimento, setNovoMovimento] = useState<{ tipo: TipoMovimentoCaixa; descricao: string; valor: string }>({
+  const [novoMovimento, setNovoMovimento] = useState<{ tipo: TipoMovimentoCaixa; descricao: string; valor: string; categoria: CategoriaMovimentoCaixa | '' }>({
     tipo: 'SAIDA',
     descricao: '',
     valor: '',
+    categoria: '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -96,8 +97,9 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
         descricao: novoMovimento.descricao,
         valor,
         dataMovimento: data,
+        categoria: novoMovimento.tipo === 'SAIDA' && novoMovimento.categoria ? novoMovimento.categoria : null,
       });
-      setNovoMovimento({ tipo: 'SAIDA', descricao: '', valor: '' });
+      setNovoMovimento({ tipo: 'SAIDA', descricao: '', valor: '', categoria: '' });
       loadMovimentos();
     } finally {
       setSaving(false);
@@ -256,6 +258,21 @@ const CaixaTab: React.FC<CaixaTabProps> = ({ empresaId }) => {
               <option value="SANGRIA">Sangria</option>
             </select>
           </div>
+          {novoMovimento.tipo === 'SAIDA' && (
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Categoria</label>
+              <select
+                value={novoMovimento.categoria}
+                onChange={(e) => setNovoMovimento({ ...novoMovimento, categoria: e.target.value as CategoriaMovimentoCaixa | '' })}
+                className="px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="">Outros</option>
+                {(Object.keys(CATEGORIA_MOVIMENTO_LABELS) as CategoriaMovimentoCaixa[]).map((c) => (
+                  <option key={c} value={c}>{CATEGORIA_MOVIMENTO_LABELS[c]}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <input
             placeholder="Descrição (ex: retirada para depósito, compra de gelo...)"
             value={novoMovimento.descricao}
