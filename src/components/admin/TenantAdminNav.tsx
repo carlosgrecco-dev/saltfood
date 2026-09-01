@@ -3,13 +3,13 @@ import {
   Package, Bike, DollarSign, ShoppingBag, BarChart3, CreditCard, Palette, Ticket, Tag,
   Clock, MapPin, Gift, LayoutDashboard, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
   ChevronDown, Layers, PlusCircle, ListChecks, Table, ChefHat, Truck, CheckCircle2, XCircle,
-  Boxes, Star, UsersRound, Gauge,
+  Boxes, Star, UsersRound, Gauge, Wallet,
 } from 'lucide-react';
 
 export type Tab =
   | 'dashboard' | 'crm'
   | 'pedidos' | 'pedidos-em-andamento' | 'pedidos-prontos' | 'pedidos-entregues' | 'pedidos-cancelados'
-  | 'produtos' | 'categorias' | 'combos' | 'adicionais' | 'opcoes-grupos' | 'tabela-precos' | 'cupons'
+  | 'produtos' | 'categorias' | 'combos' | 'adicionais' | 'opcoes-grupos' | 'tabela-precos' | 'cupons' | 'formas-pagamento'
   | 'motoboys' | 'zonas-entrega'
   | 'fidelidade' | 'missoes' | 'avaliacoes' | 'grupos-clientes'
   | 'fechamento'
@@ -63,6 +63,7 @@ export const GRUPOS: NavGroup[] = [
         ],
       },
       { id: 'cupons', label: 'Cupons', icon: Ticket },
+      { id: 'formas-pagamento', label: 'Formas de Pagamento', icon: Wallet },
     ],
   },
   {

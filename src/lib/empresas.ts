@@ -70,6 +70,17 @@ export async function setLojaAberta(id: string, aberta: boolean): Promise<Empres
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/loja-aberta`, { method: 'PATCH', body: JSON.stringify({ aberta }) });
 }
 
+export interface FormasPagamentoInput {
+  aceitaPix: boolean;
+  aceitaDinheiro: boolean;
+  aceitaCartao: boolean;
+}
+
+/** O próprio lojista escolhe quais formas de pagamento aceita no checkout do storefront. */
+export async function setFormasPagamento(id: string, input: Partial<FormasPagamentoInput>): Promise<Empresa> {
+  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/formas-pagamento`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
 export interface OperacionalInput {
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;

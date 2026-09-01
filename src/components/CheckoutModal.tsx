@@ -598,9 +598,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="" disabled>Selecione...</option>
-              <option value="PIX">PIX</option>
-              <option value="DINHEIRO">Dinheiro</option>
-              <option value="CARTAO">Cartão na entrega</option>
+              {empresa.aceitaPix && <option value="PIX">PIX</option>}
+              {empresa.aceitaDinheiro && <option value="DINHEIRO">Dinheiro</option>}
+              {empresa.aceitaCartao && <option value="CARTAO">Cartão na entrega</option>}
             </select>
           </div>
 

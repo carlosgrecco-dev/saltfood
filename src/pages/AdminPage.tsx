@@ -41,6 +41,7 @@ import FornecedoresTab from '../components/admin/FornecedoresTab';
 import AvaliacoesTab from '../components/admin/AvaliacoesTab';
 import GruposClientesTab from '../components/admin/GruposClientesTab';
 import IndicadoresTab from '../components/admin/IndicadoresTab';
+import FormasPagamentoTab from '../components/admin/FormasPagamentoTab';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
@@ -450,6 +451,7 @@ const AdminPage: React.FC = () => {
         {tab === 'fechamento' && <FinanceiroTab empresaId={empresa.id} onAbrirRelatorios={() => setTab('crm')} />}
         {tab === 'gateways' && <GatewaysTab empresaId={empresa.id} />}
         {tab === 'cupons' && <CuponsTab empresaId={empresa.id} />}
+        {tab === 'formas-pagamento' && <FormasPagamentoTab empresaId={empresa.id} />}
         {tab === 'fidelidade' && <FidelidadeTab empresaId={empresa.id} />}
         {tab === 'pdv' && <PdvTab empresaId={empresa.id} />}
         {tab === 'estoque' && <EstoqueTab empresaId={empresa.id} />}

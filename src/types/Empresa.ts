@@ -55,6 +55,9 @@ export interface EmpresaPublic {
   pdvMesaAbertaContinua: boolean;
   pdvPermiteSplitPagamento: boolean;
   indicacaoRecompensaUnidades: number;
+  aceitaPix: boolean;
+  aceitaDinheiro: boolean;
+  aceitaCartao: boolean;
   lojaAbertaManual: boolean;
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;
@@ -131,6 +134,9 @@ export interface Empresa {
   pdvMesaAbertaContinua: boolean;
   pdvPermiteSplitPagamento: boolean;
   indicacaoRecompensaUnidades: number;
+  aceitaPix: boolean;
+  aceitaDinheiro: boolean;
+  aceitaCartao: boolean;
   /** Código próprio da loja pra indicar outros lojistas à plataforma (indicação tenant-a-tenant, diferente da indicação cliente-a-cliente). */
   codigoIndicacao: string | null;
   indicadaPorEmpresaId: string | null;
