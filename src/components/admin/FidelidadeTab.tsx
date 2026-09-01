@@ -97,9 +97,17 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
     </div>
   );
 
+  const header = (
+    <div className="mb-4">
+      <h2 className="text-lg font-bold text-gray-800">Fidelidade</h2>
+      <p className="text-sm text-gray-500">Cartão fidelidade, cashback e indicações dos seus clientes</p>
+    </div>
+  );
+
   if (subTab === 'clientes') {
     return (
       <div>
+        {header}
         {switcher}
         <FidelidadeClientesTab empresaId={empresaId} />
       </div>
@@ -109,6 +117,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
   if (loading) {
     return (
       <div>
+        {header}
         {switcher}
         <p className="text-center text-gray-500 py-8">Carregando...</p>
       </div>
@@ -117,12 +126,13 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {header}
       {switcher}
       <section>
         <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
           <ImageIcon className="h-4 w-4 text-orange-600" /> Logo do cartão fidelidade
         </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <input
             value={fidelidadeLogoUrl}
             onChange={(e) => setFidelidadeLogoUrl(e.target.value)}
@@ -139,7 +149,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
           <Clock className="h-4 w-4 text-orange-600" /> Prazo para resgatar o item grátis
         </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -162,7 +172,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
           <BellRing className="h-4 w-4 text-orange-600" /> Aviso de proximidade do prêmio
         </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Mostrar um aviso na loja quando faltarem</span>
             <input
@@ -186,7 +196,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
           <Tag className="h-4 w-4 text-orange-600" /> Nome do item nas mensagens
         </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <input
             value={fidelidadeNomeItem}
             onChange={(e) => setFidelidadeNomeItem(e.target.value)}
@@ -203,7 +213,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
         <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
           <Wallet className="h-4 w-4 text-orange-600" /> Cashback
         </h3>
-        <div className="bg-gray-50 p-4 rounded-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="flex items-center gap-2">
             <input
               type="number"
