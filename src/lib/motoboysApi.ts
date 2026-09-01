@@ -1,4 +1,4 @@
-import { Motoboy } from '../types/Motoboy';
+import { Motoboy, MotoboyAdminResumo, PagamentosMotoboyResumo } from '../types/Motoboy';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { apiRequestAsMotoboy } from './motoboySession';
@@ -8,11 +8,33 @@ export interface MotoboyPayload {
   telefone?: string;
   taxaPadrao?: number;
   ativo?: boolean;
+  veiculoTipo?: string | null;
+  veiculoPlaca?: string | null;
+  turno?: string | null;
+  fotoPerfilUrl?: string | null;
+  cnhUrl?: string | null;
+  documentoVeiculoUrl?: string | null;
+  seguroUrl?: string | null;
+  comprovanteResidenciaUrl?: string | null;
 }
 
 export async function fetchMotoboys(empresaId: string, ativo?: boolean): Promise<Motoboy[]> {
   const query = ativo !== undefined ? `?ativo=${ativo}` : '';
   return apiRequestAsAdmin<Motoboy[]>(empresaId, `/empresas/${empresaId}/motoboys${query}`);
+}
+
+/** Motoboys com status calculado, avaliação média e entregas totais + estatísticas da equipe. */
+export async function fetchMotoboysAdminResumo(empresaId: string): Promise<MotoboyAdminResumo> {
+  return apiRequestAsAdmin<MotoboyAdminResumo>(empresaId, `/empresas/${empresaId}/motoboys/admin-resumo`);
+}
+
+/** Histórico de pagamentos (pendente + pago) com período/entregas/valores reconstruídos. */
+export async function fetchPagamentosMotoboyResumo(empresaId: string, de?: string, ate?: string): Promise<PagamentosMotoboyResumo> {
+  const params = new URLSearchParams();
+  if (de) params.set('de', de);
+  if (ate) params.set('ate', ate);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequestAsAdmin<PagamentosMotoboyResumo>(empresaId, `/empresas/${empresaId}/motoboys/pagamentos-resumo${query}`);
 }
 
 export async function createMotoboy(empresaId: string, payload: MotoboyPayload): Promise<Motoboy> {
