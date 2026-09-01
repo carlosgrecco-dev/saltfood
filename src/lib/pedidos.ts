@@ -12,6 +12,8 @@ export interface PedidoFiltro {
   motoboyPago?: boolean;
   de?: string;
   ate?: string;
+  comAvaliacao?: boolean;
+  notaMax?: number;
 }
 
 /**
@@ -35,6 +37,8 @@ export async function fetchPedidos(empresaId: string, filtro: PedidoFiltro = {})
   if (filtro.motoboyPago !== undefined) params.set('motoboyPago', String(filtro.motoboyPago));
   if (filtro.de) params.set('de', filtro.de);
   if (filtro.ate) params.set('ate', filtro.ate);
+  if (filtro.comAvaliacao !== undefined) params.set('comAvaliacao', String(filtro.comAvaliacao));
+  if (filtro.notaMax !== undefined) params.set('notaMax', String(filtro.notaMax));
   const query = params.toString() ? `?${params.toString()}` : '';
 
   return apiRequestAsAdminOuMotoboy<Pedido[]>(empresaId, `/empresas/${empresaId}/pedidos${query}`);
