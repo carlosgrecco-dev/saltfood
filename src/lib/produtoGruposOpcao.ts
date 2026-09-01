@@ -1,5 +1,10 @@
-import { ProdutoGrupoOpcao, ProdutoGrupoOpcaoInput, ProdutoOpcao, ProdutoOpcaoInput } from '../types/Produto';
+import { ProdutoGrupoOpcao, ProdutoGrupoOpcaoInput, ProdutoGrupoOpcaoComProduto, ProdutoOpcao, ProdutoOpcaoInput } from '../types/Produto';
 import { apiRequestAsAdmin } from './adminAuth';
+
+/** Todos os grupos de opção de todos os produtos da empresa, com o nome do produto dono — usado nas telas "Opções e Grupos"/"Adicionais". */
+export async function fetchTodosGruposOpcao(empresaId: string): Promise<ProdutoGrupoOpcaoComProduto[]> {
+  return apiRequestAsAdmin<ProdutoGrupoOpcaoComProduto[]>(empresaId, `/empresas/${empresaId}/produtos/opcoes-grupos-todos`);
+}
 
 export async function fetchProdutoGruposOpcao(empresaId: string, produtoId: string): Promise<ProdutoGrupoOpcao[]> {
   return apiRequestAsAdmin<ProdutoGrupoOpcao[]>(empresaId, `/empresas/${empresaId}/produtos/${produtoId}/grupos-opcao`);

@@ -1,9 +1,10 @@
-import { Produto } from '../types/Produto';
+import { Produto, ProdutosAdminResumo } from '../types/Produto';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 
 export interface ProdutoPayload {
   nome: string;
+  codigo?: string | null;
   descricao?: string | null;
   categoriaId?: string | null;
   preco: number;
@@ -13,12 +14,18 @@ export interface ProdutoPayload {
   ordem?: number;
   controlarEstoque?: boolean;
   estoqueQtd?: number | null;
+  estoqueMinimo?: number | null;
   ehCombo?: boolean;
 }
 
 export async function fetchProdutos(empresaId: string, ativo?: boolean): Promise<Produto[]> {
   const query = ativo !== undefined ? `?ativo=${ativo}` : '';
   return apiRequest<Produto[]>(`/empresas/${empresaId}/produtos${query}`);
+}
+
+/** Lista de produtos com vendas totais + estatísticas do catálogo — usado pela tela "Todos os produtos" do admin. */
+export async function fetchProdutosAdminResumo(empresaId: string): Promise<ProdutosAdminResumo> {
+  return apiRequestAsAdmin<ProdutosAdminResumo>(empresaId, `/empresas/${empresaId}/produtos/admin-resumo`);
 }
 
 export async function createProduto(empresaId: string, payload: ProdutoPayload): Promise<Produto> {

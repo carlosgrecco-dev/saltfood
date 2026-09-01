@@ -18,6 +18,7 @@ export interface Produto {
   id: string;
   empresaId: string;
   nome: string;
+  codigo: string | null;
   descricao: string | null;
   categoriaId: string | null;
   categoria: Categoria | null;
@@ -29,9 +30,12 @@ export interface Produto {
   esgotadoHoje: boolean;
   controlarEstoque: boolean;
   estoqueQtd: number | null;
+  estoqueMinimo: number | null;
   ehCombo: boolean;
   /** Computado pelo backend: ativo && !esgotadoHoje && (estoque não controlado ou > 0). */
   disponivel: boolean;
+  /** Só presente na resposta de /produtos/admin-resumo — vendas (unidades) em pedidos entregues, todo o histórico. */
+  vendasTotais?: number;
   gruposOpcao?: ProdutoGrupoOpcao[];
   createdAt: string;
   updatedAt: string;
@@ -45,6 +49,19 @@ export interface ProdutoInput {
   precoPromocional: string;
   fotoUrl: string;
   ativo: boolean;
+}
+
+export interface ProdutosAdminStats {
+  total: number;
+  ativos: number;
+  inativos: number;
+  estoqueBaixo: number;
+  maisVendido: { id: string; nome: string } | null;
+}
+
+export interface ProdutosAdminResumo {
+  produtos: Produto[];
+  stats: ProdutosAdminStats;
 }
 
 export interface ProdutoVariacao {
@@ -108,4 +125,10 @@ export interface ProdutoGrupoOpcaoInput {
   selecaoMultipla: boolean;
   minSelecoes: number;
   maxSelecoes: number | null;
+}
+
+/** Grupo de opção com o produto dono anexado — usado na visão cross-produto (Opções e Grupos / Adicionais). */
+export interface ProdutoGrupoOpcaoComProduto extends ProdutoGrupoOpcao {
+  produtoId: string;
+  produtoNome: string;
 }

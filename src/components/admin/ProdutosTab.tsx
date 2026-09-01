@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil, X, ImageOff, PackageX, Boxes, ChevronUp, GripVertical, Layers, ListChecks, Loader2, Image as ImageIcon, Copy, AlertTriangle } from 'lucide-react';
 import {
-  DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent,
-} from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria } from '../../types/Produto';
-import { fetchProdutos, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto, reordenarProdutos } from '../../lib/produtos';
+  Plus, Trash2, Pencil, ImageOff, PackageX, Boxes, Layers, ListChecks, Loader2, Image as ImageIcon, Copy, AlertTriangle,
+  Search, Package, CheckCircle2, XCircle, BarChart3, Upload, Download, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon,
+} from 'lucide-react';
+import { Produto, ProdutoVariacao, ProdutoGrupoOpcao, Categoria, ProdutosAdminStats } from '../../types/Produto';
+import { fetchProdutosAdminResumo, createProduto, updateProduto, setProdutoStatus, setProdutoEsgotado, deleteProduto } from '../../lib/produtos';
 import { fetchProdutoVariacoes, createProdutoVariacao, updateProdutoVariacao, deleteProdutoVariacao } from '../../lib/produtoVariacoes';
 import { fetchCategorias } from '../../lib/categorias';
 import FotoInput from './FotoInput';
+import BottomSheet from '../BottomSheet';
 import {
   fetchProdutoGruposOpcao,
   createProdutoGrupoOpcao,
@@ -24,10 +23,9 @@ interface ProdutosTabProps {
   empresaId: string;
 }
 
-/** Abaixo disso, o estoque do produto é sinalizado como baixo no painel. */
-const ESTOQUE_BAIXO_LIMITE = 5;
-
 const emptyForm = {
+  codigo: '',
+  estoqueMinimo: '',
   nome: '',
   descricao: '',
   categoriaId: '',
@@ -524,175 +522,28 @@ const GruposOpcaoManager: React.FC<{ empresaId: string; produtoId: string }> = (
   );
 };
 
-interface ProdutoRowProps {
-  produto: Produto;
-  empresaId: string;
-  variacoesAbertas: string | null;
-  opcoesAbertas: string | null;
-  duplicandoId: string | null;
-  onToggleVariacoes: (id: string) => void;
-  onToggleOpcoes: (id: string) => void;
-  onToggleEsgotado: (produto: Produto) => void;
-  onToggleAtivo: (produto: Produto) => void;
-  onDuplicar: (produto: Produto) => void;
-  onEdit: (produto: Produto) => void;
-  onDelete: (id: string) => void;
-}
-
-/** Uma linha da lista de produtos — extraída num componente próprio porque cada item arrastável
- * precisa da sua própria chamada de useSortable (regra dos hooks: não dá pra chamar hooks dentro
- * de um .map() direto no componente pai). */
-const ProdutoRow: React.FC<ProdutoRowProps> = ({
-  produto, empresaId, variacoesAbertas, opcoesAbertas, duplicandoId,
-  onToggleVariacoes, onToggleOpcoes, onToggleEsgotado, onToggleAtivo, onDuplicar, onEdit, onDelete,
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: produto.id });
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1 : undefined,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className="border border-gray-200 rounded-2xl overflow-hidden bg-white relative">
-      <div className="flex items-center gap-3 p-3">
-        <button
-          {...attributes}
-          {...listeners}
-          type="button"
-          title="Arrastar para reordenar"
-          className="text-gray-300 hover:text-gray-500 shrink-0 cursor-grab active:cursor-grabbing touch-none"
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-        {produto.fotoUrl ? (
-          <img src={produto.fotoUrl} alt={produto.nome} className="w-14 h-14 rounded-lg object-cover shrink-0" />
-        ) : (
-          <div className="w-14 h-14 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-            <ImageOff className="h-6 w-6 text-gray-300" />
-          </div>
-        )}
-
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-800 text-sm truncate flex items-center gap-1.5">
-            {produto.nome}
-            {produto.ehCombo && (
-              <span className="flex items-center gap-1 text-[10px] font-medium bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full shrink-0">
-                <Layers className="h-2.5 w-2.5" /> Combo
-              </span>
-            )}
-          </p>
-          <p className="text-xs text-gray-400 flex items-center gap-1.5 flex-wrap">
-            <span>
-              {produto.categoria?.nome || 'Sem categoria'}
-              {produto.controlarEstoque && ` · estoque: ${produto.estoqueQtd ?? 0}`}
-            </span>
-            {produto.controlarEstoque && produto.estoqueQtd != null && produto.estoqueQtd <= ESTOQUE_BAIXO_LIMITE && (
-              <span className="flex items-center gap-1 text-[10px] font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0">
-                <AlertTriangle className="h-2.5 w-2.5" /> Estoque baixo
-              </span>
-            )}
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            {produto.precoPromocional != null && (
-              <span className="text-xs text-gray-400 line-through">R$ {produto.preco.toFixed(2)}</span>
-            )}
-            <span className="text-orange-600 font-bold text-sm">
-              R$ {(produto.precoPromocional ?? produto.preco).toFixed(2)}
-            </span>
-            {!produto.disponivel && (
-              <span className="text-[10px] font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Indisponível</span>
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={() => onToggleEsgotado(produto)}
-          title="Pausar rapidamente sem excluir o produto"
-          className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
-            produto.esgotadoHoje ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-          }`}
-        >
-          <PackageX className="h-3.5 w-3.5" /> {produto.esgotadoHoje ? 'Esgotado hoje' : 'Esgotar hoje'}
-        </button>
-
-        <button
-          onClick={() => onToggleAtivo(produto)}
-          className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
-            produto.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
-          }`}
-        >
-          {produto.ativo ? 'Ativo' : 'Inativo'}
-        </button>
-
-        <button
-          onClick={() => onToggleVariacoes(produto.id)}
-          title="Variações/sabores com estoque próprio"
-          className="text-gray-400 hover:text-gray-700 shrink-0"
-        >
-          {variacoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <Boxes className="h-4 w-4" />}
-        </button>
-        <button
-          onClick={() => onToggleOpcoes(produto.id)}
-          title="Opções/complementos (ex: monte seu acarajé)"
-          className="text-gray-400 hover:text-gray-700 shrink-0"
-        >
-          {opcoesAbertas === produto.id ? <ChevronUp className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
-        </button>
-        <button
-          onClick={() => onDuplicar(produto)}
-          disabled={duplicandoId === produto.id}
-          title="Duplicar produto"
-          className="text-gray-400 hover:text-gray-700 shrink-0 disabled:opacity-50"
-        >
-          {duplicandoId === produto.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
-        </button>
-        <button onClick={() => onEdit(produto)} className="text-gray-400 hover:text-gray-700 shrink-0">
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button onClick={() => onDelete(produto.id)} className="text-red-500 hover:text-red-700 shrink-0">
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-
-      {variacoesAbertas === produto.id && (
-        <div className="bg-gray-50 border-t border-gray-200 p-3">
-          <VariacoesManager empresaId={empresaId} produtoId={produto.id} />
-        </div>
-      )}
-      {opcoesAbertas === produto.id && (
-        <div className="bg-gray-50 border-t border-gray-200 p-3">
-          <GruposOpcaoManager empresaId={empresaId} produtoId={produto.id} />
-        </div>
-      )}
-    </div>
-  );
-};
+type VisaoLista = 'tabela' | 'grade';
+const ITENS_POR_PAGINA = 8;
 
 const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [stats, setStats] = useState<ProdutosAdminStats | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [variacoesAbertas, setVariacoesAbertas] = useState<string | null>(null);
-  const produtosEstoqueBaixo = useMemo(
-    () => produtos.filter((p) => p.controlarEstoque && p.estoqueQtd != null && p.estoqueQtd <= ESTOQUE_BAIXO_LIMITE),
-    [produtos]
-  );
-  const [opcoesAbertas, setOpcoesAbertas] = useState<string | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
   const [duplicandoId, setDuplicandoId] = useState<string | null>(null);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
 
-  // Distância mínima antes de considerar um arrasto (em vez de um toque/clique normal) — evita
-  // que um simples toque no card já dispare o drag no mobile. TouchSensor cobre navegadores que
-  // não tratam toque como PointerEvent.
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
-  );
+  const [busca, setBusca] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<'' | 'ativo' | 'inativo'>('');
+  const [visao, setVisao] = useState<VisaoLista>('tabela');
+  const [pagina, setPagina] = useState(1);
+  const [importando, setImportando] = useState(false);
 
   useEffect(() => {
     fetchCategorias(empresaId)
@@ -703,7 +554,9 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setProdutos(await fetchProdutos(empresaId));
+      const resumo = await fetchProdutosAdminResumo(empresaId);
+      setProdutos(resumo.produtos);
+      setStats(resumo.stats);
     } catch {
       /* silencioso */
     } finally {
@@ -721,6 +574,16 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
     setError('');
   };
 
+  const abrirNovoProduto = () => {
+    resetForm();
+    setModalAberto(true);
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
+    resetForm();
+  };
+
   const handleEdit = (produto: Produto) => {
     setEditingId(produto.id);
 
@@ -733,6 +596,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
 
     setForm({
       nome: produto.nome,
+      codigo: produto.codigo || '',
       descricao: produto.descricao || '',
       categoriaId: produto.categoriaId || '',
       preco: String(produto.preco),
@@ -740,6 +604,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
       fotoUrl: produto.fotoUrl || '',
       controlarEstoque: produto.controlarEstoque,
       estoqueQtd: produto.estoqueQtd != null ? String(produto.estoqueQtd) : '',
+      estoqueMinimo: produto.estoqueMinimo != null ? String(produto.estoqueMinimo) : '',
       ehCombo: produto.ehCombo,
       vendeSaquinhoPrato,
       precoSaquinho: vendeSaquinhoPrato ? String(produto.preco + (opcaoSaquinho?.precoAdicional ?? 0)) : '',
@@ -749,6 +614,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
       descricaoSaquinho: opcaoSaquinho?.descricao || emptyForm.descricaoSaquinho,
       descricaoPrato: opcaoPrato?.descricao || emptyForm.descricaoPrato,
     });
+    setModalAberto(true);
   };
 
   const sincronizarFormatoSaquinhoPrato = async (produtoId: string, precoBase: number, precoPrato: number) => {
@@ -816,6 +682,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
 
     const payload = {
       nome: form.nome,
+      codigo: form.codigo || null,
       descricao: form.descricao || null,
       categoriaId: form.categoriaId || null,
       preco,
@@ -823,6 +690,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
       fotoUrl: form.fotoUrl || null,
       controlarEstoque: form.controlarEstoque,
       estoqueQtd: form.controlarEstoque && form.estoqueQtd ? Number(form.estoqueQtd) : null,
+      estoqueMinimo: form.controlarEstoque && form.estoqueMinimo ? Number(form.estoqueMinimo) : null,
       ehCombo: form.ehCombo,
     };
 
@@ -840,7 +708,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
         await sincronizarFormatoSaquinhoPrato(produtoId, preco, precoPrato);
       }
 
-      resetForm();
+      fecharModal();
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar produto');
@@ -854,36 +722,6 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
     load();
   };
 
-  const handleToggleVariacoes = (id: string) => {
-    setOpcoesAbertas(null);
-    setVariacoesAbertas((prev) => (prev === id ? null : id));
-  };
-
-  const handleToggleOpcoes = (id: string) => {
-    setVariacoesAbertas(null);
-    setOpcoesAbertas((prev) => (prev === id ? null : id));
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = produtos.findIndex((p) => p.id === active.id);
-    const newIndex = produtos.findIndex((p) => p.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const reordenados = arrayMove(produtos, oldIndex, newIndex);
-    setProdutos(reordenados); // otimista — a lista já reflete o arrasto na hora, sem esperar a API
-
-    // Renumera a lista inteira (não só o item arrastado) — produtos recém-cadastrados costumam
-    // empatar em ordem=0, então só trocar o valor de um item não move nada visualmente.
-    try {
-      await reordenarProdutos(empresaId, reordenados.map((p, i) => ({ id: p.id, ordem: i })));
-    } catch {
-      load(); // desfaz a atualização otimista recarregando do servidor se a chamada falhar
-    }
-  };
-
   const handleToggleEsgotado = async (produto: Produto) => {
     await setProdutoEsgotado(empresaId, produto.id, !produto.esgotadoHoje);
     load();
@@ -892,7 +730,7 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Remover este produto?')) return;
     await deleteProduto(empresaId, id);
-    if (editingId === id) resetForm();
+    if (editingId === id) fecharModal();
     load();
   };
 
@@ -940,215 +778,640 @@ const ProdutosTab: React.FC<ProdutosTabProps> = ({ empresaId }) => {
     }
   };
 
+  const toggleSelecionado = (id: string) => {
+    setSelecionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkAtivo = async (ativo: boolean) => {
+    await Promise.all(Array.from(selecionados).map((id) => setProdutoStatus(empresaId, id, ativo)));
+    setSelecionados(new Set());
+    load();
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Remover ${selecionados.size} produto(s) selecionado(s)?`)) return;
+    await Promise.all(Array.from(selecionados).map((id) => deleteProduto(empresaId, id)));
+    setSelecionados(new Set());
+    load();
+  };
+
+  /** Escapa um campo pra CSV — mesmo padrão usado no export de pedidos (crm.js). */
+  const csvField = (value: string | number) => {
+    const str = String(value ?? '');
+    if (/[",\n]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
+    return str;
+  };
+
+  const handleExportarCsv = () => {
+    const cabecalho = ['Nome', 'Código', 'Categoria', 'Preço', 'Estoque', 'Status', 'Vendas'];
+    const linhas = produtosFiltrados.map((p) => [
+      p.nome,
+      p.codigo || '',
+      p.categoria?.nome || '',
+      p.preco.toFixed(2),
+      p.controlarEstoque ? String(p.estoqueQtd ?? 0) : 'não controlado',
+      p.ativo ? 'Ativo' : 'Inativo',
+      String(p.vendasTotais ?? 0),
+    ]);
+    const csv = [cabecalho, ...linhas].map((linha) => linha.map(csvField).join(',')).join('\r\n');
+    const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'produtos.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /** Importa um CSV simples (Nome,Código,Categoria,Preço) — uma linha de cabeçalho + 1 produto por linha. */
+  const handleImportarCsv = async (file: File) => {
+    setImportando(true);
+    setError('');
+    try {
+      const texto = await file.text();
+      const linhas = texto.split(/\r?\n/).filter((l) => l.trim());
+      const linhasProdutos = linhas.slice(1); // pula o cabeçalho
+
+      for (const linha of linhasProdutos) {
+        const [nome, codigo, categoriaNome, precoStr] = linha.split(',').map((v) => v.trim());
+        const preco = parseFloat(precoStr);
+        if (!nome || Number.isNaN(preco) || preco <= 0) continue;
+        const categoria = categoriaNome ? categorias.find((c) => c.nome.toLowerCase() === categoriaNome.toLowerCase()) : undefined;
+        await createProduto(empresaId, {
+          nome,
+          codigo: codigo || null,
+          categoriaId: categoria?.id || null,
+          preco,
+          descricao: null,
+          precoPromocional: null,
+          fotoUrl: null,
+        });
+      }
+      load();
+    } catch {
+      setError('Não foi possível importar a planilha. Confira o formato: Nome,Código,Categoria,Preço.');
+    } finally {
+      setImportando(false);
+    }
+  };
+
+  const produtosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return produtos.filter((p) => {
+      if (termo && !p.nome.toLowerCase().includes(termo) && !(p.codigo || '').toLowerCase().includes(termo) && !(p.descricao || '').toLowerCase().includes(termo)) {
+        return false;
+      }
+      if (filtroCategoria && p.categoriaId !== filtroCategoria) return false;
+      if (filtroStatus === 'ativo' && !p.ativo) return false;
+      if (filtroStatus === 'inativo' && p.ativo) return false;
+      return true;
+    });
+  }, [produtos, busca, filtroCategoria, filtroStatus]);
+
+  const totalPaginas = Math.max(1, Math.ceil(produtosFiltrados.length / ITENS_POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const produtosPagina = produtosFiltrados.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
+
   return (
     <div>
-      <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-xl mb-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-800 text-sm">{editingId ? 'Editar produto' : 'Novo produto'}</h3>
-          {editingId && (
-            <button type="button" onClick={resetForm} className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
-              <X className="h-3.5 w-3.5" /> Cancelar edição
-            </button>
-          )}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-lg font-bold text-gray-800">Produtos</h2>
+          <p className="text-sm text-gray-500">Gerencie todos os produtos do seu cardápio</p>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-3">
-          <input
-            placeholder="Nome do produto"
-            value={form.nome}
-            onChange={(e) => setForm({ ...form, nome: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            required
-          />
-          <select
-            value={form.categoriaId}
-            onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-3.5 py-2 rounded-lg cursor-pointer disabled:opacity-60">
+            <Upload className="h-4 w-4" /> {importando ? 'Importando...' : 'Importar planilha'}
+            <input
+              type="file"
+              accept=".csv"
+              disabled={importando}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImportarCsv(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+          <button
+            onClick={handleExportarCsv}
+            className="flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-3.5 py-2 rounded-lg"
           >
-            <option value="">Sem categoria</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome}</option>
-            ))}
-          </select>
-          {categorias.length === 0 && (
-            <p className="md:col-span-2 text-xs text-gray-400 -mt-1">
-              Nenhuma categoria cadastrada ainda — crie uma na aba "Categorias".
-            </p>
-          )}
+            <Download className="h-4 w-4" /> Exportar
+          </button>
+          <button
+            onClick={abrirNovoProduto}
+            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            <Plus className="h-4 w-4" /> Novo produto
+          </button>
         </div>
+      </div>
 
-        <textarea
-          placeholder="Descrição (opcional)"
-          value={form.descricao}
-          onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-          rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
-        />
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Total de produtos</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Produtos ativos</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.ativos}</p>
+            <p className="text-[11px] text-gray-400">{stats.total > 0 ? ((stats.ativos / stats.total) * 100).toFixed(1) : 0}% do total</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><XCircle className="h-3.5 w-3.5 text-gray-400" /> Produtos inativos</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.inativos}</p>
+            <p className="text-[11px] text-gray-400">{stats.total > 0 ? ((stats.inativos / stats.total) * 100).toFixed(1) : 0}% do total</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Em estoque baixo</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.estoqueBaixo}</p>
+            {stats.estoqueBaixo > 0 && <p className="text-[11px] text-amber-600">Precisa de atenção</p>}
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><BarChart3 className="h-3.5 w-3.5" /> Produto mais vendido</p>
+            <p className="font-bold text-gray-800 truncate">{stats.maisVendido?.nome || '—'}</p>
+          </div>
+        </div>
+      )}
 
-        <div className="grid md:grid-cols-2 gap-3">
-          {!form.vendeSaquinhoPrato && (
-            <input
-              type="number"
-              step="0.01"
-              placeholder="Preço"
-              value={form.preco}
-              onChange={(e) => setForm({ ...form, preco: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              required
-            />
-          )}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
-            type="number"
-            step="0.01"
-            placeholder="Preço promocional (opcional)"
-            value={form.precoPromocional}
-            onChange={(e) => setForm({ ...form, precoPromocional: e.target.value })}
-            className={`px-3 py-2 border border-gray-300 rounded-lg text-sm ${form.vendeSaquinhoPrato ? 'md:col-span-2' : ''}`}
+            value={busca}
+            onChange={(e) => { setBusca(e.target.value); setPagina(1); }}
+            placeholder="Buscar por nome, descrição ou código..."
+            className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm"
           />
         </div>
-
-        <FotoInput value={form.fotoUrl} onChange={(url) => setForm({ ...form, fotoUrl: url })} />
-
-        <div className="flex items-center gap-3 flex-wrap">
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
-              checked={form.controlarEstoque}
-              onChange={(e) => setForm({ ...form, controlarEstoque: e.target.checked })}
-              className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-            />
-            <span className="text-sm text-gray-700">Controlar estoque</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
-              checked={form.ehCombo}
-              onChange={(e) => setForm({ ...form, ehCombo: e.target.checked })}
-              className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-            />
-            <span className="text-sm text-gray-700">Este produto é um combo</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
-              checked={form.vendeSaquinhoPrato}
-              onChange={(e) => setForm({ ...form, vendeSaquinhoPrato: e.target.checked })}
-              className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-            />
-            <span className="text-sm text-gray-700">Vende no saquinho e no prato (preços diferentes)</span>
-          </label>
-          {form.controlarEstoque && (
-            <input
-              type="number"
-              min={0}
-              placeholder="Quantidade em estoque"
-              value={form.estoqueQtd}
-              onChange={(e) => setForm({ ...form, estoqueQtd: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-48"
-            />
-          )}
-        </div>
-
-        {form.vendeSaquinhoPrato && (
-          <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-3">
-            <p className="text-xs font-semibold text-gray-600">
-              O cliente vai escolher "No Saquinho" ou "No Prato" antes de adicionar ao carrinho — informe o preço de cada formato.
-            </p>
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-500">Preço no Saquinho</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Ex: 32.00"
-                  value={form.precoSaquinho}
-                  onChange={(e) => setForm({ ...form, precoSaquinho: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  required
-                />
-                <FotoInput value={form.fotoSaquinho} onChange={(url) => setForm({ ...form, fotoSaquinho: url })} />
-                <input
-                  value={form.descricaoSaquinho}
-                  onChange={(e) => setForm({ ...form, descricaoSaquinho: e.target.value })}
-                  placeholder="Subtítulo (opcional)"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-500">Preço no Prato</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Ex: 36.00"
-                  value={form.precoPrato}
-                  onChange={(e) => setForm({ ...form, precoPrato: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  required
-                />
-                <FotoInput value={form.fotoPrato} onChange={(url) => setForm({ ...form, fotoPrato: url })} />
-                <input
-                  value={form.descricaoPrato}
-                  onChange={(e) => setForm({ ...form, descricaoPrato: e.target.value })}
-                  placeholder="Subtítulo (opcional)"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-60"
+        <select
+          value={filtroCategoria}
+          onChange={(e) => { setFiltroCategoria(e.target.value); setPagina(1); }}
+          className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"
         >
-          <Plus className="h-4 w-4" /> {saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Adicionar produto'}
-        </button>
-      </form>
+          <option value="">Todas as categorias</option>
+          {categorias.map((c) => (
+            <option key={c.id} value={c.id}>{c.nome}</option>
+          ))}
+        </select>
+        <select
+          value={filtroStatus}
+          onChange={(e) => { setFiltroStatus(e.target.value as typeof filtroStatus); setPagina(1); }}
+          className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"
+        >
+          <option value="">Todos os status</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+        <div className="flex border border-gray-300 rounded-lg overflow-hidden shrink-0">
+          <button
+            onClick={() => setVisao('tabela')}
+            title="Ver em tabela"
+            className={`p-2.5 ${visao === 'tabela' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+          >
+            <TableIcon className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setVisao('grade')}
+            title="Ver em grade"
+            className={`p-2.5 border-l border-gray-300 ${visao === 'grade' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
-      {produtosEstoqueBaixo.length > 0 && (
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-800">
-            <span className="font-semibold">{produtosEstoqueBaixo.length} produto{produtosEstoqueBaixo.length > 1 ? 's' : ''} com estoque baixo:</span>{' '}
-            {produtosEstoqueBaixo.map((p) => p.nome).join(', ')}
-          </p>
+      {selecionados.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 mb-4">
+          <span className="text-sm font-medium text-orange-800">{selecionados.size} selecionado{selecionados.size > 1 ? 's' : ''}</span>
+          <button onClick={() => handleBulkAtivo(true)} className="text-xs font-semibold bg-white border border-gray-300 hover:bg-gray-50 px-3 py-1.5 rounded-lg">
+            Ativar
+          </button>
+          <button onClick={() => handleBulkAtivo(false)} className="text-xs font-semibold bg-white border border-gray-300 hover:bg-gray-50 px-3 py-1.5 rounded-lg">
+            Desativar
+          </button>
+          <button onClick={handleBulkDelete} className="text-xs font-semibold bg-white border border-red-300 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg">
+            Excluir
+          </button>
+          <button onClick={() => setSelecionados(new Set())} className="text-xs text-orange-700 hover:underline ml-auto">
+            Limpar seleção
+          </button>
         </div>
       )}
 
       {loading ? (
         <p className="text-center text-gray-500 py-8">Carregando...</p>
-      ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={produtos.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {produtos.map((produto) => (
-                <ProdutoRow
-                  key={produto.id}
-                  produto={produto}
-                  empresaId={empresaId}
-                  variacoesAbertas={variacoesAbertas}
-                  opcoesAbertas={opcoesAbertas}
-                  duplicandoId={duplicandoId}
-                  onToggleVariacoes={handleToggleVariacoes}
-                  onToggleOpcoes={handleToggleOpcoes}
-                  onToggleEsgotado={handleToggleEsgotado}
-                  onToggleAtivo={handleToggleAtivo}
-                  onDuplicar={handleDuplicar}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
+      ) : visao === 'tabela' ? (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-left text-gray-500 bg-gray-50">
+                  <th className="py-3 px-4 w-8">
+                    <input
+                      type="checkbox"
+                      checked={produtosPagina.length > 0 && produtosPagina.every((p) => selecionados.has(p.id))}
+                      onChange={(e) => {
+                        setSelecionados((prev) => {
+                          const next = new Set(prev);
+                          produtosPagina.forEach((p) => (e.target.checked ? next.add(p.id) : next.delete(p.id)));
+                          return next;
+                        });
+                      }}
+                    />
+                  </th>
+                  <th className="py-3 px-4">Produto</th>
+                  <th className="py-3 px-4">Categoria</th>
+                  <th className="py-3 px-4">Preço</th>
+                  <th className="py-3 px-4">Estoque</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Vendas</th>
+                  <th className="py-3 px-4">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {produtosPagina.map((produto) => {
+                  const semEstoque = produto.controlarEstoque && (produto.estoqueQtd ?? 0) <= 0;
+                  const estoqueBaixo = produto.controlarEstoque && !semEstoque && produto.estoqueMinimo != null && (produto.estoqueQtd ?? 0) <= produto.estoqueMinimo;
+                  return (
+                    <tr key={produto.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4">
+                        <input type="checkbox" checked={selecionados.has(produto.id)} onChange={() => toggleSelecionado(produto.id)} />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3 min-w-[220px]">
+                          {produto.fotoUrl ? (
+                            <img src={produto.fotoUrl} alt={produto.nome} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                              <ImageOff className="h-4 w-4 text-gray-300" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-800 truncate flex items-center gap-1.5">
+                              {produto.nome}
+                              {produto.ehCombo && (
+                                <span className="flex items-center gap-1 text-[10px] font-medium bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full shrink-0">
+                                  <Layers className="h-2.5 w-2.5" /> Combo
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-gray-400">#{produto.codigo || produto.id.slice(0, 6).toUpperCase()}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-xs font-medium bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">
+                          {produto.categoria?.nome || 'Sem categoria'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {produto.precoPromocional != null && (
+                          <span className="text-xs text-gray-400 line-through block">R$ {produto.preco.toFixed(2)}</span>
+                        )}
+                        <span className="font-medium text-gray-800">R$ {(produto.precoPromocional ?? produto.preco).toFixed(2)}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {!produto.controlarEstoque ? (
+                          <span className="text-gray-400">—</span>
+                        ) : (
+                          <>
+                            <p className="text-gray-800">{produto.estoqueQtd ?? 0}</p>
+                            <p className={`text-xs ${semEstoque ? 'text-red-600' : estoqueBaixo ? 'text-amber-600' : 'text-emerald-600'}`}>
+                              {semEstoque ? 'Sem estoque' : estoqueBaixo ? 'Estoque baixo' : 'Em estoque'}
+                            </p>
+                          </>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => handleToggleAtivo(produto)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                            produto.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {produto.ativo ? 'Ativo' : 'Inativo'}
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{(produto.vendasTotais ?? 0).toLocaleString('pt-BR')} vendas</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span title={`${(produto.vendasTotais ?? 0).toLocaleString('pt-BR')} vendas no histórico`} className="text-gray-400">
+                            <BarChart3 className="h-4 w-4" />
+                          </span>
+                          <button
+                            onClick={() => handleDuplicar(produto)}
+                            disabled={duplicandoId === produto.id}
+                            title="Duplicar produto"
+                            className="text-gray-400 hover:text-gray-700 disabled:opacity-50"
+                          >
+                            {duplicandoId === produto.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+                          </button>
+                          <button onClick={() => handleEdit(produto)} className="text-gray-400 hover:text-gray-700">
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => handleDelete(produto.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {produtosPagina.length === 0 && (
+              <p className="text-center text-gray-500 py-10">Nenhum produto encontrado.</p>
+            )}
+          </div>
 
-              {produtos.length === 0 && (
-                <p className="text-center text-gray-500 py-8">Nenhum produto cadastrado ainda.</p>
-              )}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500">
+              Mostrando {produtosFiltrados.length === 0 ? 0 : (paginaAtual - 1) * ITENS_POR_PAGINA + 1} a{' '}
+              {Math.min(paginaAtual * ITENS_POR_PAGINA, produtosFiltrados.length)} de {produtosFiltrados.length} produtos
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                disabled={paginaAtual === 1}
+                className="p-2 border border-gray-300 rounded-lg disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPaginas || Math.abs(p - paginaAtual) <= 1)
+                .map((p, i, arr) => (
+                  <React.Fragment key={p}>
+                    {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 text-gray-400">…</span>}
+                    <button
+                      onClick={() => setPagina(p)}
+                      className={`h-8 w-8 rounded-lg text-sm font-medium ${p === paginaAtual ? 'bg-orange-500 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {p}
+                    </button>
+                  </React.Fragment>
+                ))}
+              <button
+                onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                disabled={paginaAtual === totalPaginas}
+                className="p-2 border border-gray-300 rounded-lg disabled:opacity-40"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
-          </SortableContext>
-        </DndContext>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {produtosPagina.map((produto) => (
+            <div key={produto.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              {produto.fotoUrl ? (
+                <img src={produto.fotoUrl} alt={produto.nome} className="w-full h-28 object-cover" />
+              ) : (
+                <div className="w-full h-28 bg-gray-100 flex items-center justify-center">
+                  <ImageOff className="h-6 w-6 text-gray-300" />
+                </div>
+              )}
+              <div className="p-3">
+                <p className="font-bold text-gray-800 text-sm truncate">{produto.nome}</p>
+                <p className="text-orange-600 font-bold text-sm">R$ {(produto.precoPromocional ?? produto.preco).toFixed(2)}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <button
+                    onClick={() => handleToggleAtivo(produto)}
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${produto.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}
+                  >
+                    {produto.ativo ? 'Ativo' : 'Inativo'}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleEdit(produto)} className="text-gray-400 hover:text-gray-700"><Pencil className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => handleDelete(produto.id)} className="text-red-500 hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {produtosPagina.length === 0 && <p className="col-span-full text-center text-gray-500 py-10">Nenhum produto encontrado.</p>}
+        </div>
       )}
+
+      <BottomSheet isOpen={modalAberto} onClose={fecharModal} title={editingId ? 'Editar produto' : 'Novo produto'}>
+        <form onSubmit={handleSubmit} className="p-5 space-y-3">
+          <div className="grid md:grid-cols-2 gap-3">
+            <input
+              placeholder="Nome do produto"
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              required
+            />
+            <input
+              placeholder="Código/SKU (opcional)"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            <select
+              value={form.categoriaId}
+              onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="">Sem categoria</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>{c.nome}</option>
+              ))}
+            </select>
+            {categorias.length === 0 && (
+              <p className="text-xs text-gray-400 self-center">Nenhuma categoria cadastrada ainda — crie uma na aba "Categorias".</p>
+            )}
+          </div>
+
+          <textarea
+            placeholder="Descrição (opcional)"
+            value={form.descricao}
+            onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+          />
+
+          <div className="grid md:grid-cols-2 gap-3">
+            {!form.vendeSaquinhoPrato && (
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Preço"
+                value={form.preco}
+                onChange={(e) => setForm({ ...form, preco: e.target.value })}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                required
+              />
+            )}
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Preço promocional (opcional)"
+              value={form.precoPromocional}
+              onChange={(e) => setForm({ ...form, precoPromocional: e.target.value })}
+              className={`px-3 py-2 border border-gray-300 rounded-lg text-sm ${form.vendeSaquinhoPrato ? 'md:col-span-2' : ''}`}
+            />
+          </div>
+
+          <FotoInput value={form.fotoUrl} onChange={(url) => setForm({ ...form, fotoUrl: url })} />
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="flex items-center gap-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                checked={form.controlarEstoque}
+                onChange={(e) => setForm({ ...form, controlarEstoque: e.target.checked })}
+                className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+              />
+              <span className="text-sm text-gray-700">Controlar estoque</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                checked={form.ehCombo}
+                onChange={(e) => setForm({ ...form, ehCombo: e.target.checked })}
+                className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+              />
+              <span className="text-sm text-gray-700">Este produto é um combo</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                checked={form.vendeSaquinhoPrato}
+                onChange={(e) => setForm({ ...form, vendeSaquinhoPrato: e.target.checked })}
+                className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+              />
+              <span className="text-sm text-gray-700">Vende no saquinho e no prato (preços diferentes)</span>
+            </label>
+          </div>
+
+          {editingId && (() => {
+            const produtoEmEdicao = produtos.find((p) => p.id === editingId);
+            if (!produtoEmEdicao) return null;
+            return (
+              <button
+                type="button"
+                onClick={() => handleToggleEsgotado(produtoEmEdicao)}
+                title="Pausar rapidamente sem desativar o produto"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium w-fit ${
+                  produtoEmEdicao.esgotadoHoje ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                <PackageX className="h-3.5 w-3.5" /> {produtoEmEdicao.esgotadoHoje ? 'Esgotado hoje (clique pra retomar)' : 'Marcar como esgotado hoje'}
+              </button>
+            );
+          })()}
+
+          {form.controlarEstoque && (
+            <div className="grid md:grid-cols-2 gap-3">
+              <input
+                type="number"
+                min={0}
+                placeholder="Quantidade em estoque"
+                value={form.estoqueQtd}
+                onChange={(e) => setForm({ ...form, estoqueQtd: e.target.value })}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <input
+                type="number"
+                min={0}
+                placeholder="Estoque mínimo (alerta no dashboard)"
+                value={form.estoqueMinimo}
+                onChange={(e) => setForm({ ...form, estoqueMinimo: e.target.value })}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          )}
+
+          {form.vendeSaquinhoPrato && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-3">
+              <p className="text-xs font-semibold text-gray-600">
+                O cliente vai escolher "No Saquinho" ou "No Prato" antes de adicionar ao carrinho — informe o preço de cada formato.
+              </p>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-500">Preço no Saquinho</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ex: 32.00"
+                    value={form.precoSaquinho}
+                    onChange={(e) => setForm({ ...form, precoSaquinho: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    required
+                  />
+                  <FotoInput value={form.fotoSaquinho} onChange={(url) => setForm({ ...form, fotoSaquinho: url })} />
+                  <input
+                    value={form.descricaoSaquinho}
+                    onChange={(e) => setForm({ ...form, descricaoSaquinho: e.target.value })}
+                    placeholder="Subtítulo (opcional)"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-500">Preço no Prato</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ex: 36.00"
+                    value={form.precoPrato}
+                    onChange={(e) => setForm({ ...form, precoPrato: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    required
+                  />
+                  <FotoInput value={form.fotoPrato} onChange={(url) => setForm({ ...form, fotoPrato: url })} />
+                  <input
+                    value={form.descricaoPrato}
+                    onChange={(e) => setForm({ ...form, descricaoPrato: e.target.value })}
+                    placeholder="Subtítulo (opcional)"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg disabled:opacity-60"
+          >
+            <Plus className="h-4 w-4" /> {saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Adicionar produto'}
+          </button>
+
+          {editingId && (
+            <div className="pt-3 mt-3 border-t border-gray-100 space-y-4">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2 flex items-center gap-1.5">
+                  <Boxes className="h-3.5 w-3.5" /> Variações
+                </h4>
+                <VariacoesManager empresaId={empresaId} produtoId={editingId} />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2 flex items-center gap-1.5">
+                  <ListChecks className="h-3.5 w-3.5" /> Opções e grupos
+                </h4>
+                <GruposOpcaoManager empresaId={empresaId} produtoId={editingId} />
+              </div>
+            </div>
+          )}
+        </form>
+      </BottomSheet>
     </div>
   );
 };

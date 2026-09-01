@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  LogOut, ArrowLeft, UserCircle, Lock, Loader2,
-  Store, PowerOff, Menu, X, ChevronLeft, ChevronRight, Mail, Phone,
+  ArrowLeft, UserCircle, Lock, Loader2,
+  ChevronLeft, ChevronRight, Mail, Phone,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
@@ -13,6 +13,7 @@ import { loginMotoboy } from '../lib/motoboysApi';
 import { saveMotoboySession } from '../lib/motoboySession';
 import { MotoboySession } from '../types/Motoboy';
 import Header from '../components/Header';
+import AdminHeader from '../components/admin/AdminHeader';
 import ProdutosTab from '../components/admin/ProdutosTab';
 import PedidosTab from '../components/admin/PedidosTab';
 import MotoboysTab from '../components/admin/MotoboysTab';
@@ -31,6 +32,9 @@ import MissoesTab from '../components/admin/MissoesTab';
 import SuporteTab from '../components/admin/SuporteTab';
 import AppLojistaTab from '../components/admin/AppLojistaTab';
 import DashboardTab from '../components/admin/DashboardTab';
+import CombosTab from '../components/admin/CombosTab';
+import OpcoesGruposTab from '../components/admin/OpcoesGruposTab';
+import TabelaPrecosTab from '../components/admin/TabelaPrecosTab';
 import TenantAdminNav, { Tab, TODOS_OS_ITENS } from '../components/admin/TenantAdminNav';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
@@ -355,39 +359,17 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header
-        rightExtra={
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setNavOpen((v) => !v)}
-              aria-label={navOpen ? 'Fechar menu' : 'Abrir menu'}
-              aria-expanded={navOpen}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              {navOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-            {lojaAberta !== null && (
-              <button
-                onClick={handleToggleLoja}
-                disabled={togglingLoja}
-                title="Botão de emergência: fecha a loja para novos pedidos imediatamente"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-colors text-xs sm:text-sm font-medium disabled:opacity-60 ${
-                  lojaAberta ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'
-                }`}
-              >
-                {lojaAberta ? <Store className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
-                <span className="hidden sm:inline">{lojaAberta ? 'Loja Aberta' : 'Loja Fechada'}</span>
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-xl transition-colors text-xs sm:text-sm"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
-          </div>
-        }
+      <AdminHeader
+        empresaNome={empresa.nome}
+        empresaSlug={slug}
+        session={session}
+        navOpen={navOpen}
+        onToggleNav={() => setNavOpen((v) => !v)}
+        lojaAberta={lojaAberta}
+        togglingLoja={togglingLoja}
+        onToggleLoja={handleToggleLoja}
+        onLogout={handleLogout}
+        onSelectTab={setTab}
       />
 
       {/* No mobile, o menu aberto cobre a tela — toca fora (nesse fundo escurecido) pra fechar. */}
@@ -450,6 +432,10 @@ const AdminPage: React.FC = () => {
         {tab === 'pedidos' && <PedidosTab empresaId={empresa.id} />}
         {tab === 'produtos' && <ProdutosTab empresaId={empresa.id} />}
         {tab === 'categorias' && <CategoriasTab empresaId={empresa.id} />}
+        {tab === 'combos' && <CombosTab empresaId={empresa.id} />}
+        {tab === 'adicionais' && <OpcoesGruposTab empresaId={empresa.id} somenteAdicionais />}
+        {tab === 'opcoes-grupos' && <OpcoesGruposTab empresaId={empresa.id} />}
+        {tab === 'tabela-precos' && <TabelaPrecosTab empresaId={empresa.id} />}
         {tab === 'motoboys' && <MotoboysTab empresaId={empresa.id} />}
         {tab === 'fechamento' && <CaixaTab empresaId={empresa.id} />}
         {tab === 'gateways' && <GatewaysTab empresaId={empresa.id} />}
