@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Printer } from 'lucide-react';
 import { fetchPedidos } from '../../lib/pedidos';
 import { Pedido } from '../../types/Pedido';
 import { FORMA_PAGAMENTO_LABELS } from '../../types/Pedido';
+import { useTenant } from '../../context/TenantContext';
 
 interface PdvHistoricoTabProps {
   empresaId: string;
@@ -14,6 +16,11 @@ const PdvHistoricoTab: React.FC<PdvHistoricoTabProps> = ({ empresaId }) => {
   const [data, setData] = useState(todayISO());
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
+  const { slug } = useTenant();
+
+  const handleReimprimir = (pedidoId: string) => {
+    window.open(`/${slug}/admin/pedidos/${pedidoId}/imprimir`, '_blank', 'width=400,height=680');
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,6 +70,7 @@ const PdvHistoricoTab: React.FC<PdvHistoricoTabProps> = ({ empresaId }) => {
                 <th className="py-2.5 px-4">Forma</th>
                 <th className="py-2.5 px-4">Total</th>
                 <th className="py-2.5 px-4">Hora</th>
+                <th className="py-2.5 px-4"></th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +82,11 @@ const PdvHistoricoTab: React.FC<PdvHistoricoTabProps> = ({ empresaId }) => {
                   <td className="py-2.5 px-4">{FORMA_PAGAMENTO_LABELS[p.formaPagamento]}</td>
                   <td className="py-2.5 px-4 font-bold text-orange-600">R$ {p.total.toFixed(2)}</td>
                   <td className="py-2.5 px-4 text-xs text-gray-500">{new Date(p.entregueEm || p.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="py-2.5 px-4">
+                    <button onClick={() => handleReimprimir(p.id)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-orange-600">
+                      <Printer className="h-3.5 w-3.5" /> Reimprimir
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
