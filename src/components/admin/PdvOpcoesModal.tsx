@@ -19,7 +19,14 @@ const PdvOpcoesModal: React.FC<PdvOpcoesModalProps> = ({ produto, onClose, onCon
 
   useEffect(() => {
     if (produto) {
-      setSelecoes({});
+      // Complementos já vêm pré-marcados com o que o cardápio define como padrão — agiliza o
+      // caso comum (só clicar "Adicionar"), sem impedir o operador de ajustar antes.
+      const padrao: Record<string, string[]> = {};
+      for (const g of produto.gruposOpcao || []) {
+        const marcadas = g.opcoes.filter((o) => o.selecionadoPorPadrao).map((o) => o.id);
+        if (marcadas.length > 0) padrao[g.id] = marcadas;
+      }
+      setSelecoes(padrao);
       setQuantidade(1);
       setObservacoes('');
       setErro('');

@@ -1,4 +1,4 @@
-export type TipoMovimentoCaixa = 'ENTRADA' | 'SAIDA' | 'SANGRIA' | 'FECHAMENTO';
+export type TipoMovimentoCaixa = 'ENTRADA' | 'SAIDA' | 'SANGRIA' | 'SUPRIMENTO' | 'FECHAMENTO';
 export type CategoriaMovimentoCaixa = 'COMPRAS_ESTOQUE' | 'TAXAS_TARIFAS' | 'OUTROS';
 
 export interface MovimentoCaixa {
@@ -19,6 +19,7 @@ export const TIPO_MOVIMENTO_LABELS: Record<TipoMovimentoCaixa, string> = {
   ENTRADA: 'Entrada',
   SAIDA: 'Saída',
   SANGRIA: 'Sangria',
+  SUPRIMENTO: 'Suprimento',
   FECHAMENTO: 'Fechamento',
 };
 

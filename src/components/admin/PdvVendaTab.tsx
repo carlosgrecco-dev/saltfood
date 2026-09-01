@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search, UserRound, Plus, Trash2, Minus, Eye, EyeOff, Wallet, TrendingUp, HandCoins,
-  ArrowDownToLine, PiggyBank, Lock, Loader2, Pencil, Check, LayoutGrid,
+  ArrowDownToLine, PiggyBank, Lock, Loader2, Pencil, Check, LayoutGrid, Maximize, Minimize,
+  MinusCircle, PlusCircle,
 } from 'lucide-react';
 import { Produto, Categoria } from '../../types/Produto';
 import { Cliente } from '../../types/Cliente';
@@ -15,7 +16,9 @@ import { createPedidoComoAdmin, finalizarVendaPdv, PagamentoLinhaPdv } from '../
 import { validarCupom } from '../../lib/cupons';
 import { fetchOperadoresPdv } from '../../lib/operadoresPdv';
 import { fetchCaixaAberta, abrirCaixa, fetchResumoCaixaSessao } from '../../lib/caixaSessoes';
+import { createMovimentoCaixa } from '../../lib/movimentosCaixa';
 import { fetchEmpresaById } from '../../lib/empresas';
+import { getAdminSession } from '../../lib/adminAuth';
 import { CupomValidado } from '../../types/Cupom';
 import BottomSheet from '../BottomSheet';
 import PdvOpcoesModal from './PdvOpcoesModal';
@@ -83,6 +86,19 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
   const [splitAberto, setSplitAberto] = useState(false);
   const [splitLinhas, setSplitLinhas] = useState<{ formaPagamento: FormaPagamento; valor: string }[]>([]);
 
+  const [formaSelecionada, setFormaSelecionada] = useState<FormaPagamento | null>(null);
+  const [valorRecebidoDraft, setValorRecebidoDraft] = useState('');
+
+  const [telaCheia, setTelaCheia] = useState(false);
+  const buscaProdutoRef = useRef<HTMLInputElement>(null);
+
+  const [acaoCaixaAberta, setAcaoCaixaAberta] = useState<'SANGRIA' | 'SUPRIMENTO' | null>(null);
+  const [acaoCaixaValor, setAcaoCaixaValor] = useState('');
+  const [acaoCaixaDescricao, setAcaoCaixaDescricao] = useState('');
+  const [salvandoAcaoCaixa, setSalvandoAcaoCaixa] = useState(false);
+
+  const sessaoAdmin = getAdminSession(empresaId);
+
   const carregarCaixa = useCallback(async () => {
     setCarregandoCaixa(true);
     try {
@@ -123,7 +139,8 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
       const operador = operadores.find((o) => o.id === operadorAberturaId);
       await abrirCaixa(empresaId, {
         operadorId: operadorAberturaId || undefined,
-        operadorNome: operador ? undefined : 'Administrador',
+        // Sem operador de PDV escolhido, a abertura fica no nome de quem está logado no admin agora.
+        operadorNome: operador ? undefined : (sessaoAdmin?.nome || 'Administrador'),
         fundoTroco: Number(fundoTrocoDraft) || 0,
       });
       setAbrirCaixaAberto(false);
@@ -132,6 +149,41 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
       alert(err instanceof Error ? err.message : 'Não foi possível abrir o caixa.');
     } finally {
       setAbrindoCaixa(false);
+    }
+  };
+
+  useEffect(() => {
+    const handler = () => setTelaCheia(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  const toggleTelaCheia = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const handleRegistrarAcaoCaixa = async () => {
+    const valor = Number(acaoCaixaValor);
+    if (!acaoCaixaAberta || !Number.isFinite(valor) || valor <= 0) return;
+    setSalvandoAcaoCaixa(true);
+    try {
+      await createMovimentoCaixa(empresaId, {
+        tipo: acaoCaixaAberta,
+        valor,
+        descricao: acaoCaixaDescricao || (acaoCaixaAberta === 'SANGRIA' ? 'Sangria de caixa' : 'Reforço de troco'),
+      });
+      setAcaoCaixaAberta(null);
+      setAcaoCaixaValor('');
+      setAcaoCaixaDescricao('');
+      await carregarCaixa();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível registrar.');
+    } finally {
+      setSalvandoAcaoCaixa(false);
     }
   };
 
@@ -227,6 +279,8 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
     setErroCupom('');
     setTaxaEntregaManual('0');
     setTaxasServicos('0');
+    setFormaSelecionada(null);
+    setValorRecebidoDraft('');
   };
 
   const acrescimoManual = taxaEntregaValor + taxasServicosValor;
@@ -270,12 +324,17 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
     }
   };
 
-  const handlePagarComForma = async (formaPagamento: FormaPagamento) => {
-    if (itens.length === 0) return;
-    setProcessando(formaPagamento);
+  const valorRecebido = Number(valorRecebidoDraft) || 0;
+  const troco = formaSelecionada === 'DINHEIRO' && valorRecebido > total ? valorRecebido - total : 0;
+
+  const handleConcluirCompra = async () => {
+    if (itens.length === 0 || !formaSelecionada) return;
+    setProcessando('concluir');
     try {
       const pedido = await criarPedidoBase();
-      await finalizarVendaPdv(empresaId, pedido.id, [{ formaPagamento, valor: total }], acrescimoManual > 0 ? { acrescimoManual, motivoAjusteManual: 'Taxa de entrega / serviço (PDV)' } : undefined);
+      const linha: PagamentoLinhaPdv = { formaPagamento: formaSelecionada, valor: total };
+      if (formaSelecionada === 'DINHEIRO' && valorRecebido > 0) linha.trocoPara = valorRecebido;
+      await finalizarVendaPdv(empresaId, pedido.id, [linha], acrescimoManual > 0 ? { acrescimoManual, motivoAjusteManual: 'Taxa de entrega / serviço (PDV)' } : undefined);
       limparVenda();
       await carregarCaixa();
       if (imprimirAposFinalizar) window.print();
@@ -311,6 +370,62 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
     }
   };
 
+  const algumModalAberto = buscaClienteAberta || novoClienteAberto || splitAberto || !!produtoParaOpcoes || !!acaoCaixaAberta || abrirCaixaAberto;
+
+  useEffect(() => {
+    if (!caixa) return;
+    const handler = (e: KeyboardEvent) => {
+      if (algumModalAberto) return;
+      switch (true) {
+        case e.key === 'F3':
+          e.preventDefault();
+          buscaProdutoRef.current?.focus();
+          break;
+        case e.key === 'F4':
+          e.preventDefault();
+          setBuscaClienteAberta(true);
+          break;
+        case e.key === 'F6':
+          e.preventDefault();
+          limparVenda();
+          break;
+        case e.key === 'F7':
+          e.preventDefault();
+          handleGuardarPedido();
+          break;
+        case e.key === 'F8':
+          e.preventDefault();
+          handleSalvarPreVenda();
+          break;
+        case e.key === 'F9':
+          e.preventDefault();
+          toggleTelaCheia();
+          break;
+        case e.key === 'F10':
+          e.preventDefault();
+          setFormaSelecionada('PIX');
+          break;
+        case e.key === 'F11':
+          e.preventDefault();
+          setFormaSelecionada('DINHEIRO');
+          break;
+        case e.key === 'F12':
+          e.preventDefault();
+          setFormaSelecionada('CARTAO');
+          break;
+        case e.altKey && e.key.toLowerCase() === 'm':
+          e.preventDefault();
+          if (permiteSplit) abrirSplit();
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caixa, algumModalAberto, permiteSplit, itens, observacoes, clienteSelecionado, cupomValidado, taxaEntregaManual, taxasServicos]);
+
   const valorClasse = ocultarValores ? 'blur-sm select-none' : '';
 
   if (carregandoCaixa) {
@@ -329,10 +444,17 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
 
         <BottomSheet isOpen={abrirCaixaAberto} onClose={() => setAbrirCaixaAberto(false)} title="Abrir caixa">
           <div className="p-6 space-y-4">
+            <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
+              <UserRound className="h-5 w-5 text-gray-400 shrink-0" />
+              <div>
+                <p className="text-xs text-gray-500">Abrindo com o login de</p>
+                <p className="font-bold text-gray-800 text-sm">{sessaoAdmin?.nome || 'Administrador'}</p>
+              </div>
+            </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Operador</label>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Ou registrar em nome de um operador de PDV cadastrado</label>
               <select value={operadorAberturaId} onChange={(e) => setOperadorAberturaId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                <option value="">Administrador</option>
+                <option value="">— usar meu login —</option>
                 {operadores.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
               </select>
             </div>
@@ -452,29 +574,66 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
         </label>
 
         <div className="grid grid-cols-3 gap-2 mb-3">
-          <button onClick={limparVenda} className="border border-red-200 text-red-600 hover:bg-red-50 font-medium text-sm py-2.5 rounded-lg">Cancelar</button>
-          <button onClick={handleGuardarPedido} disabled={itens.length === 0 || processando === 'guardar'} className="border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2.5 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1.5">
-            {processando === 'guardar' ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Guardar pedido
+          <button onClick={limparVenda} className="border border-red-200 text-red-600 hover:bg-red-50 font-medium text-sm py-2.5 rounded-lg">
+            Cancelar <span className="block text-[10px] font-normal opacity-70">F6</span>
+          </button>
+          <button onClick={handleGuardarPedido} disabled={itens.length === 0 || processando === 'guardar'} className="border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2.5 rounded-lg disabled:opacity-50 flex flex-col items-center justify-center gap-0.5">
+            <span className="flex items-center gap-1.5">{processando === 'guardar' ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Guardar pedido</span>
+            <span className="text-[10px] font-normal opacity-70">F7</span>
           </button>
           <button onClick={handleSalvarPreVenda} disabled={itens.length === 0} className="border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2.5 rounded-lg disabled:opacity-50">
-            Pré-venda
+            Pré-venda <span className="block text-[10px] font-normal opacity-70">F8</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <button onClick={() => handlePagarComForma('PIX')} disabled={itens.length === 0 || !!processando} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1.5">
-            {processando === 'PIX' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'PIX'}
+        <p className="text-xs font-medium text-gray-500 mb-1.5">Forma de pagamento</p>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <button
+            onClick={() => setFormaSelecionada('PIX')}
+            disabled={itens.length === 0}
+            className={`font-bold text-sm py-3 rounded-lg disabled:opacity-50 border-2 transition-colors ${formaSelecionada === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-emerald-700 border-emerald-200 hover:border-emerald-400'}`}
+          >
+            PIX <span className="block text-[10px] font-normal opacity-70">F10</span>
           </button>
-          <button onClick={() => handlePagarComForma('DINHEIRO')} disabled={itens.length === 0 || !!processando} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-sm py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1.5">
-            {processando === 'DINHEIRO' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Dinheiro'}
+          <button
+            onClick={() => setFormaSelecionada('DINHEIRO')}
+            disabled={itens.length === 0}
+            className={`font-bold text-sm py-3 rounded-lg disabled:opacity-50 border-2 transition-colors ${formaSelecionada === 'DINHEIRO' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-700 border-amber-200 hover:border-amber-400'}`}
+          >
+            Dinheiro <span className="block text-[10px] font-normal opacity-70">F11</span>
           </button>
-          <button onClick={() => handlePagarComForma('CARTAO')} disabled={itens.length === 0 || !!processando} className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-sm py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1.5">
-            {processando === 'CARTAO' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Cartão'}
+          <button
+            onClick={() => setFormaSelecionada('CARTAO')}
+            disabled={itens.length === 0}
+            className={`font-bold text-sm py-3 rounded-lg disabled:opacity-50 border-2 transition-colors ${formaSelecionada === 'CARTAO' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-blue-700 border-blue-200 hover:border-blue-400'}`}
+          >
+            Cartão <span className="block text-[10px] font-normal opacity-70">F12</span>
           </button>
         </div>
+
+        {formaSelecionada === 'DINHEIRO' && (
+          <div className="flex items-center gap-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-amber-700 mb-1 block">Valor recebido (opcional)</label>
+              <input type="number" min={0} step="0.01" value={valorRecebidoDraft} onChange={(e) => setValorRecebidoDraft(e.target.value)} placeholder={`R$ ${total.toFixed(2)}`} className="w-full px-3 py-1.5 border border-amber-300 rounded-lg text-sm bg-white" />
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-xs text-amber-700">Troco</p>
+              <p className="font-bold text-amber-800">R$ {troco.toFixed(2)}</p>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleConcluirCompra}
+          disabled={itens.length === 0 || !formaSelecionada || !!processando}
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1.5"
+        >
+          {processando === 'concluir' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Concluir compra
+        </button>
         {permiteSplit && (
           <button onClick={abrirSplit} disabled={itens.length === 0 || !!processando} className="w-full mt-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2 rounded-lg disabled:opacity-50">
-            Mais formas
+            Mais formas <span className="text-[10px] text-gray-400">Alt+M</span>
           </button>
         )}
       </div>
@@ -485,8 +644,15 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input value={buscaProduto} onChange={(e) => setBuscaProduto(e.target.value)} placeholder="Buscar produto (F3)" className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              <input ref={buscaProdutoRef} value={buscaProduto} onChange={(e) => setBuscaProduto(e.target.value)} placeholder="Buscar produto (F3)" className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm" />
             </div>
+            <button
+              onClick={toggleTelaCheia}
+              title={telaCheia ? 'Sair da tela cheia (F9)' : 'Tela cheia (F9)'}
+              className="shrink-0 flex items-center justify-center h-9 w-9 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50"
+            >
+              {telaCheia ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </button>
           </div>
           <div className="flex flex-wrap gap-1.5 mb-4">
             <button onClick={() => setCategoriaAtiva('todas')} className={`px-3 py-1.5 rounded-full text-xs font-medium ${categoriaAtiva === 'todas' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Todos</button>
@@ -516,9 +682,17 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-gray-800">Resumo do caixa</p>
-            <button onClick={toggleOcultarValores} title={ocultarValores ? 'Mostrar valores' : 'Ocultar valores'} className="text-gray-400 hover:text-gray-700">
-              {ocultarValores ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setAcaoCaixaAberta('SUPRIMENTO')} title="Registrar suprimento (reforço de troco)" className="flex items-center gap-1 text-xs border border-gray-300 rounded-lg px-2 py-1 text-gray-600 hover:bg-gray-50">
+                <PlusCircle className="h-3.5 w-3.5" /> Suprimento
+              </button>
+              <button onClick={() => setAcaoCaixaAberta('SANGRIA')} title="Registrar sangria" className="flex items-center gap-1 text-xs border border-gray-300 rounded-lg px-2 py-1 text-red-600 hover:bg-red-50">
+                <MinusCircle className="h-3.5 w-3.5" /> Sangria
+              </button>
+              <button onClick={toggleOcultarValores} title={ocultarValores ? 'Mostrar valores' : 'Ocultar valores'} className="text-gray-400 hover:text-gray-700">
+                {ocultarValores ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-gray-50 rounded-xl p-3">
@@ -597,6 +771,31 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
           </div>
           <button onClick={handleConfirmarSplit} disabled={Math.abs(somaSplit - total) > 0.01 || processando === 'split'} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 rounded-lg disabled:opacity-60 flex items-center justify-center gap-1.5">
             {processando === 'split' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Confirmar pagamento
+          </button>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet isOpen={!!acaoCaixaAberta} onClose={() => setAcaoCaixaAberta(null)} title={acaoCaixaAberta === 'SANGRIA' ? 'Registrar sangria' : 'Registrar suprimento'}>
+        <div className="p-6 space-y-4">
+          <p className="text-xs text-gray-500">
+            {acaoCaixaAberta === 'SANGRIA'
+              ? 'Retirada de dinheiro do caixa (ex: depósito no banco, pagamento avulso).'
+              : 'Reforço de troco no meio do turno (ex: trazer mais dinheiro pro caixa).'}
+          </p>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Valor (R$)</label>
+            <input autoFocus type="number" min={0} step="0.01" value={acaoCaixaValor} onChange={(e) => setAcaoCaixaValor(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Descrição (opcional)</label>
+            <input value={acaoCaixaDescricao} onChange={(e) => setAcaoCaixaDescricao(e.target.value)} placeholder={acaoCaixaAberta === 'SANGRIA' ? 'Ex: depósito no banco' : 'Ex: reforço de troco'} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
+          <button
+            onClick={handleRegistrarAcaoCaixa}
+            disabled={salvandoAcaoCaixa || !Number(acaoCaixaValor)}
+            className={`w-full font-medium py-2.5 rounded-lg disabled:opacity-60 flex items-center justify-center gap-1.5 text-white ${acaoCaixaAberta === 'SANGRIA' ? 'bg-red-500 hover:bg-red-600' : 'bg-orange-500 hover:bg-orange-600'}`}
+          >
+            {salvandoAcaoCaixa ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Registrar
           </button>
         </div>
       </BottomSheet>
