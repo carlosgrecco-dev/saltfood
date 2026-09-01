@@ -1,10 +1,16 @@
 import { CrmSummary } from '../types/Crm';
+import { IndicadoresResumo } from '../types/Indicadores';
 import { apiRequestAsAdmin, getAdminSession, ApiError } from './adminAuth';
 import { API_URL } from './apiClient';
 
 export async function fetchCrmResumo(empresaId: string, de: string, ate: string): Promise<CrmSummary> {
   const params = new URLSearchParams({ de, ate });
   return apiRequestAsAdmin<CrmSummary>(empresaId, `/empresas/${empresaId}/crm/resumo?${params.toString()}`);
+}
+
+export async function fetchIndicadores(empresaId: string, de: string, ate: string): Promise<IndicadoresResumo> {
+  const params = new URLSearchParams({ de, ate });
+  return apiRequestAsAdmin<IndicadoresResumo>(empresaId, `/empresas/${empresaId}/crm/indicadores?${params.toString()}`);
 }
 
 /** Baixa o CSV do período direto no navegador do admin (a rota exige o header Authorization, por isso não dá pra usar um <a href> simples). */

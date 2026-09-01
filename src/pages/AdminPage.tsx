@@ -40,6 +40,7 @@ import EstoqueTab from '../components/admin/EstoqueTab';
 import FornecedoresTab from '../components/admin/FornecedoresTab';
 import AvaliacoesTab from '../components/admin/AvaliacoesTab';
 import GruposClientesTab from '../components/admin/GruposClientesTab';
+import IndicadoresTab from '../components/admin/IndicadoresTab';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
@@ -460,6 +461,7 @@ const AdminPage: React.FC = () => {
         {tab === 'missoes' && <MissoesTab empresaId={empresa.id} />}
         {tab === 'avaliacoes' && <AvaliacoesTab empresaId={empresa.id} />}
         {tab === 'grupos-clientes' && <GruposClientesTab empresaId={empresa.id} />}
+        {tab === 'indicadores' && <IndicadoresTab empresaId={empresa.id} />}
         {tab === 'suporte' && <SuporteTab empresaId={empresa.id} />}
         {tab === 'app-lojista' && <AppLojistaTab />}
       </div>
