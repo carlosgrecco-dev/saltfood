@@ -1,5 +1,7 @@
 import { Cliente } from './Cliente';
 
+export type FidelidadeMetodo = 'CARIMBO' | 'PONTOS';
+
 export interface ClienteFidelidade extends Cliente {
   /** Pedidos ENTREGUE deste cliente (todo o histórico). */
   pedidosCount: number;
@@ -21,6 +23,9 @@ export interface FidelidadeStats {
   clientesAtivosPercent: number;
   carimbosEmitidos: FidelidadeStatPeriodo;
   itensGratisResgatados: FidelidadeStatPeriodo;
+  /** Só relevante quando config.fidelidadeMetodo = PONTOS. */
+  pontosEmitidos: FidelidadeStatPeriodo;
+  pontosResgatados: FidelidadeStatPeriodo;
   economiaGerada: FidelidadeStatPeriodo;
 }
 
@@ -30,7 +35,9 @@ export interface FidelidadeRankingItem {
   totalUnidadesCompradas: number;
 }
 
-export type FidelidadeAtividadeTipo = 'RESGATE' | 'CASHBACK_USADO' | 'CARIMBO' | 'CASHBACK_CREDITADO';
+export type FidelidadeAtividadeTipo =
+  | 'RESGATE' | 'CASHBACK_USADO' | 'CARIMBO' | 'CASHBACK_CREDITADO'
+  | 'PONTOS_CREDITADOS' | 'PONTOS_USADOS';
 
 export interface FidelidadeAtividade {
   tipo: FidelidadeAtividadeTipo;
@@ -42,11 +49,22 @@ export interface FidelidadeAtividade {
 }
 
 export interface FidelidadeConfig {
+  fidelidadeMetodo: FidelidadeMetodo;
+  fidelidadeAtiva: boolean;
+  fidelidadeNomePrograma: string | null;
   fidelidadeValidadeDias: number | null;
+  fidelidadeTermos: string | null;
+  fidelidadeLimitePrata: number;
+  fidelidadeLimiteOuro: number;
   cashbackPercent: number;
   fidelidadeNomeItem: string | null;
   indicacaoRecompensaUnidades: number;
   unidadesParaPremio: number;
+  pontosNomeMoeda: string | null;
+  pontosPorReal: number;
+  pontosValidadeMeses: number | null;
+  pontosResgateMinimo: number | null;
+  pontosValorReal: number;
 }
 
 export interface FidelidadeAdminResumo {

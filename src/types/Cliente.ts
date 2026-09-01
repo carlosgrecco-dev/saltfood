@@ -12,6 +12,8 @@ export interface Cliente {
   indicadoPorId: string | null;
   indicacoesConcluidas: number;
   saldoCashback: number;
+  /** Só relevante quando a loja usa Empresa.fidelidadeMetodo = PONTOS. */
+  saldoPontos: number;
   /** Já vinculado a uma conta SaltFood Coins (compartilhada entre lojas)? Ver contaPlataformaDetectada abaixo pro caso "ainda não, mas existe uma pra vincular". */
   contaPlataformaId?: string | null;
   /** true quando existe uma conta SaltFood Coins com este e-mail em outra loja, mas ESTE cliente ainda não está vinculado a ela — front pode oferecer vincular (com confirmação de senha). */
@@ -45,10 +47,17 @@ export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
   OURO: 'Ouro',
 };
 
-/** Nível de fidelidade calculado sobre o total histórico de unidades compradas — cosmético, não altera nenhuma regra de resgate. */
-export function loyaltyTier(cliente: Pick<Cliente, 'totalUnidadesCompradas'>): LoyaltyTier {
-  if (cliente.totalUnidadesCompradas >= 50) return 'OURO';
-  if (cliente.totalUnidadesCompradas >= 20) return 'PRATA';
+/**
+ * Nível de fidelidade calculado sobre o total histórico de unidades compradas — cosmético, não
+ * altera nenhuma regra de resgate. Limites configuráveis por loja (Empresa.fidelidadeLimitePrata/
+ * fidelidadeLimiteOuro); os padrões 20/50 abaixo cobrem o histórico de antes desses campos existirem.
+ */
+export function loyaltyTier(
+  cliente: Pick<Cliente, 'totalUnidadesCompradas'>,
+  limites: { prata: number; ouro: number } = { prata: 20, ouro: 50 }
+): LoyaltyTier {
+  if (cliente.totalUnidadesCompradas >= limites.ouro) return 'OURO';
+  if (cliente.totalUnidadesCompradas >= limites.prata) return 'PRATA';
   return 'BRONZE';
 }
 

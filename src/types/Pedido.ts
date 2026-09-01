@@ -81,6 +81,8 @@ export interface Pedido {
   clienteId: string | null;
   itemGratisResgatado: boolean;
   unidadesFidelidadeCreditadas: number | null;
+  pontosUsados: number | null;
+  pontosCreditados: number | null;
   cupomId: string | null;
   cupomCodigo: string | null;
   descontoCupom: number | null;

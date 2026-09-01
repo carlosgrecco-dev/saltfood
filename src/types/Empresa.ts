@@ -98,10 +98,21 @@ export interface Empresa {
   heroLinkUrl: string | null;
   termosConteudo: string | null;
   googleBusinessReviewUrl: string | null;
+  fidelidadeMetodo: 'CARIMBO' | 'PONTOS';
+  fidelidadeAtiva: boolean;
+  fidelidadeNomePrograma: string | null;
   fidelidadeLogoUrl: string | null;
   fidelidadeValidadeDias: number | null;
   fidelidadeAvisoFaltam: number | null;
   fidelidadeNomeItem: string | null;
+  fidelidadeTermos: string | null;
+  fidelidadeLimitePrata: number;
+  fidelidadeLimiteOuro: number;
+  pontosNomeMoeda: string | null;
+  pontosPorReal: number | null;
+  pontosValidadeMeses: number | null;
+  pontosResgateMinimo: number | null;
+  pontosValorReal: number | null;
   cashbackPercent: number | null;
   /** SaltFood Coins — opt-in pra participar da carteira global (independente do cashback local acima). */
   participaSaltfoodCoins: boolean;
@@ -157,12 +168,25 @@ export interface EmpresaFormInput {
   indicadoPor?: string;
 }
 
+/** Todos os campos são opcionais — o PUT só altera o que vier presente no corpo. */
 export interface FidelidadeConfigInput {
-  fidelidadeLogoUrl: string | null;
-  fidelidadeValidadeDias: number | null;
-  fidelidadeAvisoFaltam: number | null;
-  fidelidadeNomeItem: string | null;
-  cashbackPercent: number | null;
+  fidelidadeMetodo?: 'CARIMBO' | 'PONTOS';
+  fidelidadeAtiva?: boolean;
+  fidelidadeNomePrograma?: string | null;
+  fidelidadeLogoUrl?: string | null;
+  fidelidadeValidadeDias?: number | null;
+  fidelidadeAvisoFaltam?: number | null;
+  fidelidadeNomeItem?: string | null;
+  fidelidadeTermos?: string | null;
+  fidelidadeLimitePrata?: number;
+  fidelidadeLimiteOuro?: number;
+  pontosNomeMoeda?: string | null;
+  pontosPorReal?: number | null;
+  pontosValidadeMeses?: number | null;
+  pontosResgateMinimo?: number | null;
+  pontosValorReal?: number | null;
+  cashbackPercent?: number | null;
+  indicacaoRecompensaUnidades?: number;
 }
 
 export interface FuncionalidadesConfigInput {

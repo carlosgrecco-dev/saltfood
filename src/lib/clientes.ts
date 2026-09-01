@@ -52,6 +52,19 @@ export async function fetchClientesFidelidadeResumo(empresaId: string, de?: stri
   return apiRequestAsAdmin<FidelidadeAdminResumo>(empresaId, `/empresas/${empresaId}/clientes/admin-resumo${query}`);
 }
 
+/** Zera o progresso de fidelidade (pontos ou carimbos, conforme o método ativo) de TODOS os clientes da loja — ação em lote e irreversível. */
+export async function zerarFidelidade(empresaId: string): Promise<void> {
+  return apiRequestAsAdmin<void>(empresaId, `/empresas/${empresaId}/clientes/fidelidade/zerar`, { method: 'POST' });
+}
+
+/** Soma (ou subtrai, com valor negativo) uma quantidade de pontos/carimbos pra TODOS os clientes da loja de uma vez. */
+export async function ajustarFidelidadeEmLote(empresaId: string, valor: number): Promise<void> {
+  return apiRequestAsAdmin<void>(empresaId, `/empresas/${empresaId}/clientes/fidelidade/ajustar-em-lote`, {
+    method: 'POST',
+    body: JSON.stringify({ valor }),
+  });
+}
+
 /** Marca 1 item grátis do cliente como resgatado (retirada balcão/telefone, sem pedido online). */
 export async function liberarResgateCliente(empresaId: string, clienteId: string): Promise<Cliente> {
   return apiRequestAsAdmin<Cliente>(empresaId, `/empresas/${empresaId}/clientes/${clienteId}/liberar-resgate`, { method: 'POST' });
@@ -62,6 +75,14 @@ export async function adicionarUnidadesFidelidade(empresaId: string, clienteId: 
   return apiRequestAsAdmin<Cliente>(empresaId, `/empresas/${empresaId}/clientes/${clienteId}/adicionar-unidades`, {
     method: 'POST',
     body: JSON.stringify({ unidades }),
+  });
+}
+
+/** Credita pontos manualmente no saldo do cliente (bônus avulso, correção, compra por telefone/balcão) — método PONTOS. */
+export async function adicionarPontosFidelidade(empresaId: string, clienteId: string, pontos: number): Promise<Cliente> {
+  return apiRequestAsAdmin<Cliente>(empresaId, `/empresas/${empresaId}/clientes/${clienteId}/adicionar-pontos`, {
+    method: 'POST',
+    body: JSON.stringify({ pontos }),
   });
 }
 

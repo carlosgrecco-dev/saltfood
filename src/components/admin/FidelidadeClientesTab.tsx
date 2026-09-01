@@ -4,7 +4,7 @@ import {
   ChevronUp, ChevronDown, Download, LayoutGrid, Table as TableIcon, SlidersHorizontal, Trophy,
   Lightbulb, CheckCircle2, Plus, Loader2, UserPlus,
 } from 'lucide-react';
-import { fetchClientesFidelidadeResumo, liberarResgateCliente, adicionarUnidadesFidelidade } from '../../lib/clientes';
+import { fetchClientesFidelidadeResumo, liberarResgateCliente, adicionarUnidadesFidelidade, adicionarPontosFidelidade } from '../../lib/clientes';
 import { fetchPedidos } from '../../lib/pedidos';
 import { Pedido } from '../../types/Pedido';
 import {
@@ -49,10 +49,10 @@ const formatDataHora = (iso: string) => {
   return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
-const proximoNivelLabel = (totalUnidades: number) => {
-  if (totalUnidades >= 50) return 'Nível máximo';
-  if (totalUnidades >= 20) return `Para Ouro: ${50 - totalUnidades} unid.`;
-  return `Para Prata: ${20 - totalUnidades} unid.`;
+const proximoNivelLabel = (totalUnidades: number, limitePrata: number, limiteOuro: number) => {
+  if (totalUnidades >= limiteOuro) return 'Nível máximo';
+  if (totalUnidades >= limitePrata) return `Para Ouro: ${limiteOuro - totalUnidades} unid.`;
+  return `Para Prata: ${limitePrata - totalUnidades} unid.`;
 };
 
 interface EventoFidelidade {
@@ -67,12 +67,14 @@ const eventosDoPedido = (p: Pedido): EventoFidelidade[] => {
   const eventos: EventoFidelidade[] = [];
   if (p.itemGratisResgatado) eventos.push({ tipo: 'RESGATE', pedidoNumero: p.numero, data: p.createdAt });
   if (p.cashbackUsado) eventos.push({ tipo: 'CASHBACK_USADO', valor: p.cashbackUsado, pedidoNumero: p.numero, data: p.createdAt });
+  if (p.pontosUsados) eventos.push({ tipo: 'PONTOS_USADOS', unidades: p.pontosUsados, pedidoNumero: p.numero, data: p.createdAt });
   if (p.unidadesFidelidadeCreditadas) eventos.push({ tipo: 'CARIMBO', unidades: p.unidadesFidelidadeCreditadas, pedidoNumero: p.numero, data: p.entregueEm || p.createdAt });
+  if (p.pontosCreditados) eventos.push({ tipo: 'PONTOS_CREDITADOS', unidades: p.pontosCreditados, pedidoNumero: p.numero, data: p.entregueEm || p.createdAt });
   if (p.cashbackCreditado) eventos.push({ tipo: 'CASHBACK_CREDITADO', valor: p.cashbackCreditado, pedidoNumero: p.numero, data: p.entregueEm || p.createdAt });
   return eventos;
 };
 
-const descricaoAtividade = (a: { tipo: FidelidadeAtividadeTipo; valor?: number; unidades?: number }) => {
+const descricaoAtividade = (a: { tipo: FidelidadeAtividadeTipo; valor?: number; unidades?: number }, nomeMoeda = 'pts') => {
   switch (a.tipo) {
     case 'CARIMBO':
       return { label: `ganhou ${a.unidades} carimbo${a.unidades !== 1 ? 's' : ''}`, badge: `+${a.unidades}`, positivo: true };
@@ -82,6 +84,10 @@ const descricaoAtividade = (a: { tipo: FidelidadeAtividadeTipo; valor?: number; 
       return { label: `usou R$ ${(a.valor ?? 0).toFixed(2)} de cashback`, badge: `-R$ ${(a.valor ?? 0).toFixed(2)}`, positivo: false };
     case 'CASHBACK_CREDITADO':
       return { label: `ganhou R$ ${(a.valor ?? 0).toFixed(2)} de cashback`, badge: `+R$ ${(a.valor ?? 0).toFixed(2)}`, positivo: true };
+    case 'PONTOS_CREDITADOS':
+      return { label: `ganhou ${a.unidades} ${nomeMoeda}`, badge: `+${a.unidades}`, positivo: true };
+    case 'PONTOS_USADOS':
+      return { label: `resgatou ${a.unidades} ${nomeMoeda}`, badge: `-${a.unidades}`, positivo: false };
     default:
       return { label: '', badge: '', positivo: true };
   }
@@ -149,20 +155,27 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
     }
   };
 
-  const handleAdicionarUnidades = async (cliente: ClienteFidelidade) => {
+  const ehPontos = resumo?.config.fidelidadeMetodo === 'PONTOS';
+  const nomeMoeda = resumo?.config.pontosNomeMoeda || 'pts';
+
+  const handleCreditarManual = async (cliente: ClienteFidelidade) => {
     const valor = Number(unidadesDraft[cliente.id]);
     if (!Number.isInteger(valor) || valor < 1) {
-      alert('Digite quantas unidades adicionar (número inteiro maior que zero).');
+      alert(`Digite quantos ${ehPontos ? nomeMoeda : 'unidades'} adicionar (número inteiro maior que zero).`);
       return;
     }
     setProcessandoId(cliente.id);
     try {
-      await adicionarUnidadesFidelidade(empresaId, cliente.id, valor);
+      if (ehPontos) {
+        await adicionarPontosFidelidade(empresaId, cliente.id, valor);
+      } else {
+        await adicionarUnidadesFidelidade(empresaId, cliente.id, valor);
+      }
       setUnidadesDraft((prev) => ({ ...prev, [cliente.id]: '' }));
       await load();
       setDetalheCliente(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Não foi possível adicionar as unidades.');
+      alert(err instanceof Error ? err.message : 'Não foi possível creditar.');
     } finally {
       setProcessandoId(null);
     }
@@ -187,10 +200,11 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
 
   const linhas = useMemo(() => {
     const clientes = resumo?.clientes ?? [];
+    const limites = { prata: resumo?.config.fidelidadeLimitePrata ?? 20, ouro: resumo?.config.fidelidadeLimiteOuro ?? 50 };
     return clientes.map((cliente) => ({
       cliente,
       progresso: loyaltyProgress(cliente),
-      tier: loyaltyTier(cliente),
+      tier: loyaltyTier(cliente, limites),
       expiracao: loyaltyExpiracao(cliente, { fidelidadeValidadeDias: resumo?.config.fidelidadeValidadeDias ?? null }),
     }));
   }, [resumo]);
@@ -233,14 +247,14 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
       let cmp = 0;
       switch (sortField) {
         case 'nome': cmp = a.cliente.nome.localeCompare(b.cliente.nome); break;
-        case 'carimbos': cmp = a.cliente.totalUnidadesCompradas - b.cliente.totalUnidadesCompradas; break;
+        case 'carimbos': cmp = ehPontos ? a.cliente.saldoPontos - b.cliente.saldoPontos : a.cliente.totalUnidadesCompradas - b.cliente.totalUnidadesCompradas; break;
         case 'pedidos': cmp = a.cliente.pedidosCount - b.cliente.pedidosCount; break;
         case 'gasto': cmp = a.cliente.gastoTotal - b.cliente.gastoTotal; break;
         case 'ultimoPedido': cmp = new Date(a.cliente.ultimoPedidoEm || 0).getTime() - new Date(b.cliente.ultimoPedidoEm || 0).getTime(); break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [linhas, busca, filtroTier, filtroStatus, somenteProntos, sortField, sortDir]);
+  }, [linhas, busca, filtroTier, filtroStatus, somenteProntos, sortField, sortDir, ehPontos]);
 
   const totalPaginas = Math.max(1, Math.ceil(filtradas.length / itensPorPagina));
   const paginaAtual = Math.min(pagina, totalPaginas);
@@ -252,14 +266,14 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
       cliente.telefone || '',
       cliente.email || '',
       LOYALTY_TIER_LABELS[tier],
-      cliente.totalUnidadesCompradas,
+      ehPontos ? cliente.saldoPontos : cliente.totalUnidadesCompradas,
       cliente.pedidosCount,
       cliente.gastoTotal.toFixed(2),
       cliente.ultimoPedidoEm ? formatDataHora(cliente.ultimoPedidoEm) : '',
       cliente.ativo ? 'Ativo' : 'Inativo',
     ]);
     const csv = [
-      ['Nome', 'Telefone', 'Email', 'Nível', 'Carimbos', 'Pedidos', 'Gasto total', 'Último pedido', 'Status'],
+      ['Nome', 'Telefone', 'Email', 'Nível', ehPontos ? nomeMoeda : 'Carimbos', 'Pedidos', 'Gasto total', 'Último pedido', 'Status'],
       ...linhasCsv,
     ].map((l) => l.join(';')).join('\n');
     const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8;' });
@@ -299,16 +313,33 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
           <p className="text-2xl font-bold text-gray-800">{stats.clientesAtivos}</p>
           <p className="text-[11px] text-gray-400">{stats.clientesAtivosPercent.toFixed(1)}% do total</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-amber-500" /> Carimbos emitidos</p>
-          <p className="text-2xl font-bold text-gray-800">{stats.carimbosEmitidos.atual}</p>
-          <TrendMini atual={stats.carimbosEmitidos.atual} anterior={stats.carimbosEmitidos.anterior} />
-        </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Gift className="h-3.5 w-3.5 text-blue-500" /> Itens grátis resgatados</p>
-          <p className="text-2xl font-bold text-gray-800">{stats.itensGratisResgatados.atual}</p>
-          <TrendMini atual={stats.itensGratisResgatados.atual} anterior={stats.itensGratisResgatados.anterior} />
-        </div>
+        {ehPontos ? (
+          <>
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-amber-500" /> {nomeMoeda} emitidos</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.pontosEmitidos.atual}</p>
+              <TrendMini atual={stats.pontosEmitidos.atual} anterior={stats.pontosEmitidos.anterior} />
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Gift className="h-3.5 w-3.5 text-blue-500" /> {nomeMoeda} resgatados</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.pontosResgatados.atual}</p>
+              <TrendMini atual={stats.pontosResgatados.atual} anterior={stats.pontosResgatados.anterior} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-amber-500" /> Carimbos emitidos</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.carimbosEmitidos.atual}</p>
+              <TrendMini atual={stats.carimbosEmitidos.atual} anterior={stats.carimbosEmitidos.anterior} />
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Gift className="h-3.5 w-3.5 text-blue-500" /> Itens grátis resgatados</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.itensGratisResgatados.atual}</p>
+              <TrendMini atual={stats.itensGratisResgatados.atual} anterior={stats.itensGratisResgatados.anterior} />
+            </div>
+          </>
+        )}
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5"><Wallet className="h-3.5 w-3.5 text-rose-500" /> Economia gerada</p>
           <p className="text-2xl font-bold text-gray-800">R$ {stats.economiaGerada.atual.toFixed(2)}</p>
@@ -398,7 +429,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                   <tr className="border-b border-gray-200 text-left text-gray-500 bg-gray-50">
                     <SortHeader field="nome" label="Cliente" />
                     <th className="py-3 px-4">Nível</th>
-                    <SortHeader field="carimbos" label="Carimbos" />
+                    <SortHeader field="carimbos" label={ehPontos ? nomeMoeda.charAt(0).toUpperCase() + nomeMoeda.slice(1) : 'Carimbos'} />
                     <SortHeader field="pedidos" label="Pedidos" />
                     <SortHeader field="gasto" label="Gasto total" />
                     <SortHeader field="ultimoPedido" label="Último pedido" />
@@ -421,8 +452,17 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <p className="font-medium text-gray-800">{cliente.totalUnidadesCompradas}</p>
-                        <p className="text-[11px] text-gray-400">{proximoNivelLabel(cliente.totalUnidadesCompradas)}</p>
+                        {ehPontos ? (
+                          <>
+                            <p className="font-medium text-gray-800">{cliente.saldoPontos} {nomeMoeda}</p>
+                            <p className="text-[11px] text-gray-400">{proximoNivelLabel(cliente.totalUnidadesCompradas, config.fidelidadeLimitePrata, config.fidelidadeLimiteOuro)}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-medium text-gray-800">{cliente.totalUnidadesCompradas}</p>
+                            <p className="text-[11px] text-gray-400">{proximoNivelLabel(cliente.totalUnidadesCompradas, config.fidelidadeLimitePrata, config.fidelidadeLimiteOuro)}</p>
+                          </>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-gray-600">{cliente.pedidosCount}</td>
                       <td className="py-3 px-4 text-gray-800 font-medium">R$ {cliente.gastoTotal.toFixed(2)}</td>
@@ -440,14 +480,16 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                           <button onClick={() => handleAbrirHistorico(cliente)} title="Histórico de fidelidade" className="text-gray-400 hover:text-gray-700">
                             <Clock className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleLiberarResgate(cliente)}
-                            disabled={expiracao.disponiveis === 0 || processandoId === cliente.id}
-                            title={expiracao.disponiveis > 0 ? 'Liberar resgate' : 'Sem resgates disponíveis'}
-                            className="text-gray-400 hover:text-orange-600 disabled:opacity-30 disabled:hover:text-gray-400"
-                          >
-                            <Gift className={`h-4 w-4 ${expiracao.disponiveis > 0 ? 'text-orange-500' : ''}`} />
-                          </button>
+                          {!ehPontos && (
+                            <button
+                              onClick={() => handleLiberarResgate(cliente)}
+                              disabled={expiracao.disponiveis === 0 || processandoId === cliente.id}
+                              title={expiracao.disponiveis > 0 ? 'Liberar resgate' : 'Sem resgates disponíveis'}
+                              className="text-gray-400 hover:text-orange-600 disabled:opacity-30 disabled:hover:text-gray-400"
+                            >
+                              <Gift className={`h-4 w-4 ${expiracao.disponiveis > 0 ? 'text-orange-500' : ''}`} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -470,7 +512,9 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                       <Medal className="h-2.5 w-2.5" /> {LOYALTY_TIER_LABELS[tier]}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">{cliente.totalUnidadesCompradas} carimbos · {proximoNivelLabel(cliente.totalUnidadesCompradas)}</p>
+                  <p className="text-xs text-gray-400 mb-2">
+                    {ehPontos ? `${cliente.saldoPontos} ${nomeMoeda}` : `${cliente.totalUnidadesCompradas} carimbos`} · {proximoNivelLabel(cliente.totalUnidadesCompradas, config.fidelidadeLimitePrata, config.fidelidadeLimiteOuro)}
+                  </p>
                   <div className="flex items-center justify-between text-sm mb-3">
                     <span className="text-gray-600">{cliente.pedidosCount} pedidos</span>
                     <span className="font-semibold text-gray-800">R$ {cliente.gastoTotal.toFixed(2)}</span>
@@ -482,13 +526,15 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                     <button onClick={() => handleAbrirHistorico(cliente)} className="p-1.5 text-gray-400 hover:text-gray-700">
                       <Clock className="h-4 w-4" />
                     </button>
-                    <button
-                      onClick={() => handleLiberarResgate(cliente)}
-                      disabled={expiracao.disponiveis === 0 || processandoId === cliente.id}
-                      className="p-1.5 text-gray-400 hover:text-orange-600 disabled:opacity-30"
-                    >
-                      <Gift className={`h-4 w-4 ${expiracao.disponiveis > 0 ? 'text-orange-500' : ''}`} />
-                    </button>
+                    {!ehPontos && (
+                      <button
+                        onClick={() => handleLiberarResgate(cliente)}
+                        disabled={expiracao.disponiveis === 0 || processandoId === cliente.id}
+                        className="p-1.5 text-gray-400 hover:text-orange-600 disabled:opacity-30"
+                      >
+                        <Gift className={`h-4 w-4 ${expiracao.disponiveis > 0 ? 'text-orange-500' : ''}`} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -568,14 +614,41 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             <p className="font-bold text-gray-800 mb-3">Resumo do programa</p>
             <div className="space-y-2.5 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-500">Regra de carimbos</span>
-                <span className="font-medium text-gray-800 text-right">{config.unidadesParaPremio} compras = 1 grátis</span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-500">Prazo de resgate</span>
-                <span className="font-medium text-gray-800 text-right">{config.fidelidadeValidadeDias ? `${config.fidelidadeValidadeDias} dias` : 'Sem prazo'}</span>
-              </div>
+              {ehPontos ? (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Regra de pontuação</span>
+                    <span className="font-medium text-gray-800 text-right">R$ 1,00 = {config.pontosPorReal} {nomeMoeda}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">{nomeMoeda} expiram em</span>
+                    <span className="font-medium text-gray-800 text-right">{config.pontosValidadeMeses ? `${config.pontosValidadeMeses} meses` : 'Sem validade'}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Resgate mínimo</span>
+                    <span className="font-medium text-gray-800 text-right">{config.pontosResgateMinimo ? `${config.pontosResgateMinimo} ${nomeMoeda}` : 'Sem mínimo'}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Valor do {nomeMoeda.replace(/s$/, '')}</span>
+                    <span className="font-medium text-gray-800 text-right">R$ {config.pontosValorReal.toFixed(2)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Regra de carimbos</span>
+                    <span className="font-medium text-gray-800 text-right">{config.unidadesParaPremio} compras = 1 grátis</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Prazo de resgate</span>
+                    <span className="font-medium text-gray-800 text-right">{config.fidelidadeValidadeDias ? `${config.fidelidadeValidadeDias} dias` : 'Sem prazo'}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-500">Item do prêmio</span>
+                    <span className="font-medium text-gray-800 text-right">{config.fidelidadeNomeItem || 'Não definido'}</span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-gray-500">Cashback</span>
                 <span className="font-medium text-gray-800 text-right">{config.cashbackPercent > 0 ? `${config.cashbackPercent}% por pedido` : 'Desativado'}</span>
@@ -583,10 +656,6 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
               <div className="flex items-center justify-between gap-2">
                 <span className="text-gray-500">Bônus por indicação</span>
                 <span className="font-medium text-gray-800 text-right">{config.indicacaoRecompensaUnidades} unid.</span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-500">Item do prêmio</span>
-                <span className="font-medium text-gray-800 text-right">{config.fidelidadeNomeItem || 'Não definido'}</span>
               </div>
             </div>
             {onAbrirConfiguracoes && (
@@ -603,7 +672,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
           <p className="font-bold text-gray-800 mb-3">Atividades recentes</p>
           <div className="space-y-2.5">
             {resumo.atividadesRecentes.map((a, i) => {
-              const d = descricaoAtividade(a);
+              const d = descricaoAtividade(a, nomeMoeda);
               return (
                 <div key={i} className="flex items-center justify-between gap-2 text-sm">
                   <div className="min-w-0">
@@ -644,7 +713,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
 
       <BottomSheet isOpen={!!detalheCliente} onClose={() => setDetalheCliente(null)} title="Detalhes do cliente">
         {detalheCliente && (() => {
-          const tier = loyaltyTier(detalheCliente);
+          const tier = loyaltyTier(detalheCliente, { prata: config.fidelidadeLimitePrata, ouro: config.fidelidadeLimiteOuro });
           const progresso = loyaltyProgress(detalheCliente);
           const expiracao = loyaltyExpiracao(detalheCliente, { fidelidadeValidadeDias: config.fidelidadeValidadeDias });
           const processando = processandoId === detalheCliente.id;
@@ -660,27 +729,41 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                 <p className="text-sm text-gray-500">{detalheCliente.email}{detalheCliente.telefone ? ` · ${detalheCliente.telefone}` : ''}</p>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Progresso pro próximo item grátis</span>
-                  <span className="text-xs font-mono text-gray-600">{progresso.stamps}/{LOYALTY_STAMPS_GOAL}</span>
+              {ehPontos ? (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><Star className="h-3 w-3" /> Saldo de {nomeMoeda}</p>
+                  <p className="text-xl font-bold text-gray-800">{detalheCliente.saldoPontos} {nomeMoeda}</p>
+                  {config.pontosResgateMinimo != null && (
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {detalheCliente.saldoPontos >= config.pontosResgateMinimo
+                        ? 'Já pode resgatar no próximo pedido'
+                        : `Faltam ${config.pontosResgateMinimo - detalheCliente.saldoPontos} ${nomeMoeda} pro resgate mínimo`}
+                    </p>
+                  )}
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full rounded-full bg-orange-500" style={{ width: `${(progresso.stamps / LOYALTY_STAMPS_GOAL) * 100}%` }} />
-                </div>
-                {expiracao.disponiveis > 0 && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <span className="flex items-center gap-1 text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
-                      <Gift className="h-3 w-3" /> {expiracao.disponiveis} pronto{expiracao.disponiveis > 1 ? 's' : ''} p/ resgate
-                    </span>
-                    {expiracao.expiraEm && (
-                      <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <Clock className="h-2.5 w-2.5" /> {formatDiasRestantes(expiracao.expiraEm)}
-                      </span>
-                    )}
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">Progresso pro próximo item grátis</span>
+                    <span className="text-xs font-mono text-gray-600">{progresso.stamps}/{LOYALTY_STAMPS_GOAL}</span>
                   </div>
-                )}
-              </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full rounded-full bg-orange-500" style={{ width: `${(progresso.stamps / LOYALTY_STAMPS_GOAL) * 100}%` }} />
+                  </div>
+                  {expiracao.disponiveis > 0 && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
+                        <Gift className="h-3 w-3" /> {expiracao.disponiveis} pronto{expiracao.disponiveis > 1 ? 's' : ''} p/ resgate
+                      </span>
+                      {expiracao.expiraEm && (
+                        <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                          <Clock className="h-2.5 w-2.5" /> {formatDiasRestantes(expiracao.expiraEm)}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
@@ -701,7 +784,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                 </div>
               </div>
 
-              {expiracao.disponiveis > 0 && (
+              {!ehPontos && expiracao.disponiveis > 0 && (
                 <button
                   onClick={() => handleLiberarResgate(detalheCliente)}
                   disabled={processando}
@@ -712,7 +795,9 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
               )}
 
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Creditar unidades (retirada/compra por telefone)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                  {ehPontos ? `Creditar ${nomeMoeda} (bônus, correção, retirada por telefone)` : 'Creditar unidades (retirada/compra por telefone)'}
+                </p>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -723,7 +808,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
                   <button
-                    onClick={() => handleAdicionarUnidades(detalheCliente)}
+                    onClick={() => handleCreditarManual(detalheCliente)}
                     disabled={processando || !unidadesDraft[detalheCliente.id]}
                     className="flex items-center gap-1 bg-gray-800 hover:bg-gray-900 text-white text-sm px-3 py-2 rounded-lg disabled:opacity-60"
                   >
@@ -743,7 +828,7 @@ const FidelidadeClientesTab: React.FC<FidelidadeClientesTabProps> = ({ empresaId
           ) : (
             <div className="space-y-3">
               {historicoEventos.map((ev, i) => {
-                const d = descricaoAtividade(ev);
+                const d = descricaoAtividade(ev, nomeMoeda);
                 return (
                   <div key={i} className="flex items-center justify-between gap-2 text-sm border-b border-gray-100 pb-2.5">
                     <div>
