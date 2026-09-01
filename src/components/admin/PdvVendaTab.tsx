@@ -23,6 +23,7 @@ import { CupomValidado } from '../../types/Cupom';
 import BottomSheet from '../BottomSheet';
 import PdvOpcoesModal from './PdvOpcoesModal';
 import { salvarPreVenda } from '../../lib/pdvPreVendas';
+import { useTenant } from '../../context/TenantContext';
 
 interface PdvVendaTabProps {
   empresaId: string;
@@ -91,6 +92,7 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
 
   const [telaCheia, setTelaCheia] = useState(false);
   const buscaProdutoRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [acaoCaixaAberta, setAcaoCaixaAberta] = useState<'SANGRIA' | 'SUPRIMENTO' | null>(null);
   const [acaoCaixaValor, setAcaoCaixaValor] = useState('');
@@ -98,6 +100,18 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
   const [salvandoAcaoCaixa, setSalvandoAcaoCaixa] = useState(false);
 
   const sessaoAdmin = getAdminSession(empresaId);
+  const { slug } = useTenant();
+
+  /** Abre a janela ANTES de qualquer await — se abrir só depois (ex: após o await de
+   * finalizarVendaPdv), o navegador entende que não veio direto do clique e bloqueia como popup.
+   * Devolve uma função pra redirecionar essa mesma janela pro pedido certo assim que ele existir. */
+  const prepararJanelaComanda = (): ((pedidoId: string) => void) => {
+    if (!imprimirAposFinalizar) return () => {};
+    const janela = window.open('', '_blank', 'width=400,height=680');
+    return (pedidoId: string) => {
+      if (janela) janela.location.href = `/${slug}/admin/pedidos/${pedidoId}/imprimir`;
+    };
+  };
 
   const carregarCaixa = useCallback(async () => {
     setCarregandoCaixa(true);
@@ -162,7 +176,9 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      document.documentElement.requestFullscreen().catch(() => {});
+      // Pede tela cheia só no container do PDV (não no documento inteiro) — assim o menu lateral
+      // e o cabeçalho do admin somem de verdade, em vez de só esticar tudo junto.
+      containerRef.current?.requestFullscreen().catch(() => {});
     }
   };
 
@@ -330,6 +346,7 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
   const handleConcluirCompra = async () => {
     if (itens.length === 0 || !formaSelecionada) return;
     setProcessando('concluir');
+    const redirecionarComanda = prepararJanelaComanda();
     try {
       const pedido = await criarPedidoBase();
       const linha: PagamentoLinhaPdv = { formaPagamento: formaSelecionada, valor: total };
@@ -337,7 +354,7 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
       await finalizarVendaPdv(empresaId, pedido.id, [linha], acrescimoManual > 0 ? { acrescimoManual, motivoAjusteManual: 'Taxa de entrega / serviço (PDV)' } : undefined);
       limparVenda();
       await carregarCaixa();
-      if (imprimirAposFinalizar) window.print();
+      redirecionarComanda(pedido.id);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Não foi possível finalizar a venda.');
     } finally {
@@ -355,6 +372,7 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
   const handleConfirmarSplit = async () => {
     if (Math.abs(somaSplit - total) > 0.01) return;
     setProcessando('split');
+    const redirecionarComanda = prepararJanelaComanda();
     try {
       const pedido = await criarPedidoBase();
       const pagamentos: PagamentoLinhaPdv[] = splitLinhas.map((l) => ({ formaPagamento: l.formaPagamento, valor: Number(l.valor) }));
@@ -362,7 +380,7 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
       setSplitAberto(false);
       limparVenda();
       await carregarCaixa();
-      if (imprimirAposFinalizar) window.print();
+      redirecionarComanda(pedido.id);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Não foi possível finalizar a venda.');
     } finally {
@@ -472,7 +490,10 @@ const PdvVendaTab: React.FC<PdvVendaTabProps> = ({ empresaId }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-4">
+    <div
+      ref={containerRef}
+      className={`grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-4 ${telaCheia ? 'bg-gray-50 p-4 overflow-y-auto h-screen w-screen' : ''}`}
+    >
       {/* Coluna esquerda: carrinho */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-gray-100">
