@@ -52,6 +52,50 @@ export async function createPedido(empresaId: string, input: PedidoInput): Promi
   }, session?.token);
 }
 
+/** Pedido manual criado pelo admin (balcão/mesa/retirada/delivery) — usa o token do admin, não do cliente. */
+export async function createPedidoComoAdmin(empresaId: string, input: PedidoInput): Promise<Pedido> {
+  return apiRequestAsAdmin<Pedido>(empresaId, `/empresas/${empresaId}/pedidos`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export interface PedidoEditInput {
+  clienteNome?: string;
+  clienteTelefone?: string;
+  endereco?: string;
+  bairro?: string;
+  referencia?: string;
+  observacoes?: string;
+  formaPagamento?: string;
+  trocoPara?: number | null;
+}
+
+/** Edita dados gerais de um pedido ainda não finalizado — não mexe em itens/valores. */
+export async function updatePedido(empresaId: string, id: string, payload: PedidoEditInput): Promise<Pedido> {
+  return apiRequestAsAdmin<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+/** Adiciona itens a um pedido ainda não finalizado (mesma regra de negócio do PDV). */
+export async function addItensPedido(
+  empresaId: string,
+  id: string,
+  itens: { produtoId: string; quantidade: number; observacoes?: string; opcoes?: string[] }[]
+): Promise<Pedido> {
+  return apiRequestAsAdmin<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}/itens`, {
+    method: 'POST',
+    body: JSON.stringify({ itens }),
+  });
+}
+
+/** Remove um item de um pedido ainda não finalizado. */
+export async function removeItemPedido(empresaId: string, id: string, itemId: string): Promise<Pedido> {
+  return apiRequestAsAdmin<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}/itens/${itemId}`, { method: 'DELETE' });
+}
+
 export async function updatePedidoStatus(
   empresaId: string,
   id: string,

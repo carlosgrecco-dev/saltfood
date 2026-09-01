@@ -9,6 +9,8 @@ import { fetchPedidos, updatePedidoStatus, assignMotoboy, liberarResgateFidelida
 import { fetchMotoboys } from '../../lib/motoboysApi';
 import { useTenant } from '../../context/TenantContext';
 import ConfirmarPagamentoEntrega from '../ConfirmarPagamentoEntrega';
+import NovoPedidoModal from './NovoPedidoModal';
+import EditarPedidoModal from './EditarPedidoModal';
 
 interface PedidosTabProps {
   empresaId: string;
@@ -117,6 +119,8 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
   const [alarmeAtivo, setAlarmeAtivo] = useState(false);
   const [pagamentosConfirmados, setPagamentosConfirmados] = useState<Record<string, number | null>>({});
   const [maisAcoesAberto, setMaisAcoesAberto] = useState(false);
+  const [modalNovoPedido, setModalNovoPedido] = useState(false);
+  const [modalEditarPedido, setModalEditarPedido] = useState<Pedido | null>(null);
 
   const idsConhecidosRef = useRef<Set<string> | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -334,7 +338,7 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
             )}
           </div>
           <button
-            onClick={() => alert('Pra criar um pedido manual (balcão/mesa/retirada), use o PDV do app do lojista.')}
+            onClick={() => setModalNovoPedido(true)}
             className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2 rounded-lg"
           >
             <Package className="h-4 w-4" /> Novo pedido
@@ -657,8 +661,9 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
                   <Printer className="h-4 w-4" /> Imprimir
                 </button>
                 <button
-                  onClick={() => alert('Edição de itens do pedido ainda não está disponível — cancele e crie um novo pelo PDV se precisar corrigir.')}
-                  className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg"
+                  onClick={() => setModalEditarPedido(selecionado)}
+                  disabled={selecionado.status === 'ENTREGUE' || selecionado.status === 'CANCELADO'}
+                  className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg disabled:opacity-40"
                 >
                   <Pencil className="h-4 w-4" /> Editar pedido
                 </button>
@@ -734,6 +739,18 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
           </div>
         )}
       </div>
+
+      {modalNovoPedido && (
+        <NovoPedidoModal empresaId={empresaId} onClose={() => setModalNovoPedido(false)} onCriado={load} />
+      )}
+      {modalEditarPedido && (
+        <EditarPedidoModal
+          empresaId={empresaId}
+          pedido={modalEditarPedido}
+          onClose={() => setModalEditarPedido(null)}
+          onSalvo={load}
+        />
+      )}
     </div>
   );
 };

@@ -113,9 +113,10 @@ export interface PedidoItemInput {
 }
 
 export interface PedidoInput {
-  clienteNome: string;
-  clienteTelefone: string;
-  endereco: string;
+  /** Obrigatório só quando tipoPedido=DELIVERY (padrão); BALCAO/MESA/RETIRADA (só admin) dispensam. */
+  clienteNome?: string;
+  clienteTelefone?: string;
+  endereco?: string;
   bairro?: string;
   referencia?: string;
   formaPagamento: FormaPagamento;
@@ -127,5 +128,8 @@ export interface PedidoInput {
   agendadoPara?: string;
   usarCashback?: number;
   usarCoins?: number;
+  /** Só o admin (PDV/painel) pode enviar — checkout público sempre é DELIVERY. */
+  tipoPedido?: TipoPedido;
+  mesaIdentificador?: string;
   itens: PedidoItemInput[];
 }
