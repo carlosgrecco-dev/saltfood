@@ -43,6 +43,14 @@ export async function fetchClientes(empresaId: string): Promise<Cliente[]> {
   return apiRequestAsAdmin<Cliente[]>(empresaId, `/empresas/${empresaId}/clientes`);
 }
 
+/** Cadastro mínimo (nome + telefone opcional) usado no PDV pra identificar um cliente na hora, sem senha/conta própria. */
+export async function cadastroRapidoCliente(empresaId: string, nome: string, telefone?: string): Promise<Cliente> {
+  return apiRequestAsAdmin<Cliente>(empresaId, `/empresas/${empresaId}/clientes/cadastro-rapido`, {
+    method: 'POST',
+    body: JSON.stringify({ nome, telefone }),
+  });
+}
+
 /** Clientes com pedidos/gasto/último pedido/atividade agregados + estatísticas do programa de fidelidade no período (com variação vs período anterior), ranking e atividades recentes. */
 export async function fetchClientesFidelidadeResumo(empresaId: string, de?: string, ate?: string): Promise<FidelidadeAdminResumo> {
   const params = new URLSearchParams();

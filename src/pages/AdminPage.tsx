@@ -23,7 +23,7 @@ import GatewaysTab from '../components/admin/GatewaysTab';
 import AparenciaTab from '../components/admin/AparenciaTab';
 import CuponsTab from '../components/admin/CuponsTab';
 import OperacionalTab from '../components/admin/OperacionalTab';
-import PdvConfigTab from '../components/admin/PdvConfigTab';
+import PdvTab from '../components/admin/PdvTab';
 import ZonasEntregaTab from '../components/admin/ZonasEntregaTab';
 import FidelidadeTab from '../components/admin/FidelidadeTab';
 import CategoriasTab from '../components/admin/CategoriasTab';
@@ -446,7 +446,7 @@ const AdminPage: React.FC = () => {
         {tab === 'gateways' && <GatewaysTab empresaId={empresa.id} />}
         {tab === 'cupons' && <CuponsTab empresaId={empresa.id} />}
         {tab === 'fidelidade' && <FidelidadeTab empresaId={empresa.id} />}
-        {tab === 'pdv' && <PdvConfigTab empresaId={empresa.id} />}
+        {tab === 'pdv' && <PdvTab empresaId={empresa.id} />}
         {tab === 'operacional' && <OperacionalTab empresaId={empresa.id} />}
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'aparencia' && <AparenciaTab empresaId={empresa.id} />}

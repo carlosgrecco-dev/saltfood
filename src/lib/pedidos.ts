@@ -1,4 +1,4 @@
-import { Pedido, PedidoInput, StatusPedido, TipoPedido } from '../types/Pedido';
+import { Pedido, PedidoInput, StatusPedido, TipoPedido, FormaPagamento } from '../types/Pedido';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { apiRequestAsCliente, getClienteSession } from './clienteSession';
@@ -113,6 +113,33 @@ export async function updatePedidoStatus(
       ...(fotoEntrega ? { fotoEntrega } : {}),
       ...(pagamentoRecebido !== undefined ? { pagamentoRecebido } : {}),
       ...(valorRecebido !== undefined ? { valorRecebido } : {}),
+    }),
+  });
+}
+
+export interface PagamentoLinhaPdv {
+  formaPagamento: FormaPagamento;
+  valor: number;
+  trocoPara?: number;
+}
+
+/** Fecha uma venda do PDV (RECEBIDO -> ENTREGUE de uma vez), com 1 ou mais formas de pagamento
+ * (a divisão só é aceita se a loja tiver Empresa.pdvPermiteSplitPagamento) e ajuste manual opcional. */
+export async function finalizarVendaPdv(
+  empresaId: string,
+  id: string,
+  pagamentos: PagamentoLinhaPdv[],
+  ajuste?: { descontoManual?: number; acrescimoManual?: number; motivoAjusteManual?: string },
+): Promise<Pedido> {
+  return apiRequestAsAdmin<Pedido>(empresaId, `/empresas/${empresaId}/pedidos/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      status: 'ENTREGUE',
+      pagamentoRecebido: true,
+      pagamentos,
+      ...(ajuste?.descontoManual != null ? { descontoManual: ajuste.descontoManual } : {}),
+      ...(ajuste?.acrescimoManual != null ? { acrescimoManual: ajuste.acrescimoManual } : {}),
+      ...(ajuste?.motivoAjusteManual ? { motivoAjusteManual: ajuste.motivoAjusteManual } : {}),
     }),
   });
 }
