@@ -1,4 +1,4 @@
-import { Cupom, CupomInput, CupomValidado } from '../types/Cupom';
+import { Cupom, CupomInput, CupomValidado, CupomAdminResumo } from '../types/Cupom';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { getClienteSession } from './clienteSession';
@@ -15,6 +15,11 @@ export async function fetchCupons(empresaId: string, ativo?: boolean): Promise<C
 export async function fetchCuponsAsAdmin(empresaId: string, ativo?: boolean): Promise<Cupom[]> {
   const query = ativo !== undefined ? `?ativo=${ativo}` : '';
   return apiRequestAsAdmin<Cupom[]>(empresaId, `/empresas/${empresaId}/cupons${query}`);
+}
+
+/** Cupons com status calculado (ativo/agendado/expirado/esgotado) + estatísticas de uso do mês — pra tela de gestão do admin. */
+export async function fetchCuponsAdminResumo(empresaId: string): Promise<CupomAdminResumo> {
+  return apiRequestAsAdmin<CupomAdminResumo>(empresaId, `/empresas/${empresaId}/cupons/admin-resumo`);
 }
 
 export async function createCupom(empresaId: string, payload: CupomInput): Promise<Cupom> {
