@@ -1,4 +1,5 @@
 import { Cliente } from '../types/Cliente';
+import { FidelidadeAdminResumo } from '../types/Fidelidade';
 import { Pedido } from '../types/Pedido';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
@@ -40,6 +41,15 @@ export async function fetchMeusPedidos(empresaId: string, clienteId: string): Pr
 /** Lista todos os clientes cadastrados na loja, usado na aba "Clientes" do admin de Fidelidade. */
 export async function fetchClientes(empresaId: string): Promise<Cliente[]> {
   return apiRequestAsAdmin<Cliente[]>(empresaId, `/empresas/${empresaId}/clientes`);
+}
+
+/** Clientes com pedidos/gasto/último pedido/atividade agregados + estatísticas do programa de fidelidade no período (com variação vs período anterior), ranking e atividades recentes. */
+export async function fetchClientesFidelidadeResumo(empresaId: string, de?: string, ate?: string): Promise<FidelidadeAdminResumo> {
+  const params = new URLSearchParams();
+  if (de) params.set('de', de);
+  if (ate) params.set('ate', ate);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequestAsAdmin<FidelidadeAdminResumo>(empresaId, `/empresas/${empresaId}/clientes/admin-resumo${query}`);
 }
 
 /** Marca 1 item grátis do cliente como resgatado (retirada balcão/telefone, sem pedido online). */

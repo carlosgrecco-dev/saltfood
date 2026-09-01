@@ -16,8 +16,8 @@ const ITENS_POR_PAGINA = 10;
 const CORES_FORMA_PAGAMENTO: Record<string, { colorClass: string; strokeClass: string }> = {
   PIX: { colorClass: 'bg-emerald-500', strokeClass: 'stroke-emerald-500' },
   DINHEIRO: { colorClass: 'bg-amber-500', strokeClass: 'stroke-amber-500' },
-  CARTAO_CREDITO: { colorClass: 'bg-blue-500', strokeClass: 'stroke-blue-500' },
-  CARTAO_DEBITO: { colorClass: 'bg-purple-500', strokeClass: 'stroke-purple-500' },
+  CARTAO: { colorClass: 'bg-blue-500', strokeClass: 'stroke-blue-500' },
+  MULTIPLO: { colorClass: 'bg-purple-500', strokeClass: 'stroke-purple-500' },
 };
 
 /** dataMovimento/período vem como data pura (@db.Date, meia-noite UTC) — evita formatar via Date/fuso pra não voltar 1 dia. */

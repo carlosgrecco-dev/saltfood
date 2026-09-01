@@ -100,7 +100,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
   const header = (
     <div className="mb-4">
       <h2 className="text-lg font-bold text-gray-800">Fidelidade</h2>
-      <p className="text-sm text-gray-500">Cartão fidelidade, cashback e indicações dos seus clientes</p>
+      <p className="text-sm text-gray-500">Veja seus clientes fiéis e gerencie o programa de fidelidade da sua loja</p>
     </div>
   );
 
@@ -109,7 +109,7 @@ const FidelidadeTab: React.FC<FidelidadeTabProps> = ({ empresaId }) => {
       <div>
         {header}
         {switcher}
-        <FidelidadeClientesTab empresaId={empresaId} />
+        <FidelidadeClientesTab empresaId={empresaId} onAbrirConfiguracoes={() => setSubTab('config')} />
       </div>
     );
   }

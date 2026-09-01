@@ -80,6 +80,7 @@ export interface Pedido {
   fotoEntrega: string | null;
   clienteId: string | null;
   itemGratisResgatado: boolean;
+  unidadesFidelidadeCreditadas: number | null;
   cupomId: string | null;
   cupomCodigo: string | null;
   descontoCupom: number | null;

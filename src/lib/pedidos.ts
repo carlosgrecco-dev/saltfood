@@ -8,6 +8,7 @@ export interface PedidoFiltro {
   status?: StatusPedido;
   tipoPedido?: TipoPedido;
   motoboyId?: string;
+  clienteId?: string;
   motoboyPago?: boolean;
   de?: string;
   ate?: string;
@@ -30,6 +31,7 @@ export async function fetchPedidos(empresaId: string, filtro: PedidoFiltro = {})
   if (filtro.status) params.set('status', filtro.status);
   if (filtro.tipoPedido) params.set('tipoPedido', filtro.tipoPedido);
   if (filtro.motoboyId) params.set('motoboyId', filtro.motoboyId);
+  if (filtro.clienteId) params.set('clienteId', filtro.clienteId);
   if (filtro.motoboyPago !== undefined) params.set('motoboyPago', String(filtro.motoboyPago));
   if (filtro.de) params.set('de', filtro.de);
   if (filtro.ate) params.set('ate', filtro.ate);
