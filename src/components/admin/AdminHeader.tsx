@@ -6,6 +6,7 @@ import { TODOS_OS_ITENS, Tab } from './TenantAdminNav';
 interface AdminHeaderProps {
   empresaNome: string;
   empresaSlug: string;
+  empresaLogoUrl: string | null;
   session: AdminSession | null;
   navOpen: boolean;
   onToggleNav: () => void;
@@ -17,7 +18,7 @@ interface AdminHeaderProps {
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({
-  empresaNome, empresaSlug, session, navOpen, onToggleNav,
+  empresaNome, empresaSlug, empresaLogoUrl, session, navOpen, onToggleNav,
   lojaAberta, togglingLoja, onToggleLoja, onLogout, onSelectTab,
 }) => {
   const [buscaAberta, setBuscaAberta] = useState(false);
@@ -68,9 +69,13 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         </button>
 
         <div className="flex items-center gap-2.5 shrink-0 min-w-0">
-          <img src="/logo.png" alt="SaltFood" className="h-8 w-8 rounded-lg shrink-0" />
-          <span className="hidden lg:inline font-bold text-gray-800">SaltFood</span>
-          <span className="hidden lg:inline text-gray-300">|</span>
+          {empresaLogoUrl ? (
+            <img src={empresaLogoUrl} alt={empresaNome} className="h-8 w-8 rounded-lg shrink-0 object-cover" />
+          ) : (
+            <div className="h-8 w-8 rounded-lg shrink-0 bg-gray-100 flex items-center justify-center">
+              <Store className="h-4 w-4 text-gray-400" />
+            </div>
+          )}
           <div className="min-w-0 leading-tight">
             <p className="font-bold text-gray-800 text-sm truncate">{empresaNome}</p>
             <p className="text-[11px] text-gray-400 truncate">@{empresaSlug}</p>

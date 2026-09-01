@@ -362,6 +362,7 @@ const AdminPage: React.FC = () => {
       <AdminHeader
         empresaNome={empresa.nome}
         empresaSlug={slug}
+        empresaLogoUrl={empresa.logoUrl}
         session={session}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}
@@ -428,7 +429,7 @@ const AdminPage: React.FC = () => {
         </div>
 
         {tab === 'dashboard' && <DashboardTab empresaId={empresa.id} />}
-        {tab === 'crm' && <CrmTab empresaId={empresa.id} />}
+        {tab === 'crm' && <CrmTab empresaId={empresa.id} onAbrirFinanceiro={() => setTab('fechamento')} />}
         {tab === 'pedidos' && <PedidosTab empresaId={empresa.id} initialBucket="todos" />}
         {tab === 'pedidos-em-andamento' && <PedidosTab empresaId={empresa.id} initialBucket="em_andamento" />}
         {tab === 'pedidos-prontos' && <PedidosTab empresaId={empresa.id} initialBucket="prontos" />}

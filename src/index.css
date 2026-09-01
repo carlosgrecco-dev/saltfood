@@ -106,3 +106,22 @@
     height: 0px;
   }
 }
+
+/* Impressão de relatórios (Relatórios / Resumo Financeiro): quando existe um .print-area na
+   página (aberto via RelatorioModal), a impressão mostra só ele — esconde sidebar, header e
+   qualquer outra coisa, não importa a posição/z-index. Padrão CSS de impressão consolidado,
+   funciona com qualquer layout sem precisar marcar cada elemento como "esconder". */
+@media print {
+  body:has(.print-area) * {
+    visibility: hidden;
+  }
+  body:has(.print-area) .print-area,
+  body:has(.print-area) .print-area * {
+    visibility: visible;
+  }
+  body:has(.print-area) .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}
