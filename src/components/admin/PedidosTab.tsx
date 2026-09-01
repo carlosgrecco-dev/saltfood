@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChefHat, Truck, CheckCircle2, XCircle, Package, Printer, MessageCircle, BellOff, Layers, Gift, CalendarClock,
-  Search, ChevronDown, Grid2x2, List as ListIcon, Phone, MapPin, X, Pencil, PackageCheck,
+  Search, ChevronDown, Grid2x2, List as ListIcon, Phone, MapPin, X, Pencil, PackageCheck, Bike,
 } from 'lucide-react';
 import { Pedido, StatusPedido, TipoPedido, FormaPagamento, STATUS_PEDIDO_LABELS, TIPO_PEDIDO_LABELS, FORMA_PAGAMENTO_LABELS } from '../../types/Pedido';
 import { Motoboy } from '../../types/Motoboy';
@@ -86,6 +86,52 @@ const diasAtras = (n: number) => {
 const formatHora = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const formatDataHora = (iso: string) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
+/** PIX confirma na hora (praticamente junto da criação); dinheiro/cartão só confirma quando o
+ * motoboy recebe na entrega — não existe um timestamp próprio de "pagamento aprovado" no banco,
+ * então usa o evento real mais próximo em vez de inventar uma data. */
+const dataPagamentoAprovado = (pedido: Pedido): string | null => {
+  if (!pedido.pagamentoConfirmado) return null;
+  if (pedido.formaPagamento === 'PIX') return pedido.createdAt;
+  return pedido.entregueEm;
+};
+
+type EtapaStatus = 'concluida' | 'atual' | 'pendente';
+
+interface EtapaHistorico {
+  label: string;
+  em: string | null;
+  status: EtapaStatus;
+}
+
+/** Monta as etapas reais do pedido — a primeira sem timestamp diz "aguardando confirmação"
+ * (etapa atual, azul); as que vêm depois dela ficam cinzas (ainda não chegaram lá). */
+const montarHistorico = (pedido: Pedido): EtapaHistorico[] => {
+  if (pedido.status === 'CANCELADO') {
+    return [
+      { label: 'Pedido realizado', em: pedido.createdAt, status: 'concluida' },
+      { label: 'Cancelado', em: pedido.canceladoEm, status: 'concluida' },
+    ];
+  }
+
+  const brutas: { label: string; em: string | null }[] = [
+    { label: 'Pedido realizado', em: pedido.createdAt },
+    { label: 'Pagamento aprovado', em: dataPagamentoAprovado(pedido) },
+    { label: 'Pedido confirmado', em: pedido.preparandoEm },
+    ...(pedido.tipoPedido === 'DELIVERY' ? [{ label: 'Saiu para entrega', em: pedido.saiuEntregaEm }] : []),
+    { label: 'Entregue', em: pedido.entregueEm },
+  ];
+
+  let jaMarcouAtual = false;
+  return brutas.map((etapa) => {
+    if (etapa.em) return { ...etapa, status: 'concluida' as const };
+    if (!jaMarcouAtual) {
+      jaMarcouAtual = true;
+      return { ...etapa, status: 'atual' as const };
+    }
+    return { ...etapa, status: 'pendente' as const };
+  });
+};
+
 const TrendCaption: React.FC<{ atual: number; anterior: number; inverso?: boolean }> = ({ atual, anterior, inverso }) => {
   if (!anterior) return null;
   const percentual = ((atual - anterior) / anterior) * 100;
@@ -100,7 +146,7 @@ const TrendCaption: React.FC<{ atual: number; anterior: number; inverso?: boolea
 const POLL_INTERVAL_MS = 10000;
 
 const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => {
-  const { slug } = useTenant();
+  const { slug, empresa } = useTenant();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [pedidosKpi, setPedidosKpi] = useState<Pedido[]>([]);
   const [motoboys, setMotoboys] = useState<Motoboy[]>([]);
@@ -534,9 +580,18 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
           <div className="bg-white border border-gray-200 rounded-2xl p-5 h-fit sticky top-4 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800">Pedido #{String(selecionado.numero).padStart(4, '0')}</h3>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[selecionado.status]}`}>
-                {STATUS_PEDIDO_LABELS[selecionado.status]}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.open(`/${slug}/admin/pedidos/${selecionado.id}/imprimir`, '_blank', 'noopener,noreferrer')}
+                  title="Imprimir comanda"
+                  className="text-gray-400 hover:text-gray-700"
+                >
+                  <Printer className="h-4 w-4" />
+                </button>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[selecionado.status]}`}>
+                  {STATUS_PEDIDO_LABELS[selecionado.status]}
+                </span>
+              </div>
             </div>
             <p className="text-xs text-gray-400 flex items-center gap-1.5 -mt-2">
               {TIPO_PEDIDO_LABELS[selecionado.tipoPedido]} · {formatDataHora(selecionado.createdAt)}
@@ -617,11 +672,17 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5">Pagamento</p>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{FORMA_PAGAMENTO_LABELS[selecionado.formaPagamento]}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${selecionado.pagamentoConfirmado ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}`}>
-                  {selecionado.pagamentoConfirmado ? 'Pago' : 'Pendente'}
+                <span className="flex items-center gap-2 text-gray-700">
+                  {FORMA_PAGAMENTO_LABELS[selecionado.formaPagamento]}
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${selecionado.pagamentoConfirmado ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}`}>
+                    {selecionado.pagamentoConfirmado ? 'Pago' : 'Pendente'}
+                  </span>
                 </span>
+                <span className="font-bold text-gray-800">R$ {selecionado.total.toFixed(2)}</span>
               </div>
+              {dataPagamentoAprovado(selecionado) && (
+                <p className="text-xs text-gray-400 mt-1">Pagamento aprovado em {formatDataHora(dataPagamentoAprovado(selecionado)!)}</p>
+              )}
               {selecionado.formaPagamento === 'DINHEIRO' && selecionado.trocoPara != null && (
                 <p className="text-xs text-amber-700 mt-1">Cliente paga com R$ {selecionado.trocoPara.toFixed(2)}{selecionado.trocoPara > selecionado.total && ` — troco R$ ${(selecionado.trocoPara - selecionado.total).toFixed(2)}`}</p>
               )}
@@ -630,15 +691,36 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
             {selecionado.motoboyId && (
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5">Entrega</p>
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-800">{selecionado.motoboy?.nome}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                      <Bike className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Motoboy</p>
+                      <p className="font-medium text-gray-800 leading-tight">{selecionado.motoboy?.nome}</p>
+                      {motoboyDoSelecionado?.telefone && <p className="text-xs text-gray-400">{motoboyDoSelecionado.telefone}</p>}
+                    </div>
+                  </div>
                   {motoboyDoSelecionado?.telefone && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <a href={`tel:${motoboyDoSelecionado.telefone}`} className="text-gray-400 hover:text-gray-700"><Phone className="h-4 w-4" /></a>
                       <a href={linkWhatsapp(motoboyDoSelecionado.telefone, `Pedido #${String(selecionado.numero).padStart(4, '0')}`) || '#'} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-800"><MessageCircle className="h-4 w-4" /></a>
                     </div>
                   )}
                 </div>
+                {empresa.tempoEstimadoMax != null && selecionado.status !== 'ENTREGUE' && selecionado.status !== 'CANCELADO' && (
+                  <div className="flex items-center justify-between text-sm py-1">
+                    <span className="text-gray-500">Previsão de entrega</span>
+                    <span className="font-medium text-gray-800">{formatHora(new Date(new Date(selecionado.createdAt).getTime() + empresa.tempoEstimadoMax * 60000).toISOString())}</span>
+                  </div>
+                )}
+                {linkMapa(selecionado) && (
+                  <div className="flex items-center justify-between text-sm py-1">
+                    <span className="text-gray-500">Rotas</span>
+                    <a href={linkMapa(selecionado)!} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">Ver rota no mapa</a>
+                  </div>
+                )}
               </div>
             )}
 
@@ -654,20 +736,6 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Ações rápidas</p>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => window.open(`/${slug}/admin/pedidos/${selecionado.id}/imprimir`, '_blank', 'noopener,noreferrer')}
-                  className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg"
-                >
-                  <Printer className="h-4 w-4" /> Imprimir
-                </button>
-                <button
-                  onClick={() => setModalEditarPedido(selecionado)}
-                  disabled={selecionado.status === 'ENTREGUE' || selecionado.status === 'CANCELADO'}
-                  className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg disabled:opacity-40"
-                >
-                  <Pencil className="h-4 w-4" /> Editar pedido
-                </button>
-
                 {selecionado.status === 'RECEBIDO' && (
                   <button onClick={() => handleAvancar(selecionado, 'PREPARANDO')} className="col-span-2 flex items-center justify-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-3 py-2 rounded-lg">
                     <ChefHat className="h-4 w-4" /> Preparar
@@ -703,6 +771,27 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
                   </button>
                 )}
 
+                <button
+                  onClick={() => setModalEditarPedido(selecionado)}
+                  disabled={selecionado.status === 'ENTREGUE' || selecionado.status === 'CANCELADO'}
+                  className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg disabled:opacity-40"
+                >
+                  <Pencil className="h-4 w-4" /> Editar pedido
+                </button>
+
+                {selecionado.clienteTelefone ? (
+                  <a
+                    href={linkWhatsapp(selecionado.clienteTelefone, MENSAGEM_POR_STATUS[selecionado.status](selecionado.numero)) || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm px-3 py-2 rounded-lg"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Falar com o cliente
+                  </a>
+                ) : (
+                  <span />
+                )}
+
                 {selecionado.clienteId && !selecionado.itemGratisResgatado && selecionado.status !== 'ENTREGUE' && selecionado.status !== 'CANCELADO' && (
                   <button onClick={() => handleLiberarResgate(selecionado)} className="col-span-2 flex items-center justify-center gap-1.5 border border-orange-200 text-orange-600 hover:bg-orange-50 text-sm px-3 py-2 rounded-lg">
                     <Gift className="h-4 w-4" /> Liberar resgate de fidelidade
@@ -710,8 +799,8 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
                 )}
 
                 {selecionado.status !== 'ENTREGUE' && selecionado.status !== 'CANCELADO' && (
-                  <button onClick={() => handleCancelar(selecionado)} className="col-span-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
-                    Cancelar pedido
+                  <button onClick={() => handleCancelar(selecionado)} className="col-span-2 flex items-center justify-center gap-1.5 text-sm text-red-600 hover:bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
+                    <XCircle className="h-4 w-4" /> Cancelar pedido
                   </button>
                 )}
               </div>
@@ -720,18 +809,17 @@ const PedidosTab: React.FC<PedidosTabProps> = ({ empresaId, initialBucket }) => 
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Histórico do pedido</p>
               <div className="space-y-2">
-                {[
-                  { label: 'Pedido realizado', em: selecionado.createdAt },
-                  { label: 'Em preparo', em: selecionado.preparandoEm },
-                  ...(selecionado.tipoPedido === 'DELIVERY' ? [{ label: 'Saiu para entrega', em: selecionado.saiuEntregaEm }] : []),
-                  selecionado.status === 'CANCELADO'
-                    ? { label: 'Cancelado', em: selecionado.canceladoEm }
-                    : { label: 'Entregue', em: selecionado.entregueEm },
-                ].map((etapa, i) => (
+                {montarHistorico(selecionado).map((etapa, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${etapa.em ? 'bg-emerald-500' : 'bg-gray-200'}`} />
-                    <span className={etapa.em ? 'text-gray-700' : 'text-gray-400'}>{etapa.label}</span>
-                    {etapa.em && <span className="text-xs text-gray-400 ml-auto">{formatDataHora(etapa.em)}</span>}
+                    <span
+                      className={`h-2 w-2 rounded-full shrink-0 ${
+                        etapa.status === 'concluida' ? 'bg-emerald-500' : etapa.status === 'atual' ? 'bg-blue-500' : 'border-2 border-gray-300'
+                      }`}
+                    />
+                    <span className={etapa.status === 'pendente' ? 'text-gray-400' : 'text-gray-700'}>{etapa.label}</span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {etapa.em ? formatDataHora(etapa.em) : etapa.status === 'atual' ? 'Aguardando confirmação' : ''}
+                    </span>
                   </div>
                 ))}
               </div>
