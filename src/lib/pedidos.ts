@@ -1,4 +1,4 @@
-import { Pedido, PedidoInput, StatusPedido } from '../types/Pedido';
+import { Pedido, PedidoInput, StatusPedido, TipoPedido } from '../types/Pedido';
 import { apiRequest } from './apiClient';
 import { apiRequestAsAdmin } from './adminAuth';
 import { apiRequestAsCliente, getClienteSession } from './clienteSession';
@@ -6,6 +6,7 @@ import { apiRequestAsMotoboy, getMotoboySession } from './motoboySession';
 
 export interface PedidoFiltro {
   status?: StatusPedido;
+  tipoPedido?: TipoPedido;
   motoboyId?: string;
   motoboyPago?: boolean;
   de?: string;
@@ -27,6 +28,7 @@ function apiRequestAsAdminOuMotoboy<T>(empresaId: string, path: string, init?: R
 export async function fetchPedidos(empresaId: string, filtro: PedidoFiltro = {}): Promise<Pedido[]> {
   const params = new URLSearchParams();
   if (filtro.status) params.set('status', filtro.status);
+  if (filtro.tipoPedido) params.set('tipoPedido', filtro.tipoPedido);
   if (filtro.motoboyId) params.set('motoboyId', filtro.motoboyId);
   if (filtro.motoboyPago !== undefined) params.set('motoboyPago', String(filtro.motoboyPago));
   if (filtro.de) params.set('de', filtro.de);

@@ -429,7 +429,11 @@ const AdminPage: React.FC = () => {
 
         {tab === 'dashboard' && <DashboardTab empresaId={empresa.id} />}
         {tab === 'crm' && <CrmTab empresaId={empresa.id} />}
-        {tab === 'pedidos' && <PedidosTab empresaId={empresa.id} />}
+        {tab === 'pedidos' && <PedidosTab empresaId={empresa.id} initialBucket="todos" />}
+        {tab === 'pedidos-em-andamento' && <PedidosTab empresaId={empresa.id} initialBucket="em_andamento" />}
+        {tab === 'pedidos-prontos' && <PedidosTab empresaId={empresa.id} initialBucket="prontos" />}
+        {tab === 'pedidos-entregues' && <PedidosTab empresaId={empresa.id} initialBucket="entregues" />}
+        {tab === 'pedidos-cancelados' && <PedidosTab empresaId={empresa.id} initialBucket="cancelados" />}
         {tab === 'produtos' && <ProdutosTab empresaId={empresa.id} />}
         {tab === 'categorias' && <CategoriasTab empresaId={empresa.id} />}
         {tab === 'combos' && <CombosTab empresaId={empresa.id} />}

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   Package, Bike, DollarSign, ShoppingBag, BarChart3, CreditCard, Palette, Ticket, Tag,
   Clock, MapPin, Gift, LayoutDashboard, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
-  ChevronDown, Layers, PlusCircle, ListChecks, Table,
+  ChevronDown, Layers, PlusCircle, ListChecks, Table, ChefHat, Truck, CheckCircle2, XCircle,
 } from 'lucide-react';
 
 export type Tab =
   | 'dashboard' | 'crm'
-  | 'pedidos' | 'produtos' | 'categorias' | 'combos' | 'adicionais' | 'opcoes-grupos' | 'tabela-precos' | 'cupons'
+  | 'pedidos' | 'pedidos-em-andamento' | 'pedidos-prontos' | 'pedidos-entregues' | 'pedidos-cancelados'
+  | 'produtos' | 'categorias' | 'combos' | 'adicionais' | 'opcoes-grupos' | 'tabela-precos' | 'cupons'
   | 'motoboys' | 'zonas-entrega'
   | 'fidelidade' | 'missoes'
   | 'fechamento'
@@ -37,7 +38,17 @@ export const GRUPOS: NavGroup[] = [
     id: 'vendas',
     label: 'Vendas',
     items: [
-      { id: 'pedidos', label: 'Pedidos', icon: Package },
+      {
+        label: 'Pedidos',
+        icon: Package,
+        children: [
+          { id: 'pedidos', label: 'Todos os pedidos', icon: Package },
+          { id: 'pedidos-em-andamento', label: 'Em andamento', icon: ChefHat },
+          { id: 'pedidos-prontos', label: 'Prontos', icon: Truck },
+          { id: 'pedidos-entregues', label: 'Entregues', icon: CheckCircle2 },
+          { id: 'pedidos-cancelados', label: 'Cancelados', icon: XCircle },
+        ],
+      },
       {
         label: 'Produtos',
         icon: ShoppingBag,

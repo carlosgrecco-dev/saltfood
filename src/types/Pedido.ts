@@ -1,5 +1,13 @@
 export type FormaPagamento = 'PIX' | 'DINHEIRO' | 'CARTAO' | 'MULTIPLO';
 export type StatusPedido = 'RECEBIDO' | 'PREPARANDO' | 'SAIU_ENTREGA' | 'ENTREGUE' | 'CANCELADO';
+export type TipoPedido = 'DELIVERY' | 'BALCAO' | 'MESA' | 'RETIRADA';
+
+export const TIPO_PEDIDO_LABELS: Record<TipoPedido, string> = {
+  DELIVERY: 'Delivery',
+  BALCAO: 'Balcão',
+  MESA: 'Mesa',
+  RETIRADA: 'Retirada',
+};
 
 export const FORMA_PAGAMENTO_LABELS: Record<FormaPagamento, string> = {
   PIX: 'PIX',
@@ -42,6 +50,8 @@ export interface Pedido {
   id: string;
   empresaId: string;
   numero: number;
+  tipoPedido: TipoPedido;
+  mesaIdentificador: string | null;
   clienteNome: string | null;
   clienteTelefone: string | null;
   endereco: string | null;
@@ -52,6 +62,8 @@ export interface Pedido {
   total: number;
   formaPagamento: FormaPagamento;
   trocoPara: number | null;
+  pagamentoConfirmado: boolean;
+  valorRecebido: number | null;
   status: StatusPedido;
   observacoes: string | null;
   agendadoPara: string | null;
