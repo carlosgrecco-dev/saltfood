@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShoppingBag, Truck, TrendingUp, Star, Percent, Trophy, Clock3, XCircle, Download, MapPin, CalendarDays, Users, Ticket, ArrowUp, ArrowDown, Layers, BarChart3 } from 'lucide-react';
+import { ShoppingBag, Truck, TrendingUp, Star, Percent, Trophy, Clock3, XCircle, Download, MapPin, CalendarDays, Users, Ticket, Layers, BarChart3 } from 'lucide-react';
 import SimpleBarChart from '../SimpleBarChart';
 import StackedBar from '../StackedBar';
+import TrendBadge from '../TrendBadge';
 import { fetchCrmResumo, baixarCrmCsv } from '../../lib/crm';
 import { CrmSummary } from '../../types/Crm';
 import IndicacaoEmpresaCard from './IndicacaoEmpresaCard';
@@ -25,38 +26,6 @@ const CLASSE_ABC_COLORS: Record<'A' | 'B' | 'C', string> = {
   A: 'bg-emerald-100 text-emerald-800',
   B: 'bg-amber-100 text-amber-800',
   C: 'bg-gray-200 text-gray-700',
-};
-
-const Variacao: React.FC<{ atual: number; anterior: number }> = ({ atual, anterior }) => {
-  if (!anterior) return null;
-  const percentual = ((atual - anterior) / anterior) * 100;
-  const subiu = percentual >= 0;
-  return (
-    <span
-      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
-        subiu ? 'bg-emerald-500/20 text-emerald-50' : 'bg-red-500/20 text-red-50'
-      }`}
-    >
-      {subiu ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-      {Math.abs(percentual).toFixed(0)}%
-    </span>
-  );
-};
-
-const VariacaoClara: React.FC<{ atual: number; anterior: number }> = ({ atual, anterior }) => {
-  if (!anterior) return null;
-  const percentual = ((atual - anterior) / anterior) * 100;
-  const subiu = percentual >= 0;
-  return (
-    <span
-      className={`inline-flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
-        subiu ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-      }`}
-    >
-      {subiu ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-      {Math.abs(percentual).toFixed(0)}%
-    </span>
-  );
 };
 
 const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
@@ -195,7 +164,7 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
               <p className="text-orange-100 text-xs mb-1">Total Vendido</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-2xl font-bold">R$ {data.totalRevenue.toFixed(2)}</p>
-                {dataAnterior && <Variacao atual={data.totalRevenue} anterior={dataAnterior.totalRevenue} />}
+                {dataAnterior && <TrendBadge atual={data.totalRevenue} anterior={dataAnterior.totalRevenue} variante="escuro" />}
               </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">
@@ -210,7 +179,7 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-2xl font-bold text-gray-800">{data.totalOrders}</p>
-                {dataAnterior && <VariacaoClara atual={data.totalOrders} anterior={dataAnterior.totalOrders} />}
+                {dataAnterior && <TrendBadge atual={data.totalOrders} anterior={dataAnterior.totalOrders} />}
               </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">
@@ -219,7 +188,7 @@ const CrmTab: React.FC<CrmTabProps> = ({ empresaId }) => {
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-2xl font-bold text-gray-800">R$ {data.ticketMedio.toFixed(2)}</p>
-                {dataAnterior && <VariacaoClara atual={data.ticketMedio} anterior={dataAnterior.ticketMedio} />}
+                {dataAnterior && <TrendBadge atual={data.ticketMedio} anterior={dataAnterior.ticketMedio} />}
               </div>
             </div>
             <div className="bg-white border border-gray-200 p-5 rounded-2xl">

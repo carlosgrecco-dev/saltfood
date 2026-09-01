@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -30,10 +31,20 @@ import TenantProvider, { useTenant } from './context/TenantContext';
 import { CartProvider } from './context/CartContext';
 import { CustomerProvider } from './context/CustomerContext';
 import { InstallPromptProvider } from './context/InstallPromptContext';
+import { pingPresence } from './lib/dashboard';
+
+const PRESENCE_PING_INTERVAL_MS = 30000;
 
 /** Carrinho e sessão do cliente são reiniciados a cada troca de loja (key={slug}). */
 const StorefrontProviders = () => {
-  const { slug } = useTenant();
+  const { slug, empresa } = useTenant();
+
+  useEffect(() => {
+    pingPresence(empresa.id);
+    const interval = setInterval(() => pingPresence(empresa.id), PRESENCE_PING_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [empresa.id]);
+
   return (
     <CartProvider key={slug}>
       <CustomerProvider>

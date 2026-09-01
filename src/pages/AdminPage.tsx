@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Package, Bike, DollarSign, ShoppingBag, LogOut, ArrowLeft, UserCircle, Lock, Loader2, BarChart3, CreditCard, Palette, Ticket,
-  Clock, MapPin, Store, PowerOff, Menu, X, Gift, Tag, ChevronLeft, ChevronRight, Mail, Phone, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
+  LogOut, ArrowLeft, UserCircle, Lock, Loader2,
+  Store, PowerOff, Menu, X, ChevronLeft, ChevronRight, Mail, Phone,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
@@ -30,28 +30,8 @@ import FuncionalidadesTab from '../components/admin/FuncionalidadesTab';
 import MissoesTab from '../components/admin/MissoesTab';
 import SuporteTab from '../components/admin/SuporteTab';
 import AppLojistaTab from '../components/admin/AppLojistaTab';
-
-type Tab = 'crm' | 'pedidos' | 'produtos' | 'categorias' | 'motoboys' | 'fechamento' | 'pdv' | 'gateways' | 'cupons' | 'fidelidade' | 'operacional' | 'zonas-entrega' | 'aparencia' | 'funcionalidades' | 'missoes' | 'suporte' | 'app-lojista';
-
-const NAV_ITEMS: { id: Tab; label: string; icon: typeof Package }[] = [
-  { id: 'crm', label: 'CRM', icon: BarChart3 },
-  { id: 'pedidos', label: 'Pedidos', icon: Package },
-  { id: 'produtos', label: 'Produtos', icon: ShoppingBag },
-  { id: 'categorias', label: 'Categorias', icon: Tag },
-  { id: 'motoboys', label: 'Motoboys', icon: Bike },
-  { id: 'fechamento', label: 'Caixa', icon: DollarSign },
-  { id: 'pdv', label: 'PDV', icon: Receipt },
-  { id: 'gateways', label: 'Gateways', icon: CreditCard },
-  { id: 'cupons', label: 'Cupons', icon: Ticket },
-  { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
-  { id: 'operacional', label: 'Operacional', icon: Clock },
-  { id: 'zonas-entrega', label: 'Entrega & Frete', icon: MapPin },
-  { id: 'aparencia', label: 'Aparência', icon: Palette },
-  { id: 'funcionalidades', label: 'Funcionalidades', icon: Sparkles },
-  { id: 'missoes', label: 'Missões', icon: Target },
-  { id: 'suporte', label: 'Suporte', icon: LifeBuoy },
-  { id: 'app-lojista', label: 'App do Lojista', icon: Smartphone },
-];
+import DashboardTab from '../components/admin/DashboardTab';
+import TenantAdminNav, { Tab, TODOS_OS_ITENS } from '../components/admin/TenantAdminNav';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
@@ -67,7 +47,7 @@ const AdminPage: React.FC = () => {
   const { slug, empresa } = useTenant();
   const navigate = useNavigate();
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession(empresa.id));
-  const [tab, setTab] = useState<Tab>('crm');
+  const [tab, setTab] = useState<Tab>('dashboard');
   const [loginTab, setLoginTab] = useState<LoginTab>('admin');
 
   useEffect(() => {
@@ -444,25 +424,13 @@ const AdminPage: React.FC = () => {
             {navOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
           </button>
         </div>
-        <nav className="flex-1 overflow-y-auto py-2">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => { setTab(id); if (isMobile) setNavOpen(false); }}
-              title={!navOpen ? label : undefined}
-              className={`flex w-full items-center gap-3 py-3 text-sm font-medium transition-colors ${
-                navOpen ? 'px-5' : 'justify-center px-0'
-              } ${
-                tab === id
-                  ? 'border-r-4 border-orange-500 bg-orange-50 text-orange-600'
-                  : 'border-r-4 border-transparent text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {navOpen && <span className="truncate">{label}</span>}
-            </button>
-          ))}
-        </nav>
+        <TenantAdminNav
+          tab={tab}
+          onSelectTab={setTab}
+          navOpen={navOpen}
+          isMobile={isMobile}
+          onCloseMobile={() => setNavOpen(false)}
+        />
       </div>
 
       {/* Empurra o conteúdo pela largura do rail (recolhido) ou do menu cheio (expandido). */}
@@ -473,10 +441,11 @@ const AdminPage: React.FC = () => {
             <ArrowLeft className="h-4 w-4" /> Voltar para a loja
           </Link>
           <p className="text-gray-800 font-bold text-sm truncate">
-            {NAV_ITEMS.find((i) => i.id === tab)?.label}
+            {TODOS_OS_ITENS.find((i) => i.id === tab)?.label}
           </p>
         </div>
 
+        {tab === 'dashboard' && <DashboardTab empresaId={empresa.id} />}
         {tab === 'crm' && <CrmTab empresaId={empresa.id} />}
         {tab === 'pedidos' && <PedidosTab empresaId={empresa.id} />}
         {tab === 'produtos' && <ProdutosTab empresaId={empresa.id} />}
