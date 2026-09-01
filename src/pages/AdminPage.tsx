@@ -36,6 +36,8 @@ import CombosTab from '../components/admin/CombosTab';
 import OpcoesGruposTab from '../components/admin/OpcoesGruposTab';
 import TabelaPrecosTab from '../components/admin/TabelaPrecosTab';
 import TenantAdminNav, { Tab, TODOS_OS_ITENS } from '../components/admin/TenantAdminNav';
+import EstoqueTab from '../components/admin/EstoqueTab';
+import FornecedoresTab from '../components/admin/FornecedoresTab';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
@@ -447,6 +449,8 @@ const AdminPage: React.FC = () => {
         {tab === 'cupons' && <CuponsTab empresaId={empresa.id} />}
         {tab === 'fidelidade' && <FidelidadeTab empresaId={empresa.id} />}
         {tab === 'pdv' && <PdvTab empresaId={empresa.id} />}
+        {tab === 'estoque' && <EstoqueTab empresaId={empresa.id} />}
+        {tab === 'fornecedores' && <FornecedoresTab empresaId={empresa.id} />}
         {tab === 'operacional' && <OperacionalTab empresaId={empresa.id} />}
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'aparencia' && <AparenciaTab empresaId={empresa.id} />}
