@@ -3,14 +3,14 @@ import {
   Package, Bike, DollarSign, ShoppingBag, BarChart3, CreditCard, Palette, Ticket, Tag,
   Clock, MapPin, Gift, LayoutDashboard, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
   ChevronDown, Layers, PlusCircle, ListChecks, Table, ChefHat, Truck, CheckCircle2, XCircle,
-  Boxes, Star, UsersRound, Gauge, Wallet,
+  Boxes, Star, UsersRound, Gauge, Wallet, Navigation, Radar,
 } from 'lucide-react';
 
 export type Tab =
   | 'dashboard' | 'crm'
   | 'pedidos' | 'pedidos-em-andamento' | 'pedidos-prontos' | 'pedidos-entregues' | 'pedidos-cancelados'
   | 'produtos' | 'categorias' | 'combos' | 'adicionais' | 'opcoes-grupos' | 'tabela-precos' | 'cupons' | 'formas-pagamento'
-  | 'motoboys' | 'zonas-entrega'
+  | 'motoboys' | 'zonas-entrega' | 'entregas' | 'logistica'
   | 'fidelidade' | 'missoes' | 'avaliacoes' | 'grupos-clientes'
   | 'fechamento'
   | 'operacional' | 'pdv' | 'estoque' | 'fornecedores' | 'indicadores'
@@ -72,6 +72,8 @@ export const GRUPOS: NavGroup[] = [
     items: [
       { id: 'motoboys', label: 'Motoboys', icon: Bike },
       { id: 'zonas-entrega', label: 'Entrega & Frete', icon: MapPin },
+      { id: 'entregas', label: 'Entregas', icon: Navigation },
+      { id: 'logistica', label: 'Logística', icon: Radar },
     ],
   },
   {
