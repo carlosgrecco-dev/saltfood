@@ -81,6 +81,11 @@ export async function setFormasPagamento(id: string, input: Partial<FormasPagame
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/formas-pagamento`, { method: 'PUT', body: JSON.stringify(input) });
 }
 
+/** O pareamento em si só acontece no app (Bluetooth é local ao celular) — isso só espelha/reseta a config no servidor. Envie null nos dois campos pra limpar. */
+export async function setImpressoraConfig(id: string, input: { nome: string | null; macAddress: string | null }): Promise<Empresa> {
+  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/impressora-config`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
 export interface OperacionalInput {
   usarHorarioAutomatico: boolean;
   tempoEstimadoMin: number | null;

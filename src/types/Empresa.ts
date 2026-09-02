@@ -137,6 +137,9 @@ export interface Empresa {
   aceitaPix: boolean;
   aceitaDinheiro: boolean;
   aceitaCartao: boolean;
+  /** Impressora térmica Bluetooth pareada no app do lojista — o pareamento em si só acontece no aparelho, aqui é só espelho/reset remoto. */
+  impressoraNome: string | null;
+  impressoraMacAddress: string | null;
   /** Código próprio da loja pra indicar outros lojistas à plataforma (indicação tenant-a-tenant, diferente da indicação cliente-a-cliente). */
   codigoIndicacao: string | null;
   indicadaPorEmpresaId: string | null;
