@@ -3,8 +3,9 @@ import {
   Package, Bike, DollarSign, ShoppingBag, BarChart3, CreditCard, Palette, Ticket, Tag,
   Clock, MapPin, Gift, LayoutDashboard, Sparkles, Target, LifeBuoy, Smartphone, Receipt,
   ChevronDown, Layers, PlusCircle, ListChecks, Table, ChefHat, Truck, CheckCircle2, XCircle,
-  Boxes, Star, UsersRound, Gauge, Wallet, Navigation, Radar, Printer,
+  Boxes, Star, UsersRound, Gauge, Wallet, Navigation, Radar, Printer, Settings, Webhook, ScrollText, UserCog,
 } from 'lucide-react';
+import { PapelUsuarioAdmin } from '../../types/UsuarioAdmin';
 
 export type Tab =
   | 'dashboard' | 'crm'
@@ -14,7 +15,17 @@ export type Tab =
   | 'fidelidade' | 'missoes' | 'avaliacoes' | 'grupos-clientes'
   | 'fechamento'
   | 'operacional' | 'pdv' | 'estoque' | 'fornecedores' | 'indicadores' | 'impressoras'
-  | 'aparencia' | 'gateways' | 'funcionalidades' | 'suporte' | 'app-lojista';
+  | 'aparencia' | 'gateways' | 'funcionalidades' | 'suporte' | 'app-lojista'
+  | 'configuracoes' | 'webhook' | 'logs-atividade' | 'usuarios-admin';
+
+/** Cada papel de usuário de equipe só enxerga estes grupos do menu — o login master (sem papel)
+ * sempre vê tudo. "Sistema" nunca aparece pra usuário de equipe, de propósito: gestão de acesso
+ * fica centralizada em quem sempre teve controle total da loja. */
+const GRUPOS_POR_PAPEL: Record<PapelUsuarioAdmin, string[]> = {
+  GERENTE: ['painel', 'vendas', 'delivery', 'clientes', 'financeiro', 'desempenho', 'operacional'],
+  OPERADOR_CAIXA: ['painel', 'operacional', 'financeiro'],
+  ATENDENTE: ['painel', 'vendas', 'delivery'],
+};
 
 type NavEntry = { id: Tab; label: string; icon: typeof Package };
 type NavParent = { label: string; icon: typeof Package; children: NavEntry[] };
@@ -114,9 +125,13 @@ export const GRUPOS: NavGroup[] = [
     id: 'sistema',
     label: 'Sistema',
     items: [
+      { id: 'configuracoes', label: 'Configurações', icon: Settings },
       { id: 'aparencia', label: 'Aparência', icon: Palette },
       { id: 'gateways', label: 'Integrações', icon: CreditCard },
+      { id: 'webhook', label: 'Webhook', icon: Webhook },
       { id: 'funcionalidades', label: 'Funcionalidades', icon: Sparkles },
+      { id: 'usuarios-admin', label: 'Usuários', icon: UserCog },
+      { id: 'logs-atividade', label: 'Logs', icon: ScrollText },
       { id: 'suporte', label: 'Suporte', icon: LifeBuoy },
       { id: 'app-lojista', label: 'App do Lojista', icon: Smartphone },
     ],
@@ -131,10 +146,15 @@ interface TenantAdminNavProps {
   navOpen: boolean;
   isMobile: boolean;
   onCloseMobile: () => void;
+  /** Login master (sem papel) vê tudo; usuário de equipe só vê os grupos liberados pro papel dele. */
+  papel?: PapelUsuarioAdmin;
 }
 
-const TenantAdminNav: React.FC<TenantAdminNavProps> = ({ tab, onSelectTab, navOpen, isMobile, onCloseMobile }) => {
-  const parentAtivo = GRUPOS.flatMap((g) => g.items)
+const TenantAdminNav: React.FC<TenantAdminNavProps> = ({ tab, onSelectTab, navOpen, isMobile, onCloseMobile, papel }) => {
+  const gruposVisiveis = papel ? GRUPOS.filter((g) => GRUPOS_POR_PAPEL[papel].includes(g.id)) : GRUPOS;
+  const itensVisiveis = gruposVisiveis.flatMap((g) => g.items.flatMap((item) => (isParent(item) ? item.children : [item])));
+
+  const parentAtivo = gruposVisiveis.flatMap((g) => g.items)
     .filter(isParent)
     .find((p) => p.children.some((c) => c.id === tab))?.label;
   const [abertos, setAbertos] = useState<Set<string>>(() => new Set(parentAtivo ? [parentAtivo] : []));
@@ -161,7 +181,7 @@ const TenantAdminNav: React.FC<TenantAdminNavProps> = ({ tab, onSelectTab, navOp
   if (!navOpen) {
     return (
       <nav className="flex-1 overflow-y-auto py-2">
-        {TODOS_OS_ITENS.map(({ id, label, icon: Icon }) => (
+        {itensVisiveis.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => selecionar(id)}
@@ -181,7 +201,7 @@ const TenantAdminNav: React.FC<TenantAdminNavProps> = ({ tab, onSelectTab, navOp
 
   return (
     <nav className="flex-1 overflow-y-auto py-3">
-      {GRUPOS.map((grupo, i) => (
+      {gruposVisiveis.map((grupo, i) => (
         <div key={grupo.id} className={i > 0 ? 'mt-4' : ''}>
           <p className="px-5 mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400">{grupo.label}</p>
           {grupo.items.map((item) => {

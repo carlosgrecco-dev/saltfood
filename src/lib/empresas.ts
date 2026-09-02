@@ -81,6 +81,17 @@ export async function setFormasPagamento(id: string, input: Partial<FormasPagame
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/formas-pagamento`, { method: 'PUT', body: JSON.stringify(input) });
 }
 
+export interface DadosContatoInput {
+  responsavelNome?: string;
+  email?: string;
+  telefone?: string;
+}
+
+/** A própria loja atualiza contato — nome da loja, CNPJ/CPF, slug e usuário de login continuam só o Super Admin alterando. */
+export async function setDadosContato(id: string, input: DadosContatoInput): Promise<Empresa> {
+  return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/dados-contato`, { method: 'PATCH', body: JSON.stringify(input) });
+}
+
 /** O pareamento em si só acontece no app (Bluetooth é local ao celular) — isso só espelha/reseta a config no servidor. Envie null nos dois campos pra limpar. */
 export async function setImpressoraConfig(id: string, input: { nome: string | null; macAddress: string | null }): Promise<Empresa> {
   return apiRequestAsAdmin<Empresa>(id, `/empresas/${id}/impressora-config`, { method: 'PUT', body: JSON.stringify(input) });

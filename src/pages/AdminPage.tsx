@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, Mail, Phone,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
-import { getAdminSession, loginAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
+import { getAdminSession, loginAdmin, loginUsuarioAdmin, logoutAdmin, AdminSession } from '../lib/adminAuth';
 import { fetchEmpresaById, setLojaAberta } from '../lib/empresas';
 import { loginCliente } from '../lib/clientes';
 import { saveClienteSession } from '../lib/clienteSession';
@@ -45,6 +45,10 @@ import FormasPagamentoTab from '../components/admin/FormasPagamentoTab';
 import EntregasTab from '../components/admin/EntregasTab';
 import LogisticaTab from '../components/admin/LogisticaTab';
 import ImpressorasTab from '../components/admin/ImpressorasTab';
+import ConfiguracoesTab from '../components/admin/ConfiguracoesTab';
+import WebhookTab from '../components/admin/WebhookTab';
+import LogsAtividadeTab from '../components/admin/LogsAtividadeTab';
+import UsuariosAdminTab from '../components/admin/UsuariosAdminTab';
 
 type LoginTab = 'admin' | 'usuario' | 'motoboy';
 
@@ -121,16 +125,23 @@ const AdminPage: React.FC = () => {
   const [senha, setSenha] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [tipoLoginAdmin, setTipoLoginAdmin] = useState<'master' | 'equipe'>('master');
+  const [equipeEmail, setEquipeEmail] = useState('');
+  const [equipeSenha, setEquipeSenha] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsLoggingIn(true);
     try {
-      const novaSessao = await loginAdmin(empresa.id, usuario, senha);
+      const novaSessao = tipoLoginAdmin === 'master'
+        ? await loginAdmin(empresa.id, usuario, senha)
+        : await loginUsuarioAdmin(empresa.id, equipeEmail, equipeSenha);
       setSession(novaSessao);
       setUsuario('');
       setSenha('');
+      setEquipeEmail('');
+      setEquipeSenha('');
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Usuário ou senha incorretos');
     } finally {
@@ -217,36 +228,82 @@ const AdminPage: React.FC = () => {
 
             {loginTab === 'admin' && (
               <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2 text-sm">Usuário</label>
-                  <div className="relative">
-                    <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <input
-                      value={usuario}
-                      onChange={(e) => setUsuario(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="usuario.loja"
-                      autoComplete="username"
-                      required
-                    />
-                  </div>
-                </div>
+                {tipoLoginAdmin === 'master' ? (
+                  <>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2 text-sm">Usuário</label>
+                      <div className="relative">
+                        <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <input
+                          value={usuario}
+                          onChange={(e) => setUsuario(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          placeholder="usuario.loja"
+                          autoComplete="username"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2 text-sm">Senha</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <input
-                      type="password"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Digite sua senha"
-                      autoComplete="current-password"
-                      required
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2 text-sm">Senha</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <input
+                          type="password"
+                          value={senha}
+                          onChange={(e) => setSenha(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          placeholder="Digite sua senha"
+                          autoComplete="current-password"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2 text-sm">E-mail</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <input
+                          type="email"
+                          value={equipeEmail}
+                          onChange={(e) => setEquipeEmail(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          placeholder="seu.email@loja.com"
+                          autoComplete="username"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2 text-sm">Senha</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <input
+                          type="password"
+                          value={equipeSenha}
+                          onChange={(e) => setEquipeSenha(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          placeholder="Digite sua senha"
+                          autoComplete="current-password"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => { setTipoLoginAdmin((v) => (v === 'master' ? 'equipe' : 'master')); setLoginError(''); }}
+                  className="text-xs text-gray-400 hover:text-orange-600"
+                >
+                  {tipoLoginAdmin === 'master' ? 'Sou um usuário de equipe (gerente, caixa, atendente)' : 'Entrar com o login principal da loja'}
+                </button>
 
                 {loginError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{loginError}</div>
@@ -422,6 +479,7 @@ const AdminPage: React.FC = () => {
           navOpen={navOpen}
           isMobile={isMobile}
           onCloseMobile={() => setNavOpen(false)}
+          papel={session.papel}
         />
       </div>
 
@@ -460,6 +518,10 @@ const AdminPage: React.FC = () => {
         {tab === 'estoque' && <EstoqueTab empresaId={empresa.id} />}
         {tab === 'fornecedores' && <FornecedoresTab empresaId={empresa.id} />}
         {tab === 'impressoras' && <ImpressorasTab empresaId={empresa.id} />}
+        {tab === 'configuracoes' && <ConfiguracoesTab empresaId={empresa.id} onNavigate={setTab} />}
+        {tab === 'webhook' && <WebhookTab empresaId={empresa.id} />}
+        {tab === 'logs-atividade' && <LogsAtividadeTab empresaId={empresa.id} />}
+        {tab === 'usuarios-admin' && <UsuariosAdminTab empresaId={empresa.id} />}
         {tab === 'operacional' && <OperacionalTab empresaId={empresa.id} />}
         {tab === 'zonas-entrega' && <ZonasEntregaTab empresaId={empresa.id} />}
         {tab === 'entregas' && <EntregasTab empresaId={empresa.id} />}

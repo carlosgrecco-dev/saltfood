@@ -1,10 +1,14 @@
 import { apiRequest, ApiError } from './apiClient';
+import { PapelUsuarioAdmin } from '../types/UsuarioAdmin';
 
 export interface AdminSession {
   id: string;
   nome: string;
   usuario: string;
   token: string;
+  /** Presentes só quando a sessão é de um usuário secundário (login de equipe), não do login master. */
+  usuarioAdminId?: string;
+  papel?: PapelUsuarioAdmin;
 }
 
 const storageKey = (empresaId: string) => `admin_session_${empresaId}`;
@@ -24,6 +28,24 @@ export async function loginAdmin(empresaId: string, usuario: string, senha: stri
     method: 'POST',
     body: JSON.stringify({ usuario, senha }),
   });
+  sessionStorage.setItem(storageKey(empresaId), JSON.stringify(session));
+  return session;
+}
+
+/** Login de equipe (usuário secundário, aditivo ao login master acima) — mesmo armazenamento de sessão, então o resto do app não precisa saber a diferença. */
+export async function loginUsuarioAdmin(empresaId: string, email: string, senha: string): Promise<AdminSession> {
+  const resposta = await apiRequest<{ id: string; nome: string; email: string; papel: AdminSession['papel']; token: string }>(
+    `/empresas/${empresaId}/usuarios-admin/login`,
+    { method: 'POST', body: JSON.stringify({ email, senha }) }
+  );
+  const session: AdminSession = {
+    id: resposta.id,
+    nome: resposta.nome,
+    usuario: resposta.email,
+    token: resposta.token,
+    usuarioAdminId: resposta.id,
+    papel: resposta.papel,
+  };
   sessionStorage.setItem(storageKey(empresaId), JSON.stringify(session));
   return session;
 }
