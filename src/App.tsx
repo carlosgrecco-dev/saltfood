@@ -29,6 +29,7 @@ import SuperAdminConfiguracoesPage from './pages/SuperAdminConfiguracoesPage';
 import SuperAdminNotificacoesPage from './pages/SuperAdminNotificacoesPage';
 import SuperAdminRecursosPlataformaPage from './pages/SuperAdminRecursosPlataformaPage';
 import SuperAdminIntegracoesPage from './pages/SuperAdminIntegracoesPage';
+import SuperAdminRelatoriosPage from './pages/SuperAdminRelatoriosPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TenantProvider, { useTenant } from './context/TenantContext';
 import { CartProvider } from './context/CartContext';
@@ -76,6 +77,7 @@ function App() {
           <Route path="/super-admin/notificacoes" element={<SuperAdminNotificacoesPage />} />
           <Route path="/super-admin/recursos-plataforma" element={<SuperAdminRecursosPlataformaPage />} />
           <Route path="/super-admin/integracoes" element={<SuperAdminIntegracoesPage />} />
+          <Route path="/super-admin/relatorios" element={<SuperAdminRelatoriosPage />} />
           <Route path="/super-admin/configuracoes" element={<SuperAdminConfiguracoesPage />} />
 
           <Route path="/:slug" element={<TenantProvider />}>
