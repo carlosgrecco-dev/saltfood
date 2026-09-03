@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, LogOut, Wallet, ShoppingBag, TrendingUp, Percent, Building2, Users, Bike, Loader2,
-  Sparkles, Smartphone, Globe2, ListChecks, HeartPulse, Activity, PieChart, AlertTriangle, Clock3,
+  Sparkles, Smartphone, Globe2, HeartPulse, Activity, PieChart, AlertTriangle, Clock3,
   Building, UserPlus, MessageSquareWarning, ShieldAlert, Layers, CreditCard, Headset, BarChart3,
-  Settings, ScrollText, Coins, Inbox,
+  Settings, ScrollText, Coins, Inbox, Download,
 } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import NotificacoesBell from '../components/superadmin/NotificacoesBell';
@@ -135,6 +135,22 @@ const SuperAdminDashboardPage: React.FC = () => {
     navigate('/super-admin', { replace: true });
   };
 
+  const handleExportar = () => {
+    if (!data) return;
+    const linhas = (data.porTenant ?? []).map((t) => [t.nome, t.pedidosNoPeriodo, t.faturamentoNoPeriodo.toFixed(2), t.ticketMedioNoPeriodo.toFixed(2), t.ativo ? 'Ativa' : 'Inativa']);
+    const csv = [
+      ['Tenant', 'Pedidos', 'Faturamento', 'Ticket médio', 'Status'],
+      ...linhas,
+    ].map((l) => l.join(';')).join('\n');
+    const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `desempenho-tenants-${getRange().de || 'inicio'}-a-${getRange().ate || 'hoje'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!authorized) return null;
 
   const porFormaPagamentoSegmentos = (data?.porFormaPagamento ?? []).map((f) => ({
@@ -190,7 +206,8 @@ const SuperAdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mb-6 flex flex-wrap items-center gap-2">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {([
               { id: 'hoje', label: 'Hoje' },
               { id: '7dias', label: '7 dias' },
@@ -217,6 +234,14 @@ const SuperAdminDashboardPage: React.FC = () => {
                 <input type="date" value={customAte} onChange={(e) => setCustomAte(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
               </div>
             )}
+          </div>
+            <button
+              onClick={handleExportar}
+              disabled={!data}
+              className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 font-medium text-sm px-4 py-2 rounded-full disabled:opacity-50"
+            >
+              <Download className="h-3.5 w-3.5" /> Exportar relatórios
+            </button>
           </div>
 
           {loading ? (
@@ -254,21 +279,6 @@ const SuperAdminDashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white border border-gray-200 p-4 rounded-2xl">
-                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas com venda</p>
-                  <p className="text-lg font-bold text-gray-800">{data.lojasComVendaNoPeriodo}</p>
-                </div>
-                <div className="bg-white border border-gray-200 p-4 rounded-2xl">
-                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Novos tenants</p>
-                  <p className="text-lg font-bold text-gray-800">{data.novosTenantsNoPeriodo ?? 0}</p>
-                </div>
-                <div className="bg-white border border-gray-200 p-4 rounded-2xl">
-                  <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Bike className="h-3.5 w-3.5" /> Motoboys ativos</p>
-                  <p className="text-lg font-bold text-gray-800">{data.totalMotoboysAtivos}</p>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white border border-gray-200 p-5 rounded-2xl lg:col-span-1">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-orange-500" /> Faturamento ao longo do tempo</p>
@@ -287,38 +297,21 @@ const SuperAdminDashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden lg:col-span-2">
-                  <p className="text-sm font-semibold text-gray-700 px-5 pt-5 pb-4 flex items-center gap-1.5"><HeartPulse className="h-4 w-4 text-orange-500" /> Desempenho dos tenants</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-t border-gray-100 text-left text-xs uppercase tracking-wide text-gray-400">
-                          <th className="px-5 py-2 font-medium">Tenant</th>
-                          <th className="px-5 py-2 font-medium text-right">Pedidos</th>
-                          <th className="px-5 py-2 font-medium text-right">Faturamento</th>
-                          <th className="px-5 py-2 font-medium text-right">Ticket médio</th>
-                          <th className="px-5 py-2 font-medium">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(data.porTenant ?? []).slice(0, 8).map((t) => (
-                          <tr key={t.id} className="border-t border-gray-100">
-                            <td className="px-5 py-3 font-medium text-gray-800">{t.nome}</td>
-                            <td className="px-5 py-3 text-right text-gray-700">{t.pedidosNoPeriodo}</td>
-                            <td className="px-5 py-3 text-right text-gray-700">R$ {t.faturamentoNoPeriodo.toFixed(2)}</td>
-                            <td className="px-5 py-3 text-right text-gray-700">R$ {t.ticketMedioNoPeriodo.toFixed(2)}</td>
-                            <td className="px-5 py-3">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${t.ativo ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {t.ativo ? 'Ativa' : 'Inativa'}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5"><HeartPulse className="h-4 w-4 text-orange-500" /> Desempenho dos tenants</p>
                   </div>
-                  <button onClick={() => navigate('/super-admin/empresas')} className="w-full text-center text-xs font-medium text-orange-600 hover:underline px-5 py-3 border-t border-gray-100">
+                  <div className="space-y-3">
+                    {(data.porTenant ?? []).slice(0, 5).map((t) => (
+                      <div key={t.id} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-gray-700 truncate">{t.nome}</span>
+                        <span className="font-semibold text-gray-800 shrink-0">R$ {t.faturamentoNoPeriodo.toFixed(0)}</span>
+                      </div>
+                    ))}
+                    {(data.porTenant ?? []).length === 0 && <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período.</p>}
+                  </div>
+                  <button onClick={() => navigate('/super-admin/empresas')} className="w-full text-center text-xs font-medium text-orange-600 hover:underline pt-4 mt-1 border-t border-gray-100">
                     Ver todos os tenants
                   </button>
                 </div>
@@ -326,7 +319,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                 <div className="bg-white border border-gray-200 rounded-2xl p-5">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Clock3 className="h-4 w-4 text-orange-500" /> Atividade recente</p>
                   <div className="space-y-3">
-                    {(data.atividadeRecente ?? []).slice(0, 8).map((a, i) => {
+                    {(data.atividadeRecente ?? []).slice(0, 5).map((a, i) => {
                       const Icon = ATIVIDADE_ICON[a.tipo] || Activity;
                       return (
                         <div key={i} className="flex items-start gap-2.5 text-sm">
@@ -340,20 +333,23 @@ const SuperAdminDashboardPage: React.FC = () => {
                     })}
                     {(data.atividadeRecente ?? []).length === 0 && <p className="text-center text-gray-400 text-sm py-6">Nenhuma atividade ainda.</p>}
                   </div>
+                  <button onClick={() => navigate('/super-admin/notificacoes')} className="w-full text-center text-xs font-medium text-orange-600 hover:underline pt-4 mt-1 border-t border-gray-100">
+                    Ver todas as atividades
+                  </button>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white border border-gray-200 rounded-2xl p-5">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><BarChart3 className="h-4 w-4 text-orange-500" /> Top categorias</p>
                   <div className="space-y-3">
                     {(data.porCategoria ?? []).slice(0, 5).map((c) => (
-                      <div key={c.categoriaId} className="flex items-center gap-3">
-                        <span className="w-28 shrink-0 text-sm text-gray-600 truncate">{c.nome}</span>
-                        <div className="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div key={c.categoriaId}>
+                        <div className="flex items-center justify-between gap-2 text-sm mb-1">
+                          <span className="text-gray-600 truncate">{c.nome}</span>
+                          <span className="text-xs text-gray-500 shrink-0">R$ {c.receita.toFixed(0)} ({c.percentual.toFixed(0)}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                           <div className="h-full rounded-full bg-orange-500" style={{ width: `${c.percentual}%` }} />
                         </div>
-                        <span className="w-32 shrink-0 text-right text-xs text-gray-500">R$ {c.receita.toFixed(2)} ({c.percentual.toFixed(0)}%)</span>
                       </div>
                     ))}
                     {(data.porCategoria ?? []).length === 0 && <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período.</p>}
@@ -363,54 +359,18 @@ const SuperAdminDashboardPage: React.FC = () => {
                 <div className="bg-white border border-gray-200 rounded-2xl p-5">
                   <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><AlertTriangle className="h-4 w-4 text-orange-500" /> Status dos serviços</p>
                   <div className="space-y-2.5">
-                    <div className="flex items-center justify-between gap-2 text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                      <span className="flex items-center gap-2 text-amber-800"><Wallet className="h-3.5 w-3.5" /> {data.alertas?.faturasPendentes ?? 0} fatura(s) com pagamento pendente</span>
+                    <div className="flex items-center gap-2 text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                      <Wallet className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                      <span className="text-amber-800">{data.alertas?.faturasPendentes ?? 0} fatura(s) pendente(s)</span>
                     </div>
-                    <div className="flex items-center justify-between gap-2 text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
-                      <span className="flex items-center gap-2 text-gray-700"><UserPlus className="h-3.5 w-3.5" /> {data.alertas?.tenantsInativos30Dias ?? 0} tenant(s) inativo(s) há mais de 30 dias</span>
+                    <div className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
+                      <UserPlus className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                      <span className="text-gray-700">{data.alertas?.tenantsInativos30Dias ?? 0} tenant(s) inativo(s) 30+ dias</span>
                     </div>
-                    <p className="text-[11px] text-gray-400 pt-1">Backups e monitoramento detalhado: ver Monitoramento no menu Suporte e Relatórios.</p>
+                    <button onClick={() => navigate('/super-admin/monitoramento')} className="w-full text-center text-xs font-medium text-orange-600 hover:underline pt-2">
+                      Ver todos os alertas
+                    </button>
                   </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
-                  <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Smartphone className="h-4 w-4 text-orange-500" /> Dispositivos</p>
-                  {(data.dispositivos ?? []).length === 0 ? (
-                    <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
-                  ) : (
-                    <StackedBar
-                      segments={(data.dispositivos ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
-                      formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
-                    />
-                  )}
-                </div>
-                <div className="bg-white border border-gray-200 p-5 rounded-2xl">
-                  <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Globe2 className="h-4 w-4 text-orange-500" /> Navegadores</p>
-                  {(data.navegadores ?? []).length === 0 ? (
-                    <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
-                  ) : (
-                    <StackedBar
-                      segments={(data.navegadores ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
-                      formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-200 p-5 rounded-2xl mb-6">
-                <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><ListChecks className="h-4 w-4 text-orange-500" /> Uso de funcionalidades</p>
-                <div className="space-y-3">
-                  {(data.usoFuncionalidades ?? []).map((f) => (
-                    <div key={f.recurso} className="flex items-center gap-3">
-                      <span className="w-40 shrink-0 text-sm text-gray-600 truncate">{f.recurso}</span>
-                      <div className="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full bg-orange-500" style={{ width: `${f.percentual}%` }} />
-                      </div>
-                      <span className="w-24 shrink-0 text-right text-xs text-gray-500">{f.tenantsUsando} tenant{f.tenantsUsando === 1 ? '' : 's'} ({f.percentual}%)</span>
-                    </div>
-                  ))}
                 </div>
               </div>
 
@@ -429,6 +389,50 @@ const SuperAdminDashboardPage: React.FC = () => {
                       <span className="text-[11px] text-gray-500 group-hover:text-orange-600">{label}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Dados adicionais — não fazem parte do layout de referência, ficam à parte pra não
+                  quebrar a ordem das seções acima. */}
+              <div className="mt-8 pt-6 border-t border-dashed border-gray-200">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-4">Dados adicionais</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-white border border-gray-200 p-4 rounded-2xl">
+                    <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lojas com venda</p>
+                    <p className="text-lg font-bold text-gray-800">{data.lojasComVendaNoPeriodo}</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 p-4 rounded-2xl">
+                    <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> Novos tenants</p>
+                    <p className="text-lg font-bold text-gray-800">{data.novosTenantsNoPeriodo ?? 0}</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 p-4 rounded-2xl">
+                    <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Bike className="h-3.5 w-3.5" /> Motoboys ativos</p>
+                    <p className="text-lg font-bold text-gray-800">{data.totalMotoboysAtivos}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                    <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Smartphone className="h-4 w-4 text-orange-500" /> Dispositivos</p>
+                    {(data.dispositivos ?? []).length === 0 ? (
+                      <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
+                    ) : (
+                      <StackedBar
+                        segments={(data.dispositivos ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
+                        formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
+                      />
+                    )}
+                  </div>
+                  <div className="bg-white border border-gray-200 p-5 rounded-2xl">
+                    <p className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1.5"><Globe2 className="h-4 w-4 text-orange-500" /> Navegadores</p>
+                    {(data.navegadores ?? []).length === 0 ? (
+                      <p className="text-center text-gray-400 text-sm py-6">Sem dados neste período</p>
+                    ) : (
+                      <StackedBar
+                        segments={(data.navegadores ?? []).map((d, i) => ({ label: d.nome, value: d.quantidade, colorClass: PALETA_SEGMENTOS[i % PALETA_SEGMENTOS.length] }))}
+                        formatValue={(v) => `${v} pedido${v === 1 ? '' : 's'}`}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </>
