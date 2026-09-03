@@ -26,6 +26,7 @@ import SuperAdminLeadsPage from './pages/SuperAdminLeadsPage';
 import SuperAdminChamadosLojistasPage from './pages/SuperAdminChamadosLojistasPage';
 import SuperAdminSitePage from './pages/SuperAdminSitePage';
 import SuperAdminConfiguracoesPage from './pages/SuperAdminConfiguracoesPage';
+import SuperAdminNotificacoesPage from './pages/SuperAdminNotificacoesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TenantProvider, { useTenant } from './context/TenantContext';
 import { CartProvider } from './context/CartContext';
@@ -70,6 +71,7 @@ function App() {
           <Route path="/super-admin/leads" element={<SuperAdminLeadsPage />} />
           <Route path="/super-admin/chamados" element={<SuperAdminChamadosLojistasPage />} />
           <Route path="/super-admin/site" element={<SuperAdminSitePage />} />
+          <Route path="/super-admin/notificacoes" element={<SuperAdminNotificacoesPage />} />
           <Route path="/super-admin/configuracoes" element={<SuperAdminConfiguracoesPage />} />
 
           <Route path="/:slug" element={<TenantProvider />}>

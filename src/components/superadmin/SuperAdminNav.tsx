@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
-  LayoutDashboard, Coins, Inbox, Globe, Headset,
+  LayoutDashboard, Coins, Inbox, Globe, Headset, Bell,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -49,7 +49,10 @@ const GRUPOS: NavGroup[] = [
   {
     id: 'outros',
     label: 'Outros',
-    items: [{ path: '/super-admin/site', label: 'Site público', icon: Globe }],
+    items: [
+      { path: '/super-admin/notificacoes', label: 'Notificações', icon: Bell },
+      { path: '/super-admin/site', label: 'Site público', icon: Globe },
+    ],
   },
 ];
 
