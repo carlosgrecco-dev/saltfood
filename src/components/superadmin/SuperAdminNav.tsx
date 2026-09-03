@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
-  LayoutDashboard, Coins, Inbox, Globe, Headset, Bell, Sparkles, CreditCard, BarChart3,
+  LayoutDashboard, Coins, Inbox, Globe, Headset, Bell, Sparkles, CreditCard, BarChart3, Activity,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -49,6 +49,7 @@ const GRUPOS: NavGroup[] = [
     items: [
       { path: '/super-admin/chamados', label: 'Chamados', icon: Headset },
       { path: '/super-admin/relatorios', label: 'Relatórios', icon: BarChart3 },
+      { path: '/super-admin/monitoramento', label: 'Monitoramento', icon: Activity },
     ],
   },
   {
