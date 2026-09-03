@@ -7,6 +7,7 @@ import {
   Settings, ScrollText, Coins, Inbox,
 } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
+import NotificacoesBell from '../components/superadmin/NotificacoesBell';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchSuperAdminDashboard } from '../lib/superAdminDashboard';
 import { SuperAdminDashboard } from '../types/SuperAdminDashboard';
@@ -174,6 +175,7 @@ const SuperAdminDashboardPage: React.FC = () => {
                     <Activity className="h-3.5 w-3.5" /> Sistema operacional
                   </span>
                 )}
+                <NotificacoesBell />
                 <button
                   onClick={handleLogout}
                   title="Sair"
