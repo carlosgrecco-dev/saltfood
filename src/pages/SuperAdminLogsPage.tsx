@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ScrollText, LogIn, AlertOctagon, ShieldAlert, Loader2, ArrowLeft, CreditCard, RefreshCw,
+  ScrollText, LogIn, AlertOctagon, ShieldAlert, Loader2, ArrowLeft, RefreshCw,
 } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
-import { fetchLogs, fetchGatewaysStatus } from '../lib/logs';
-import { LogAuditoria, GatewayStatus, TipoLog, TIPO_LOG_LABELS } from '../types/Log';
+import { fetchLogs } from '../lib/logs';
+import { LogAuditoria, TipoLog, TIPO_LOG_LABELS } from '../types/Log';
 import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 const TIPO_ICON: Record<TipoLog, typeof LogIn> = {
@@ -37,7 +37,6 @@ const SuperAdminLogsPage: React.FC = () => {
   }, [navigate]);
 
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
-  const [gateways, setGateways] = useState<GatewayStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [tipoFiltro, setTipoFiltro] = useState<TipoLog | ''>('');
   const [navOpen, setNavOpen] = useState(true);
@@ -49,12 +48,7 @@ const SuperAdminLogsPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [l, g] = await Promise.all([
-        fetchLogs({ tipo: tipoFiltro || undefined }),
-        fetchGatewaysStatus(),
-      ]);
-      setLogs(l);
-      setGateways(g);
+      setLogs(await fetchLogs({ tipo: tipoFiltro || undefined }));
     } catch {
       /* silencioso */
     } finally {
@@ -103,29 +97,6 @@ const SuperAdminLogsPage: React.FC = () => {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5">
-          <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
-            <CreditCard className="h-4 w-4 text-orange-500" /> Status de integração com gateways de pagamento
-          </h2>
-          {gateways.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Nenhum gateway configurado em nenhuma loja ainda.</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {gateways.map((g) => (
-                <div key={g.id} className="border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-800 text-sm truncate">{g.nomeExibicao}</p>
-                    <p className="text-xs text-gray-400 truncate">{g.empresa.nome} · {g.provider}</p>
-                  </div>
-                  <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${g.ativo ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
-                    {g.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         <div className="rounded-2xl border border-gray-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="flex items-center gap-2 font-bold text-gray-800">
