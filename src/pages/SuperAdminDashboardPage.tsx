@@ -376,17 +376,17 @@ const SuperAdminDashboardPage: React.FC = () => {
 
               <div className="bg-white border border-gray-200 rounded-2xl p-5">
                 <p className="text-sm font-semibold text-gray-700 mb-4">Acesso rápido</p>
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
                   {ATALHOS.map(({ path, label, icon: Icon }) => (
                     <button
                       key={path}
                       onClick={() => navigate(path)}
-                      className="flex flex-col items-center gap-1.5 w-20 text-center group"
+                      className="flex flex-col items-center gap-1.5 text-center group"
                     >
                       <span className="h-11 w-11 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 group-hover:bg-orange-50 group-hover:border-orange-200 group-hover:text-orange-600 transition-colors">
                         <Icon className="h-5 w-5" />
                       </span>
-                      <span className="text-[11px] text-gray-500 group-hover:text-orange-600">{label}</span>
+                      <span className="text-[11px] text-gray-500 group-hover:text-orange-600 truncate w-full">{label}</span>
                     </button>
                   ))}
                 </div>
