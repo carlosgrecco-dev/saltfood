@@ -37,6 +37,7 @@ import SuperAdminIntegracoesPage from './pages/SuperAdminIntegracoesPage';
 import SuperAdminRelatoriosPage from './pages/SuperAdminRelatoriosPage';
 import SuperAdminMonitoramentoPage from './pages/SuperAdminMonitoramentoPage';
 import SuperAdminCampanhasPage from './pages/SuperAdminCampanhasPage';
+import SuperAdminBackupTenantsPage from './pages/SuperAdminBackupTenantsPage';
 import StatusPage from './pages/StatusPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TenantProvider, { useTenant } from './context/TenantContext';
@@ -92,6 +93,7 @@ function App() {
           <Route path="/super-admin/integracoes" element={<SuperAdminIntegracoesPage />} />
           <Route path="/super-admin/relatorios" element={<SuperAdminRelatoriosPage />} />
           <Route path="/super-admin/monitoramento" element={<SuperAdminMonitoramentoPage />} />
+          <Route path="/super-admin/backup-tenants" element={<SuperAdminBackupTenantsPage />} />
           <Route path="/super-admin/campanhas" element={<SuperAdminCampanhasPage />} />
           <Route path="/super-admin/configuracoes" element={<SuperAdminConfiguracoesPage />} />
 

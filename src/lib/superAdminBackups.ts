@@ -14,6 +14,10 @@ export async function gerarBackupTenant(empresaId: string): Promise<BackupGerado
   return apiRequestAsSuperAdmin<BackupGerado>(`/super-admin/backups/tenant/${empresaId}`, { method: 'POST' });
 }
 
+export async function removerBackup(nomeArquivo: string): Promise<void> {
+  return apiRequestAsSuperAdmin<void>(`/super-admin/backups/${encodeURIComponent(nomeArquivo)}`, { method: 'DELETE' });
+}
+
 /** Baixa um backup direto no navegador (a rota exige o header Authorization, por isso não dá pra usar um <a href> simples). */
 export async function baixarBackup(nomeArquivo: string): Promise<void> {
   const session = getSuperAdminSession();

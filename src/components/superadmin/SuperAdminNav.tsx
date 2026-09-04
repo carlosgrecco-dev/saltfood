@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
   LayoutDashboard, Coins, Inbox, Globe, Headset, Bell, Sparkles, CreditCard, BarChart3, Activity,
-  Radio, Megaphone, TrendingUp, Percent, Receipt, ArrowLeftRight, FileText,
+  Radio, Megaphone, TrendingUp, Percent, Receipt, ArrowLeftRight, FileText, HardDriveDownload,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -43,6 +43,13 @@ const GRUPOS: NavGroup[] = [
       { path: '/super-admin/financeiro/extrato', label: 'Extrato', icon: FileText },
       { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
       { path: '/super-admin/leads', label: 'Leads', icon: Inbox },
+    ],
+  },
+  {
+    id: 'backup',
+    label: 'Backup e Segurança',
+    items: [
+      { path: '/super-admin/backup-tenants', label: 'Backup dos Tenants', icon: HardDriveDownload },
     ],
   },
   {
