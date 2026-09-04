@@ -19,6 +19,11 @@ import SuperAdminDashboardPage from './pages/SuperAdminDashboardPage';
 import SuperAdminEmpresasPage from './pages/SuperAdminEmpresasPage';
 import SuperAdminNovaEmpresaPage from './pages/SuperAdminNovaEmpresaPage';
 import SuperAdminFinanceiroPage from './pages/SuperAdminFinanceiroPage';
+import SuperAdminFinanceiroFaturamentoPage from './pages/SuperAdminFinanceiroFaturamentoPage';
+import SuperAdminFinanceiroComissoesPage from './pages/SuperAdminFinanceiroComissoesPage';
+import SuperAdminFinanceiroFaturasPage from './pages/SuperAdminFinanceiroFaturasPage';
+import SuperAdminFinanceiroTransacoesPage from './pages/SuperAdminFinanceiroTransacoesPage';
+import SuperAdminFinanceiroExtratoPage from './pages/SuperAdminFinanceiroExtratoPage';
 import SuperAdminSaltfoodCoinsPage from './pages/SuperAdminSaltfoodCoinsPage';
 import SuperAdminPlanosPage from './pages/SuperAdminPlanosPage';
 import SuperAdminLogsPage from './pages/SuperAdminLogsPage';
@@ -71,6 +76,11 @@ function App() {
           <Route path="/super-admin/empresas" element={<SuperAdminEmpresasPage />} />
           <Route path="/super-admin/empresas/nova" element={<SuperAdminNovaEmpresaPage />} />
           <Route path="/super-admin/financeiro" element={<SuperAdminFinanceiroPage />} />
+          <Route path="/super-admin/financeiro/faturamento" element={<SuperAdminFinanceiroFaturamentoPage />} />
+          <Route path="/super-admin/financeiro/comissoes" element={<SuperAdminFinanceiroComissoesPage />} />
+          <Route path="/super-admin/financeiro/faturas" element={<SuperAdminFinanceiroFaturasPage />} />
+          <Route path="/super-admin/financeiro/transacoes" element={<SuperAdminFinanceiroTransacoesPage />} />
+          <Route path="/super-admin/financeiro/extrato" element={<SuperAdminFinanceiroExtratoPage />} />
           <Route path="/super-admin/saltfood-coins" element={<SuperAdminSaltfoodCoinsPage />} />
           <Route path="/super-admin/planos" element={<SuperAdminPlanosPage />} />
           <Route path="/super-admin/logs" element={<SuperAdminLogsPage />} />

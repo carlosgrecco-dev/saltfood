@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
   LayoutDashboard, Coins, Inbox, Globe, Headset, Bell, Sparkles, CreditCard, BarChart3, Activity,
-  Radio, Megaphone,
+  Radio, Megaphone, TrendingUp, Percent, Receipt, ArrowLeftRight, FileText,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -12,10 +12,10 @@ type NavEntry = { path: string; label: string; icon: typeof Building2 };
 type NavGroup = { id: string; label: string; items: NavEntry[] };
 
 /**
- * 5 grupos sempre visíveis (sem colapsar), mesmo padrão de `TenantAdminNav.tsx` — cada item já é
- * uma página real, sem placeholder. Conforme novas telas do Super Admin forem construídas
- * (Recursos da Plataforma, Integrações, Relatórios, Monitoramento, Notificações, Marketing &
- * Campanhas), entram no grupo certo aqui.
+ * 6 grupos sempre visíveis (sem colapsar), mesmo padrão de `TenantAdminNav.tsx` — cada item já é
+ * uma página real, sem placeholder. Financeiro é o único grupo com rotas aninhadas
+ * (/super-admin/financeiro/*) — ver `itemAtivo` abaixo pra por que o match de rota ativa não pode
+ * ser um simples `startsWith`.
  */
 const GRUPOS: NavGroup[] = [
   {
@@ -27,9 +27,20 @@ const GRUPOS: NavGroup[] = [
     id: 'gestao',
     label: 'Gestão',
     items: [
-      { path: '/super-admin/empresas', label: 'Empresas', icon: Building2 },
+      { path: '/super-admin/empresas', label: 'Empresas (Tenants)', icon: Building2 },
       { path: '/super-admin/planos', label: 'Planos', icon: Layers },
-      { path: '/super-admin/financeiro', label: 'Financeiro', icon: Wallet },
+    ],
+  },
+  {
+    id: 'financeiro',
+    label: 'Financeiro',
+    items: [
+      { path: '/super-admin/financeiro', label: 'Visão Geral', icon: Wallet },
+      { path: '/super-admin/financeiro/faturamento', label: 'Faturamento', icon: TrendingUp },
+      { path: '/super-admin/financeiro/comissoes', label: 'Comissões', icon: Percent },
+      { path: '/super-admin/financeiro/faturas', label: 'Faturas e Cobranças', icon: Receipt },
+      { path: '/super-admin/financeiro/transacoes', label: 'Transações', icon: ArrowLeftRight },
+      { path: '/super-admin/financeiro/extrato', label: 'Extrato', icon: FileText },
       { path: '/super-admin/saltfood-coins', label: 'SaltFood Coins', icon: Coins },
       { path: '/super-admin/leads', label: 'Leads', icon: Inbox },
     ],
@@ -86,6 +97,16 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
+
+  // Com o grupo Financeiro, "/super-admin/financeiro" virou prefixo de 5 rotas-irmãs
+  // (/financeiro/faturamento, /comissoes, /faturas, /transacoes, /extrato) — comparar só por
+  // startsWith acenderia "Visão Geral" junto com a página atual. Acha o item de prefixo mais
+  // longo que bate com a URL e usa só ele como ativo.
+  const itemAtivo = TODOS_OS_ITENS.reduce<NavEntry | null>((melhor, item) => {
+    const bate = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+    if (!bate) return melhor;
+    return !melhor || item.path.length > melhor.path.length ? item : melhor;
+  }, null);
 
   // Só no mobile o menu some por completo quando fechado; no desktop ele sempre fica visível
   // (recolhe pra modo ícone, mas nunca desaparece da tela).
@@ -165,7 +186,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
           {!open ? (
             // Recolhido: sem espaço pra cabeçalho de grupo, todos os itens viram um rail plano de ícones.
             TODOS_OS_ITENS.map(({ path, label, icon: Icon }) => {
-              const active = location.pathname.startsWith(path);
+              const active = itemAtivo?.path === path;
               return (
                 <button
                   key={path}
@@ -187,7 +208,7 @@ const SuperAdminNav: React.FC<SuperAdminNavProps> = ({ onOpenChange }) => {
                 <div key={grupo.id} className={i > 0 ? 'mt-4' : ''}>
                   <p className="px-5 mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400">{grupo.label}</p>
                   {grupo.items.map(({ path, label, icon: Icon }) => {
-                    const active = location.pathname.startsWith(path);
+                    const active = itemAtivo?.path === path;
                     return (
                       <button
                         key={path}
