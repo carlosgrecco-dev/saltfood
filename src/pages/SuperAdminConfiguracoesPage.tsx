@@ -1,12 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Save, ArrowLeft, Loader2, KeyRound, Plus, Trash2, Gift } from 'lucide-react';
+import { Settings, Save, ArrowLeft, Loader2, KeyRound, Plus, Trash2, Gift, HardDriveDownload, Download } from 'lucide-react';
 import SuperAdminNav from '../components/superadmin/SuperAdminNav';
 import { getSuperAdminSession, signOutSuperAdmin } from '../lib/superAdminAuth';
 import { fetchConfiguracaoPlataforma, updateConfiguracaoPlataforma } from '../lib/configuracoesPlataforma';
+import { fetchBackups, gerarBackupPlataforma, gerarBackupTenant, baixarBackup } from '../lib/superAdminBackups';
+import { fetchEmpresas } from '../lib/empresas';
+import { BackupInfo } from '../types/SuperAdminBackup';
+import { Empresa } from '../types/Empresa';
 import { useSuperAdminManifest } from '../hooks/useSuperAdminManifest';
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
+
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 const SuperAdminConfiguracoesPage: React.FC = () => {
   useSuperAdminManifest();
@@ -37,6 +47,14 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
   const [recompensaIndicacaoEmpresaValor, setRecompensaIndicacaoEmpresaValor] = useState('0');
   const [navOpen, setNavOpen] = useState(true);
 
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [backups, setBackups] = useState<BackupInfo[]>([]);
+  const [tenantSelecionado, setTenantSelecionado] = useState('');
+  const [gerandoPlataforma, setGerandoPlataforma] = useState(false);
+  const [gerandoTenant, setGerandoTenant] = useState(false);
+  const [baixandoArquivo, setBaixandoArquivo] = useState<string | null>(null);
+  const [erroBackup, setErroBackup] = useState('');
+
   useEffect(() => {
     if (!authorized) navigate('/super-admin', { replace: true });
   }, [authorized, navigate]);
@@ -64,11 +82,64 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
     if (authorized) load();
   }, [authorized, load]);
 
+  const loadBackups = useCallback(async () => {
+    try {
+      setBackups(await fetchBackups());
+    } catch {
+      /* silencioso */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authorized) return;
+    loadBackups();
+    fetchEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+  }, [authorized, loadBackups]);
+
   useEffect(() => {
     if (!feedback) return;
     const timer = setTimeout(() => setFeedback(null), 4000);
     return () => clearTimeout(timer);
   }, [feedback]);
+
+  const handleGerarBackupPlataforma = async () => {
+    if (!window.confirm('Gerar um backup de toda a plataforma agora? Isso lê todas as tabelas do banco — pode levar alguns segundos.')) return;
+    setErroBackup('');
+    setGerandoPlataforma(true);
+    try {
+      await gerarBackupPlataforma();
+      await loadBackups();
+    } catch (err) {
+      setErroBackup(err instanceof Error ? err.message : 'Não foi possível gerar o backup.');
+    } finally {
+      setGerandoPlataforma(false);
+    }
+  };
+
+  const handleGerarBackupTenant = async () => {
+    if (!tenantSelecionado) return;
+    setErroBackup('');
+    setGerandoTenant(true);
+    try {
+      await gerarBackupTenant(tenantSelecionado);
+      await loadBackups();
+    } catch (err) {
+      setErroBackup(err instanceof Error ? err.message : 'Não foi possível gerar o backup do tenant.');
+    } finally {
+      setGerandoTenant(false);
+    }
+  };
+
+  const handleBaixarBackup = async (nomeArquivo: string) => {
+    setBaixandoArquivo(nomeArquivo);
+    try {
+      await baixarBackup(nomeArquivo);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível baixar o backup.');
+    } finally {
+      setBaixandoArquivo(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,6 +317,79 @@ const SuperAdminConfiguracoesPage: React.FC = () => {
               {saving ? 'Salvando...' : 'Salvar configurações'}
             </button>
           </form>
+        )}
+
+        {!loading && (
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 mt-6">
+            <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-1">
+              <HardDriveDownload className="h-4 w-4 text-orange-500" /> Backups
+            </h2>
+            <p className="text-[11px] text-gray-400 mb-4">
+              Snapshot dos dados via Prisma (JSON) — não é um dump binário do Postgres. Gerado sob demanda, sem
+              agendamento automático.
+            </p>
+
+            {erroBackup && <p className="text-xs text-red-600 mb-3">{erroBackup}</p>}
+
+            <div className="flex flex-wrap items-end gap-3 mb-5">
+              <button
+                onClick={handleGerarBackupPlataforma}
+                disabled={gerandoPlataforma}
+                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg disabled:opacity-60"
+              >
+                {gerandoPlataforma ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
+                Gerar backup completo da plataforma
+              </button>
+
+              <div className="flex items-end gap-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Tenant</label>
+                  <select
+                    value={tenantSelecionado}
+                    onChange={(e) => setTenantSelecionado(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm min-w-[200px]"
+                  >
+                    <option value="">Selecione um tenant...</option>
+                    {empresas.map((emp) => (
+                      <option key={emp.id} value={emp.id}>{emp.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleGerarBackupTenant}
+                  disabled={gerandoTenant || !tenantSelecionado}
+                  className="flex items-center gap-1.5 border border-orange-300 text-orange-600 hover:bg-orange-50 font-medium text-sm px-4 py-2.5 rounded-lg disabled:opacity-60"
+                >
+                  {gerandoTenant ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
+                  Gerar backup deste tenant
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              {backups.map((b) => (
+                <div key={b.nomeArquivo} className="flex items-center justify-between gap-2 border border-gray-100 rounded-lg px-3 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.escopo === 'TENANT' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {b.escopo === 'TENANT' ? `Tenant: ${b.empresaNome || 'removido'}` : 'Plataforma'}
+                      </span>
+                      <p className="text-gray-700 truncate">{new Date(b.criadoEm).toLocaleString('pt-BR')}</p>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">{formatBytes(b.tamanho)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleBaixarBackup(b.nomeArquivo)}
+                    disabled={baixandoArquivo === b.nomeArquivo}
+                    className="flex items-center gap-1 text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg disabled:opacity-60 shrink-0"
+                  >
+                    {baixandoArquivo === b.nomeArquivo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Baixar
+                  </button>
+                </div>
+              ))}
+              {backups.length === 0 && <p className="text-center text-gray-400 text-sm py-6">Nenhum backup gerado ainda.</p>}
+            </div>
+          </section>
         )}
       </div>
       </div>
