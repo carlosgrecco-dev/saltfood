@@ -31,6 +31,7 @@ import SuperAdminRecursosPlataformaPage from './pages/SuperAdminRecursosPlatafor
 import SuperAdminIntegracoesPage from './pages/SuperAdminIntegracoesPage';
 import SuperAdminRelatoriosPage from './pages/SuperAdminRelatoriosPage';
 import SuperAdminMonitoramentoPage from './pages/SuperAdminMonitoramentoPage';
+import StatusPage from './pages/StatusPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TenantProvider, { useTenant } from './context/TenantContext';
 import { CartProvider } from './context/CartContext';
@@ -102,6 +103,7 @@ function App() {
           <Route path="/planos" element={<PlanosPage />} />
           <Route path="/recursos" element={<RecursosPage />} />
           <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
+          <Route path="/status" element={<StatusPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>

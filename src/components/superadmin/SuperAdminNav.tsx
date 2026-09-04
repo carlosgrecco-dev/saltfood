@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Building2, Wallet, Layers, ScrollText, Settings, Menu, X, Plus, ChevronLeft, ChevronRight,
   LayoutDashboard, Coins, Inbox, Globe, Headset, Bell, Sparkles, CreditCard, BarChart3, Activity,
+  Radio,
 } from 'lucide-react';
 import InstallAppButton from '../InstallAppButton';
 import { getSuperAdminSession } from '../../lib/superAdminAuth';
@@ -57,6 +58,7 @@ const GRUPOS: NavGroup[] = [
     label: 'Outros',
     items: [
       { path: '/super-admin/notificacoes', label: 'Notificações', icon: Bell },
+      { path: '/status', label: 'Status da Plataforma', icon: Radio },
       { path: '/super-admin/site', label: 'Site público', icon: Globe },
     ],
   },
